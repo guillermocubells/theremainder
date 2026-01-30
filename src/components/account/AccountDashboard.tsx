@@ -49,7 +49,7 @@ const AccountDashboard = ({ onNavigate }: AccountDashboardProps) => {
           ¡Hola, {profile?.full_name || user?.email?.split('@')[0]}!
         </h1>
         <p className="text-gray-600 mt-1">
-          Bienvenido a tu espacio personal en Fronda Prima
+          Bienvenido a tu espacio personal en Frondaprima
         </p>
       </div>
 
