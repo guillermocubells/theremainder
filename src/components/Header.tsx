@@ -16,7 +16,7 @@ const Header = () => {
               <TreePalm className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Regalu Botànic</h1>
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Frondaprima</h1>
               <p className="text-xs sm:text-sm text-green-600 hidden sm:block">Una colección destinada a un nuevo proyecto</p>
               <p className="text-xs text-green-600 sm:hidden">Colección botánica</p>
             </div>
@@ -31,7 +31,7 @@ const Header = () => {
               <DialogContent className="max-w-[90vw] sm:max-w-md w-full mx-auto text-center">
                 <DialogHeader className="text-center">
                   <DialogTitle className="text-sm sm:text-base lg:text-lg font-bold text-green-800 leading-tight text-center">
-                    Condiciones del Regalu Botànic
+                    Condiciones de Frondaprima
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3 pt-2 text-center">
