@@ -12,12 +12,9 @@ const PlantCuriousFacts = ({ curiousFacts }: PlantCuriousFactsProps) => {
   
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-green-200 transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="pb-3 sm:pb-4">
-        <CardTitle className="text-green-800 flex items-center space-x-2 text-base sm:text-lg lg:text-xl">
-          <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span>{t('curiousFacts.title')}</span>
-        </CardTitle>
-        <CardDescription className="text-xs sm:text-sm">{t('curiousFacts.subtitle')}</CardDescription>
+      <CardHeader>
+        <CardTitle className="text-green-800">{t('curiousFacts.title')}</CardTitle>
+        <CardDescription>{t('curiousFacts.subtitle')}</CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
         <ul className="space-y-2 sm:space-y-3">
