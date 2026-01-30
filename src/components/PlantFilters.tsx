@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plant } from "@/data/plants";
@@ -23,6 +24,7 @@ interface FilterState {
 }
 
 const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) => {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<FilterState>({
     plantGroup: "",
     light: "",
@@ -124,7 +126,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
               className="text-gray-600 hover:text-gray-800"
             >
               <X className="h-4 w-4 mr-1" />
-              Limpiar filtros
+              {t('filters.clearFilters')}
             </Button>
           )}
         </div>

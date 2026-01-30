@@ -1,0 +1,126 @@
+{
+  "header": {
+    "title": "Fronda Prima",
+    "subtitle": "The lost trees of the high altitudes",
+    "subtitleMobile": "High altitude botanica",
+    "findPlant": "Find your plant",
+    "myAccount": "My account",
+    "login": "Sign in"
+  },
+  "navigation": {
+    "backToCatalog": "Back to catalog",
+    "catalog": "Catalog"
+  },
+  "hero": {
+    "title": "Discover Unique High Mountain Plants",
+    "subtitle": "Explore our exclusive collection of palms and exotic plants adapted to temperate climates and high altitudes.",
+    "exploreCatalog": "Explore Catalog",
+    "findIdealPlant": "Find Your Ideal Plant"
+  },
+  "filters": {
+    "title": "Filters",
+    "search": "Search plants...",
+    "categories": "Categories",
+    "allCategories": "All categories",
+    "hardinessZone": "Hardiness Zone",
+    "allZones": "All zones",
+    "priceRange": "Price Range",
+    "clearFilters": "Clear filters",
+    "noResults": "No plants found with the selected filters.",
+    "resultsCount": "{{count}} plant found",
+    "resultsCount_plural": "{{count}} plants found"
+  },
+  "plant": {
+    "addToCart": "Add to cart",
+    "added": "Added",
+    "viewDetails": "View details",
+    "origin": "Origin",
+    "climate": "Climate",
+    "characteristics": "Characteristics",
+    "careInstructions": "Care Instructions",
+    "curiousFacts": "Curious Facts",
+    "reviews": "Reviews",
+    "notFound": "Plant not found",
+    "height": "Height",
+    "spread": "Spread",
+    "growth": "Growth",
+    "foliage": "Foliage"
+  },
+  "care": {
+    "water": "Water",
+    "light": "Light",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "soil": "Soil",
+    "fertilizer": "Fertilizer"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "emptyMessage": "Add some amazing plants to your cart",
+    "explorePlants": "Explore Plants",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "shippingCalculated": "Calculated at checkout",
+    "total": "Total",
+    "checkout": "Checkout",
+    "remove": "Remove",
+    "quantity": "Quantity"
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "forgotPassword": "Forgot your password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "logout": "Sign out"
+  },
+  "account": {
+    "title": "My Account",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "orders": "Orders",
+    "addresses": "Addresses",
+    "savedSearches": "Saved Searches",
+    "security": "Security"
+  },
+  "plantFinder": {
+    "title": "Find Your Ideal Plant",
+    "subtitle": "Answer a few questions to find the perfect plant for you",
+    "next": "Next",
+    "previous": "Previous",
+    "finish": "See Results",
+    "noResults": "We couldn't find plants matching your criteria",
+    "tryAgain": "Try again",
+    "question1": "How much light does your space receive?",
+    "question2": "How often can you water?",
+    "question3": "What size do you prefer?",
+    "question4": "What is your hardiness zone?"
+  },
+  "footer": {
+    "rights": "All rights reserved",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "language": {
+    "select": "Language",
+    "es": "Español",
+    "en": "English"
+  }
+}

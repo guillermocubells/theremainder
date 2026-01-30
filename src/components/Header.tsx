@@ -1,10 +1,12 @@
 import { TreePalm, Search, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { PlantFinderModal } from "@/components/PlantFinder";
 import { useAuth } from "@/contexts/AuthContext";
 import CartDrawer from "@/components/CartDrawer";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 
 const Header = () => {
@@ -12,6 +14,7 @@ const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isHeaderVisible = useScrollDirection();
+  const { t } = useTranslation();
   
   const handleAccountClick = () => {
     if (user) {
@@ -31,9 +34,9 @@ const Header = () => {
                 <TreePalm className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Fronda Prima</h1>
-                <p className="text-xs sm:text-sm text-green-600 hidden sm:block">The lost trees of the high altitudes</p>
-                <p className="text-xs text-green-600 sm:hidden">High altitude botanica</p>
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">{t('header.title')}</h1>
+                <p className="text-xs sm:text-sm text-green-600 hidden sm:block">{t('header.subtitle')}</p>
+                <p className="text-xs text-green-600 sm:hidden">{t('header.subtitleMobile')}</p>
               </div>
             </div>
             <div className="flex items-center space-x-1 sm:space-x-2 text-green-700 flex-shrink-0">
@@ -45,12 +48,14 @@ const Header = () => {
                 className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm px-2 sm:px-4"
               >
                 <Search className="h-4 w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Encuentra tu planta</span>
+                <span className="hidden sm:inline">{t('header.findPlant')}</span>
               </Button>
 
-              {/* Account button */}
               {/* Cart drawer */}
               <CartDrawer />
+
+              {/* Language switcher */}
+              <LanguageSwitcher />
 
               {/* Account button */}
               <Button 
@@ -61,7 +66,7 @@ const Header = () => {
               >
                 <User className="h-5 w-5 sm:mr-1" />
                 <span className="hidden sm:inline">
-                  {user ? 'Mi cuenta' : 'Entrar'}
+                  {user ? t('header.myAccount') : t('header.login')}
                 </span>
               </Button>
 
