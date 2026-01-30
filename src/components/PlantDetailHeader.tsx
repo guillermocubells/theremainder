@@ -244,7 +244,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
 
         {/* Price and Add to cart button */}
         {plant.quantity && Number(plant.quantity) > 0 && (
-          <div className="pt-4 sm:pt-6 space-y-3">
+          <div className="pt-4 sm:pt-6 flex flex-col sm:flex-row sm:items-center gap-4">
             {plant.price !== undefined && (
               <p className="text-2xl sm:text-3xl font-bold text-green-700">
                 {plant.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
