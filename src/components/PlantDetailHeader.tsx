@@ -62,8 +62,27 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200 mb-6 sm:mb-8">
-      <div className="flex flex-col space-y-4">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200 mb-6 sm:mb-8 relative">
+      {/* External link button - top right */}
+      <Button 
+        asChild
+        variant="outline" 
+        size="sm"
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 text-green-700 border-green-300 hover:bg-green-50 hover:border-green-400 text-xs sm:text-sm"
+      >
+        <a 
+          href={plant.link} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center gap-2"
+        >
+          <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Ver más información</span>
+          <span className="sm:hidden">Info</span>
+        </a>
+      </Button>
+
+      <div className="flex flex-col space-y-4 pr-20 sm:pr-40">
         {/* Title and basic info */}
         <div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2">
@@ -174,33 +193,16 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           </div>
         )}
 
-        {/* Add to cart and external link buttons */}
-        <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-4">
-          {plant.quantity && Number(plant.quantity) > 0 && (
+        {/* Add to cart button */}
+        {plant.quantity && Number(plant.quantity) > 0 && (
+          <div className="pt-2">
             <AddToCartButton
               plantId={plant.id}
               plantName={plant.name}
               maxQuantity={Number(plant.quantity)}
             />
-          )}
-          
-          <Button 
-            asChild
-            variant="outline" 
-            size="sm"
-            className="text-green-700 border-green-300 hover:bg-green-50 hover:border-green-400 text-xs sm:text-sm"
-          >
-            <a 
-              href={plant.link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
-            >
-              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-              Ver más información
-            </a>
-          </Button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
