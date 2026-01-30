@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Truck, ShoppingBag, Check, AlertCircle } from "lucide-react";
+import { ArrowLeft, Truck, ShoppingBag, CreditCard, AlertCircle, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 import Header from "@/components/Header";
@@ -42,9 +42,8 @@ const INITIAL_FORM: ShippingForm = {
 };
 
 const Checkout = () => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { items, getTotalPrice, clearCart } = useCart();
+  const { t, i18n } = useTranslation();
+  const { items, getTotalPrice } = useCart();
   const { user } = useAuth();
   const [form, setForm] = useState<ShippingForm>({
     ...INITIAL_FORM,
@@ -52,6 +51,7 @@ const Checkout = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<ShippingForm>>({});
+
 
   const totalPrice = getTotalPrice();
   const taxAmount = calculateTax(totalPrice);
@@ -120,20 +120,39 @@ const Checkout = () => {
     setIsSubmitting(true);
 
     try {
-      // Generate order number
-      const { data: orderNumberData } = await supabase.rpc("generate_order_number");
-      const orderNumber = orderNumberData || `FP-${Date.now()}`;
+      // Prepare cart items for Stripe
+      const cartItems = items.map((item) => ({
+        plantId: item.plantId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+        containerSize: item.containerSize,
+      }));
 
-      // For guest checkout, we'll create the order without a user_id
-      // For now, we'll just show a success message
-      // In production, you'd integrate with a payment provider here
+      // Call the Stripe checkout edge function
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: {
+          items: cartItems,
+          shippingAddress: form,
+          locale: i18n.language,
+        },
+      });
 
-      toast.success(t("checkout.orderSuccess"));
-      clearCart();
-      navigate("/", { replace: true });
+      if (error) {
+        console.error("Checkout function error:", error);
+        throw new Error(error.message || "Failed to create checkout session");
+      }
+
+      if (data?.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
     } catch (error) {
       console.error("Checkout error:", error);
-      toast.error(t("checkout.errors.orderFailed"));
+      toast.error(t("checkout.errors.paymentFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -383,11 +402,17 @@ const Checkout = () => {
                   {taxAmount.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
                 </p>
 
+                {/* Payment methods info */}
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+                  <Lock className="h-3 w-3" />
+                  <span>{t("checkout.securePayment")}</span>
+                </div>
+
                 {/* Submit button */}
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full bg-foreground hover:bg-foreground/90 text-background"
+                  className="w-full bg-[#635BFF] hover:bg-[#5851DB] text-white"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -397,7 +422,7 @@ const Checkout = () => {
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
-                      <Check className="h-4 w-4" />
+                      <CreditCard className="h-4 w-4" />
                       {t("checkout.placeOrder")}
                     </span>
                   )}

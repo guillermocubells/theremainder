@@ -352,15 +352,25 @@
     "shippingTbd": "Gastos de envío por determinar",
     "total": "Total (IVA incl.)",
     "includedTaxes": "Impuestos incluidos",
-    "placeOrder": "Confirmar pedido",
+    "placeOrder": "Pagar con Stripe",
     "processing": "Procesando...",
     "termsNote": "Al realizar el pedido, aceptas nuestras condiciones de venta",
     "orderSuccess": "¡Pedido realizado con éxito! Te contactaremos pronto.",
+    "paymentMethods": "Métodos de pago",
+    "paymentMethodsDesc": "Tarjetas, SEPA, iDEAL, Bancontact y más",
+    "securePayment": "Pago seguro con Stripe",
     "errors": {
       "required": "Este campo es obligatorio",
       "invalidEmail": "Introduce un email válido",
       "fixErrors": "Por favor, corrige los errores del formulario",
-      "orderFailed": "Error al procesar el pedido. Inténtalo de nuevo."
+      "orderFailed": "Error al procesar el pedido. Inténtalo de nuevo.",
+      "paymentFailed": "Error al iniciar el pago. Inténtalo de nuevo."
+    },
+    "success": {
+      "title": "¡Pago completado!",
+      "message": "Tu pedido ha sido procesado correctamente. Recibirás un email de confirmación en breve.",
+      "orderNumber": "Número de pedido",
+      "backToStore": "Volver a la tienda"
     }
   }
 }
