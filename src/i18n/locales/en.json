@@ -351,15 +351,25 @@
     "shippingTbd": "Shipping costs to be determined",
     "total": "Total (tax incl.)",
     "includedTaxes": "Included taxes",
-    "placeOrder": "Place order",
+    "placeOrder": "Pay with Stripe",
     "processing": "Processing...",
     "termsNote": "By placing your order, you accept our terms of sale",
     "orderSuccess": "Order placed successfully! We'll contact you soon.",
+    "paymentMethods": "Payment methods",
+    "paymentMethodsDesc": "Cards, SEPA, iDEAL, Bancontact and more",
+    "securePayment": "Secure payment with Stripe",
     "errors": {
       "required": "This field is required",
       "invalidEmail": "Enter a valid email",
       "fixErrors": "Please fix the form errors",
-      "orderFailed": "Failed to process order. Please try again."
+      "orderFailed": "Failed to process order. Please try again.",
+      "paymentFailed": "Failed to start payment. Please try again."
+    },
+    "success": {
+      "title": "Payment completed!",
+      "message": "Your order has been processed successfully. You'll receive a confirmation email shortly.",
+      "orderNumber": "Order number",
+      "backToStore": "Back to store"
     }
   }
 }
