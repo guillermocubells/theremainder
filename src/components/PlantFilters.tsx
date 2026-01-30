@@ -94,6 +94,8 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
             return (b.price || 0) - (a.price || 0);
           case 'nameAZ':
             return a.name.localeCompare(b.name);
+          case 'newest':
+            return (b.id || '').localeCompare(a.id || '');
           default:
             return 0;
         }
@@ -363,6 +365,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
                 </SelectTrigger>
                 <SelectContent className="bg-card border border-border shadow-lg z-50">
                   <SelectItem value="all">{t('filters.commercialBlock.sortOptions.relevance')}</SelectItem>
+                  <SelectItem value="newest">{t('filters.commercialBlock.sortOptions.newest')}</SelectItem>
                   <SelectItem value="priceLow">{t('filters.commercialBlock.sortOptions.priceLow')}</SelectItem>
                   <SelectItem value="priceHigh">{t('filters.commercialBlock.sortOptions.priceHigh')}</SelectItem>
                   <SelectItem value="nameAZ">{t('filters.commercialBlock.sortOptions.nameAZ')}</SelectItem>

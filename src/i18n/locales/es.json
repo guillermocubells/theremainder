@@ -77,6 +77,7 @@
       "sortBy": "Ordenar por",
       "sortOptions": {
         "relevance": "Relevancia",
+        "newest": "Más nuevo primero",
         "priceLow": "Precio: menor a mayor",
         "priceHigh": "Precio: mayor a menor",
         "nameAZ": "Nombre: A-Z"
