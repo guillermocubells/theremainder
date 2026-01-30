@@ -16,6 +16,7 @@ export interface Plant {
   ornamentalValue?: 'Convencional' | 'Bonito' | 'Hermoso' | 'Impresionante' | 'Único';
   waterNeeds?: 'Baja' | 'Moderada' | 'Alta';
   plantGroup?: 'Palmeras' | 'Helechos arbóreos' | 'Cícadas' | 'Árboles ornamentales' | 'Arbustos ornamentales' | 'Bambús' | 'Hierbas' | 'Bromeliáceas' | 'Heliconias' | 'Estrelicias' | 'Jengibres' | 'Plátanos' | 'Agaves y yucas' | 'Aráceas' | 'Suculentas' | 'Cactus' | 'Coníferas' | 'Perennes';
+  containerSize?: string; // e.g., "3 litros", "5 litros", "10 litros"
 }
 
 // Re-export helper functions from hardinessZones utility
@@ -38,6 +39,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Moderada',
   plantGroup: 'Palmeras',
+  containerSize: '3 litros',
   images: [
     "/lovable-uploads/06e39b13-24ac-425d-aaba-e54afa8e9a13.png",
     "/lovable-uploads/9ec90b24-0543-43f9-8fbc-9e0550441101.png", 
@@ -63,6 +65,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Único',
   waterNeeds: 'Alta',
   plantGroup: 'Palmeras',
+  containerSize: '5 litros',
   images: [
     "/lovable-uploads/ad7146c5-db03-446d-b3b2-5239278106cb.png",
     "/lovable-uploads/c9a2894c-6df3-45f5-98e5-04b3dd36c2b1.png",
@@ -86,6 +89,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Baja',
   plantGroup: 'Palmeras',
+  containerSize: '7 litros',
   images: [
     "/lovable-uploads/43efda5d-55eb-4fa9-b838-b43a3c7a2d1b.png",
     "/lovable-uploads/f77b4576-e17b-4cc8-a668-f80e5bd36ec2.png",
@@ -111,6 +115,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Único',
   waterNeeds: 'Baja',
   plantGroup: 'Palmeras',
+  containerSize: '5 litros',
   images: [
     "/lovable-uploads/83cb91af-99bc-45b2-813b-ff789c073d75.png",
     "/lovable-uploads/1e90a912-b532-4f36-b161-098738e1c354.png",
@@ -134,6 +139,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Hermoso',
   waterNeeds: 'Alta',
   plantGroup: 'Palmeras',
+  containerSize: '3 litros',
   images: [
     "/lovable-uploads/2a4b9586-d7ad-4739-b4f6-6d13018f59f4.png",
     "/lovable-uploads/445b5767-e24b-4d97-835b-b947e2295b98.png",
@@ -157,6 +163,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Moderada',
   plantGroup: 'Palmeras',
+  containerSize: '5 litros',
   images: [
     "/lovable-uploads/4b0c55aa-a762-40df-8abb-1a83b4d82ab7.png",
     "/lovable-uploads/074b2941-f6fe-4f65-9c05-7c09dcc25afb.png",
@@ -181,6 +188,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Alta',
   plantGroup: 'Helechos arbóreos',
+  containerSize: '3 litros',
   images: [
     "/lovable-uploads/1f5616bb-8f86-40f3-93ac-5d7685c5a05b.png",
     "/lovable-uploads/fcfe4130-c0fc-4b17-bb21-26888ccf76cb.png",
@@ -205,6 +213,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Alta',
   plantGroup: 'Helechos arbóreos',
+  containerSize: '5 litros',
   images: [
     "/lovable-uploads/889919fc-5410-4f32-89b7-a8d0d819f236.png",
     "/lovable-uploads/747cd9a7-76af-4194-84cd-6793e34c0f82.png",
@@ -229,6 +238,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Único',
   waterNeeds: 'Baja',
   plantGroup: 'Cícadas',
+  containerSize: '3 litros',
   images: [
     "/lovable-uploads/861d759e-ba67-4d4e-8fad-5ad1993827ef.png",
     "/lovable-uploads/4c8c52b1-6bce-4e7c-9708-f05986d91b4b.png",
@@ -251,6 +261,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Hermoso',
   waterNeeds: 'Moderada',
   plantGroup: 'Arbustos ornamentales',
+  containerSize: '5 litros',
   images: [
     "/lovable-uploads/a04b7d73-9b68-4e31-9174-3d181aad491c.png",
     "/lovable-uploads/9b38e27d-78c3-4b53-a08a-b3441009766c.png",
@@ -274,6 +285,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Bonito',
   waterNeeds: 'Moderada',
   plantGroup: 'Palmeras',
+  containerSize: '2 litros',
   images: [
     "/lovable-uploads/be0531d2-cf9b-4f2c-8ec7-e758b8dbfd69.png",
     "/lovable-uploads/b04dba5e-73cf-4818-8829-a26db8d884c2.png",
@@ -297,6 +309,7 @@ export const plants: Plant[] = [{
   ornamentalValue: 'Único',
   waterNeeds: 'Alta',
   plantGroup: 'Palmeras',
+  containerSize: '3 litros',
   images: [
     "/lovable-uploads/a89e97f5-5824-4441-93f5-09cd6f7b3afb.png",
     "/lovable-uploads/bae0e819-14d7-4c16-84d0-87cb8b7d7dfc.png",

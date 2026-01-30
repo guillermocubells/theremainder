@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 import PlantDetailHeader from "./PlantDetailHeader";
 import PlantPhotoCarousel from "./PlantPhotoCarousel";
+import PlantSpecifications from "./PlantSpecifications";
 import CareInstructions from "./CareInstructions";
 import PlantCharacteristics from "./PlantCharacteristics";
 import PlantCuriousFacts from "./PlantCuriousFacts";
@@ -113,6 +114,14 @@ const PlantDetail = () => {
 
             {/* Photo Carousel */}
             <PlantPhotoCarousel images={plant.images} plantName={plant.name} />
+
+            {/* Specifications Section */}
+            <PlantSpecifications 
+              containerSize={plant.containerSize}
+              height={detail?.height}
+              origin={detail?.origin}
+              family={detail?.family}
+            />
 
             {/* Care Instructions and Characteristics Section */}
             {detail && (
