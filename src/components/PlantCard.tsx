@@ -81,6 +81,11 @@ const PlantCard = ({ plant }: PlantCardProps) => {
           <CardDescription className="text-gray-600 font-medium text-xs sm:text-sm">
             {plant.commonName}
           </CardDescription>
+          {plant.price !== undefined && (
+            <p className="text-green-700 font-bold text-sm sm:text-base mt-1">
+              {plant.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+            </p>
+          )}
         </CardHeader>
         <CardContent className="flex-1 flex flex-col pb-4 sm:pb-6">
           <div className="flex-1 flex flex-col">
