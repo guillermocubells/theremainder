@@ -236,21 +236,9 @@
   "footer": {
     "quote": "Plantar un árbol de un lugar elevado es llevar la altura a las tierras bajas — un acto de silenciosa rebeldía contra el olvido.",
     "rights": "Todos los derechos reservados",
-    "information": "Información",
-    "contact": "Contacto",
-    "visitUs": "Visítanos",
-    "delivery": "Envíos",
-    "faq": "Preguntas frecuentes",
-    "legal": "Legal",
-    "legalNotice": "Aviso legal",
-    "terms": "Condiciones de venta",
-    "privacy": "Política de privacidad",
-    "sitemap": "Mapa del sitio",
-    "newsletter": "Newsletter",
-    "emailPlaceholder": "Tu dirección de email",
-    "subscribe": "Suscribirse",
-    "privacyConsent": "* Al enviar este formulario, he leído y acepto la política de privacidad de este sitio. Acepto que la información introducida se utilizará como parte de la relación comercial que pueda resultar.",
-    "followUs": "Síguenos en las redes"
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "contact": "Contacto"
   },
   "common": {
     "loading": "Cargando...",
