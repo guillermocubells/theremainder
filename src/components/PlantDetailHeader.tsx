@@ -194,7 +194,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
 
         {/* Notes as collapsible */}
         {plant.notes && (
-          <Collapsible defaultOpen className="bg-green-50 border border-green-200 rounded-lg overflow-hidden">
+          <Collapsible className="bg-green-50 border border-green-200 rounded-lg overflow-hidden">
             <CollapsibleTrigger className="flex items-center justify-between w-full p-3 sm:p-4 hover:bg-green-100/50 transition-colors">
               <h3 className="font-bold text-green-800 text-sm sm:text-base">{t('plant.notes')}</h3>
               <ChevronDown className="h-4 w-4 text-green-700 transition-transform duration-200 data-[state=open]:rotate-180" />
@@ -207,7 +207,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
 
         {/* Product Details as collapsible */}
         {(plant.containerSize || plant.germinationDate) && (
-          <Collapsible defaultOpen className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+          <Collapsible className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
             <CollapsibleTrigger className="flex items-center justify-between w-full p-3 sm:p-4 hover:bg-gray-100/50 transition-colors">
               <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
                 {t('plant.productDetails')}
