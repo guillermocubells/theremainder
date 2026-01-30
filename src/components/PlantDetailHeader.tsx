@@ -22,6 +22,7 @@ interface Plant {
   hardinessZones?: string[];
   containerSize?: string;
   germinationDate?: string;
+  price?: number;
 }
 
 interface PlantDetailHeaderProps {
@@ -241,9 +242,14 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           </Collapsible>
         )}
 
-        {/* Add to cart button */}
+        {/* Price and Add to cart button */}
         {plant.quantity && Number(plant.quantity) > 0 && (
-          <div className="pt-4 sm:pt-6">
+          <div className="pt-4 sm:pt-6 space-y-3">
+            {plant.price !== undefined && (
+              <p className="text-2xl sm:text-3xl font-bold text-green-700">
+                {plant.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+              </p>
+            )}
             <AddToCartButton
               plantId={plant.id}
               plantName={plant.name}
