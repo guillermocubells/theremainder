@@ -238,7 +238,33 @@
     "rights": "Todos los derechos reservados",
     "privacy": "Privacidad",
     "terms": "Términos",
-    "contact": "Contacto"
+    "contact": "Contacto",
+    "navigation": {
+      "title": "Explorar",
+      "contact": "Contacto",
+      "visit": "Visítanos",
+      "delivery": "Entrega",
+      "loyalty": "Fidelización",
+      "faq": "FAQ"
+    },
+    "legal": {
+      "title": "Legal",
+      "notice": "Aviso legal",
+      "termsOfSale": "Términos de venta",
+      "privacyPolicy": "Política de privacidad",
+      "sitemap": "Sitemap"
+    },
+    "newsletter": {
+      "title": "Newsletter",
+      "description": "Recibe novedades sobre nuevas especies y consejos de cultivo",
+      "placeholder": "Tu email",
+      "subscribe": "Suscribirse",
+      "success": "¡Suscripción exitosa!"
+    },
+    "social": {
+      "title": "Síguenos"
+    },
+    "tagline": "Botánica experimental de altura"
   },
   "common": {
     "loading": "Cargando...",

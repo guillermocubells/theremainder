@@ -207,7 +207,33 @@
     "rights": "All rights reserved",
     "privacy": "Privacy",
     "terms": "Terms",
-    "contact": "Contact"
+    "contact": "Contact",
+    "navigation": {
+      "title": "Explore",
+      "contact": "Contact",
+      "visit": "Visit Us",
+      "delivery": "Delivery",
+      "loyalty": "Loyalty",
+      "faq": "FAQ"
+    },
+    "legal": {
+      "title": "Legal",
+      "notice": "Legal Notice",
+      "termsOfSale": "Terms of Sale",
+      "privacyPolicy": "Privacy Policy",
+      "sitemap": "Sitemap"
+    },
+    "newsletter": {
+      "title": "Newsletter",
+      "description": "Receive updates on new species and cultivation tips",
+      "placeholder": "Your email",
+      "subscribe": "Subscribe",
+      "success": "Successfully subscribed!"
+    },
+    "social": {
+      "title": "Follow Us"
+    },
+    "tagline": "Experimental high-altitude botanics"
   },
   "common": {
     "loading": "Loading...",
