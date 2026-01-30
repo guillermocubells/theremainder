@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { X } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
@@ -23,33 +23,39 @@ interface FilterState {
   water: string;
 }
 
+const INITIAL_FILTERS: FilterState = {
+  plantGroup: "",
+  light: "",
+  growth: "",
+  location: "",
+  zone: "",
+  stock: "",
+  ornamental: "",
+  water: ""
+};
+
+const PLANT_GROUP_OPTIONS = [
+  'Palmeras', 'Helechos arbóreos', 'Cícadas', 'Árboles ornamentales', 
+  'Arbustos ornamentales', 'Bambús', 'Hierbas', 'Bromeliáceas', 
+  'Heliconias', 'Estrelicias', 'Jengibres', 'Plátanos', 
+  'Agaves y yucas', 'Aráceas', 'Suculentas', 'Cactus', 'Coníferas', 'Perennes'
+];
+
+const ORNAMENTAL_OPTIONS = ['Convencional', 'Bonito', 'Hermoso', 'Impresionante', 'Único'];
+const WATER_OPTIONS = ['Baja', 'Moderada', 'Alta'];
+
 const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) => {
   const { t } = useTranslation();
-  const [filters, setFilters] = useState<FilterState>({
-    plantGroup: "",
-    light: "",
-    growth: "",
-    location: "",
-    zone: "",
-    stock: "",
-    ornamental: "",
-    water: ""
-  });
+  const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
 
-  // Get unique values for each filter
-  const plantGroupOptions = [
-    'Palmeras', 'Helechos arbóreos', 'Cícadas', 'Árboles ornamentales', 
-    'Arbustos ornamentales', 'Bambús', 'Hierbas', 'Bromeliáceas', 
-    'Heliconias', 'Estrelicias', 'Jengibres', 'Plátanos', 
-    'Agaves y yucas', 'Aráceas', 'Suculentas', 'Cactus', 'Coníferas', 'Perennes'
-  ];
-  const lightOptions = Array.from(new Set(plants.map(p => p.light))).sort();
-  const growthOptions = Array.from(new Set(plants.map(p => p.growthRate))).sort();
-  const locationOptions = Array.from(new Set(plants.map(p => p.location))).sort();
-  const ornamentalOptions = ['Convencional', 'Bonito', 'Hermoso', 'Impresionante', 'Único'];
-  const waterOptions = ['Baja', 'Moderada', 'Alta'];
+  // Memoize derived options
+  const { lightOptions, growthOptions, locationOptions } = useMemo(() => ({
+    lightOptions: Array.from(new Set(plants.map(p => p.light))).sort(),
+    growthOptions: Array.from(new Set(plants.map(p => p.growthRate))).sort(),
+    locationOptions: Array.from(new Set(plants.map(p => p.location))).sort()
+  }), [plants]);
 
-  const applyFilters = (newFilters: FilterState) => {
+  const applyFilters = useCallback((newFilters: FilterState) => {
     let filtered = plants;
 
     if (newFilters.plantGroup) {
@@ -84,41 +90,81 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
     }
 
     onFilterChange(filtered);
-  };
+  }, [plants, onFilterChange]);
 
-  const handleFilterChange = (key: keyof FilterState, value: string) => {
+  const handleFilterChange = useCallback((key: keyof FilterState, value: string) => {
     const newValue = value === "all" ? "" : value;
     const newFilters = { ...filters, [key]: newValue };
     setFilters(newFilters);
     applyFilters(newFilters);
-  };
+  }, [filters, applyFilters]);
 
-  const clearAllFilters = () => {
-    const emptyFilters: FilterState = {
-      plantGroup: "",
-      light: "",
-      growth: "",
-      location: "",
-      zone: "",
-      stock: "",
-      ornamental: "",
-      water: ""
-    };
-    setFilters(emptyFilters);
+  const clearAllFilters = useCallback(() => {
+    setFilters(INITIAL_FILTERS);
     onFilterChange(plants);
-  };
+  }, [onFilterChange, plants]);
 
-  const hasActiveFilters = Object.values(filters).some(v => v !== "");
+  const hasActiveFilters = useMemo(() => 
+    Object.values(filters).some(v => v !== ""),
+  [filters]);
+
+  const activeFilterTags = useMemo(() => {
+    const tags: Array<{ key: string; label: string; color: string }> = [];
+    
+    if (filters.plantGroup) {
+      tags.push({ key: 'plantGroup', label: filters.plantGroup, color: 'bg-green-100 text-green-800' });
+    }
+    if (filters.stock) {
+      tags.push({ 
+        key: 'stock', 
+        label: filters.stock === 'disponible' ? t('filters.available') : t('filters.outOfStock'), 
+        color: 'bg-emerald-100 text-emerald-800' 
+      });
+    }
+    if (filters.light) {
+      tags.push({ key: 'light', label: filters.light, color: 'bg-yellow-100 text-yellow-800' });
+    }
+    if (filters.growth) {
+      tags.push({ key: 'growth', label: filters.growth, color: 'bg-blue-100 text-blue-800' });
+    }
+    if (filters.ornamental) {
+      tags.push({ key: 'ornamental', label: filters.ornamental, color: 'bg-pink-100 text-pink-800' });
+    }
+    if (filters.water) {
+      tags.push({ key: 'water', label: `${t('filters.water')}: ${filters.water}`, color: 'bg-cyan-100 text-cyan-800' });
+    }
+    if (filters.zone) {
+      tags.push({ key: 'zone', label: getShortZoneLabel(filters.zone), color: 'bg-orange-100 text-orange-800' });
+    }
+    if (filters.location) {
+      tags.push({ key: 'location', label: filters.location, color: 'bg-purple-100 text-purple-800' });
+    }
+    
+    return tags;
+  }, [filters, t]);
 
   if (!isVisible) return null;
 
+  const filterConfigs = [
+    { key: 'plantGroup' as const, label: t('filters.plantGroup'), options: PLANT_GROUP_OPTIONS },
+    { key: 'stock' as const, label: t('filters.availability'), options: [
+      { value: 'disponible', label: t('filters.available') },
+      { value: 'agotado', label: t('filters.outOfStock') }
+    ]},
+    { key: 'light' as const, label: t('filters.sunExposure'), options: lightOptions },
+    { key: 'growth' as const, label: t('filters.growthRate'), options: growthOptions },
+    { key: 'ornamental' as const, label: t('filters.ornamentalValue'), options: ORNAMENTAL_OPTIONS },
+    { key: 'water' as const, label: t('filters.waterNeeds'), options: WATER_OPTIONS },
+    { key: 'zone' as const, label: t('filters.hardinessZone'), options: HARDINESS_ZONES.map(z => ({ value: z.code, label: z.label })) },
+    { key: 'location' as const, label: t('filters.location'), options: locationOptions }
+  ];
+
   return (
-    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-      isVisible ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
-    }`}>
+    <div className="overflow-hidden transition-all duration-300 ease-in-out max-h-[600px] opacity-100">
       <div className="bg-white/80 backdrop-blur-sm border border-green-200 rounded-lg p-4 mb-4">
-        <div className="flex items-center justify-end mb-3">
-          {hasActiveFilters && (
+        {/* Header with clear button */}
+        {hasActiveFilters && (
+          <div className="flex items-center justify-end mb-3">
             <Button
               variant="ghost"
               size="sm"
@@ -128,211 +174,52 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
               <X className="h-4 w-4 mr-1" />
               {t('filters.clearFilters')}
             </Button>
-          )}
+          </div>
+        )}
+
+        {/* Filters Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filterConfigs.map(({ key, label, options }) => (
+            <div key={key} className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600 block">
+                {label}
+              </label>
+              <Select 
+                value={filters[key] || "all"} 
+                onValueChange={(v) => handleFilterChange(key, v)}
+              >
+                <SelectTrigger className="h-9 border-gray-200 bg-white text-sm">
+                  <SelectValue placeholder={t('filters.all')} />
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-gray-200 shadow-lg z-50 max-h-[300px]">
+                  <SelectItem value="all">{t('filters.all')}</SelectItem>
+                  {Array.isArray(options) && options.map((option) => {
+                    const value = typeof option === 'string' ? option : option.value;
+                    const optionLabel = typeof option === 'string' ? option : option.label;
+                    return (
+                      <SelectItem key={value} value={value}>
+                        {optionLabel}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          ))}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3">
-          {/* Plant Group filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              Grupo de Plantas
-            </label>
-            <Select value={filters.plantGroup || "all"} onValueChange={(v) => handleFilterChange('plantGroup', v)}>
-              <SelectTrigger className="border-green-200 bg-white">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50 max-h-[300px]">
-                <SelectItem value="all">Todas</SelectItem>
-                {plantGroupOptions.map(option => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Stock filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              Disponibilidad
-            </label>
-            <Select value={filters.stock || "all"} onValueChange={(v) => handleFilterChange('stock', v)}>
-              <SelectTrigger className="border-green-200 bg-white">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="disponible">Disponible</SelectItem>
-                <SelectItem value="agotado">Agotado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Light filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              Exposición Solar
-            </label>
-            <Select value={filters.light || "all"} onValueChange={(v) => handleFilterChange('light', v)}>
-              <SelectTrigger className="border-green-200 bg-white">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="all">Todas</SelectItem>
-                {lightOptions.map(option => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Growth rate filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              Tasa de Crecimiento
-            </label>
-            <Select value={filters.growth || "all"} onValueChange={(v) => handleFilterChange('growth', v)}>
-              <SelectTrigger className="border-green-200 bg-white">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="all">Todas</SelectItem>
-                {growthOptions.map(option => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Ornamental value filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              Valor Ornamental
-            </label>
-            <Select value={filters.ornamental || "all"} onValueChange={(v) => handleFilterChange('ornamental', v)}>
-              <SelectTrigger className="border-green-200 bg-white">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="all">Todas</SelectItem>
-                {ornamentalOptions.map(option => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Water needs filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              Necesidad de Agua
-            </label>
-            <Select value={filters.water || "all"} onValueChange={(v) => handleFilterChange('water', v)}>
-              <SelectTrigger className="border-green-200 bg-white">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="all">Todas</SelectItem>
-                {waterOptions.map(option => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Hardiness zone filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              Zona de Rusticidad
-            </label>
-            <Select value={filters.zone || "all"} onValueChange={(v) => handleFilterChange('zone', v)}>
-              <SelectTrigger className="border-green-200 bg-white">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50 max-h-[300px]">
-                <SelectItem value="all">Todas</SelectItem>
-                {HARDINESS_ZONES.map(zone => (
-                  <SelectItem key={zone.code} value={zone.code}>
-                    {zone.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Location filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              Ubicación
-            </label>
-            <Select value={filters.location || "all"} onValueChange={(v) => handleFilterChange('location', v)}>
-              <SelectTrigger className="border-green-200 bg-white">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="all">Todas</SelectItem>
-                {locationOptions.map(option => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {hasActiveFilters && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            <span className="text-sm text-gray-600">Filtros activos:</span>
-            {filters.plantGroup && (
-              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                {filters.plantGroup}
+        {/* Active Filter Tags */}
+        {hasActiveFilters && activeFilterTags.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-gray-500">{t('filters.activeFilters')}:</span>
+            {activeFilterTags.map(({ key, label, color }) => (
+              <span 
+                key={key} 
+                className={`${color} text-xs px-2.5 py-1 rounded-full font-medium`}
+              >
+                {label}
               </span>
-            )}
-            {filters.stock && (
-              <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full">
-                {filters.stock === 'disponible' ? 'Disponible' : 'Agotado'}
-              </span>
-            )}
-            {filters.light && (
-              <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                {filters.light}
-              </span>
-            )}
-            {filters.growth && (
-              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                {filters.growth}
-              </span>
-            )}
-            {filters.ornamental && (
-              <span className="bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">
-                {filters.ornamental}
-              </span>
-            )}
-            {filters.water && (
-              <span className="bg-cyan-100 text-cyan-800 text-xs px-2 py-1 rounded-full">
-                Agua: {filters.water}
-              </span>
-            )}
-            {filters.zone && (
-              <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
-                {getShortZoneLabel(filters.zone)}
-              </span>
-            )}
-            {filters.location && (
-              <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
-                {filters.location}
-              </span>
-            )}
+            ))}
           </div>
         )}
       </div>
