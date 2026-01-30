@@ -65,9 +65,9 @@ const Header = () => {
                 className="hover:bg-green-100 text-green-700"
               >
                 <User className="h-5 w-5 sm:mr-1" />
-                <span className="hidden sm:inline">
-                  {user ? t('header.myAccount') : t('header.login')}
-                </span>
+                {user && (
+                  <span className="hidden sm:inline">{t('header.myAccount')}</span>
+                )}
               </Button>
 
             </div>
