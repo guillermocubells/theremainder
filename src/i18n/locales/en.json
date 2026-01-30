@@ -187,10 +187,17 @@
     "subtotal": "Subtotal",
     "shipping": "Shipping",
     "shippingCalculated": "Calculated at checkout",
+    "shippingTbd": "Shipping costs to be determined",
     "total": "Total",
-    "checkout": "Checkout",
-    "remove": "Remove",
-    "quantity": "Quantity"
+    "totalWithTax": "Total (tax incl.)",
+    "includedTaxes": "Included taxes",
+    "checkout": "Proceed to checkout",
+    "continueShopping": "Continue shopping",
+    "remove": "Clear cart",
+    "quantity": "Quantity",
+    "item": "item",
+    "items": "items",
+    "container": "Container"
   },
   "auth": {
     "login": "Sign in",
