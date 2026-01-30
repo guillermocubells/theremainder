@@ -56,7 +56,7 @@ const PlantCard = ({ plant }: PlantCardProps) => {
   return (
     <Link to={`/plant/${plant.id}`} className="group flex">
       <Card className="w-full h-full flex flex-col transition-all duration-300 hover:shadow-xl hover:scale-105 bg-white/80 backdrop-blur-sm border-green-200 relative overflow-hidden">
-        <CardHeader className="flex-shrink-0 pb-3 sm:pb-4 h-28 sm:h-32">
+        <CardHeader className="flex-shrink-0 pb-3 sm:pb-4 h-36 sm:h-40">
           <div className="flex justify-between items-start mb-2">
             <CardTitle className="text-base sm:text-lg font-bold text-gray-800 group-hover:text-green-700 transition-colors leading-tight flex-1 pr-2">
               {plant.name}
