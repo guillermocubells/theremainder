@@ -1,14 +1,25 @@
-
-import { TreePalm, Gift, Search } from "lucide-react";
+import { TreePalm, Gift, Search, User } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PlantFinderModal } from "@/components/PlantFinder";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPlantFinderOpen, setIsPlantFinderOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
   
+  const handleAccountClick = () => {
+    if (user) {
+      navigate('/account');
+    } else {
+      navigate('/auth');
+    }
+  };
+
   return (
     <>
       <header className="bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-50">
@@ -34,6 +45,19 @@ const Header = () => {
               >
                 <Search className="h-4 w-4 sm:mr-1" />
                 <span className="hidden sm:inline">Encuentra tu planta</span>
+              </Button>
+
+              {/* Account button */}
+              <Button 
+                onClick={handleAccountClick}
+                variant="ghost" 
+                size="sm"
+                className="hover:bg-green-100 text-green-700"
+              >
+                <User className="h-5 w-5 sm:mr-1" />
+                <span className="hidden sm:inline">
+                  {user ? 'Mi cuenta' : 'Entrar'}
+                </span>
               </Button>
 
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

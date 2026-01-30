@@ -1,0 +1,144 @@
+import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  LayoutDashboard, 
+  Package, 
+  MapPin, 
+  User, 
+  Shield, 
+  Search,
+  LogOut,
+  Menu,
+  X
+} from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import AccountDashboard from '@/components/account/AccountDashboard';
+import AccountOrders from '@/components/account/AccountOrders';
+import AccountAddresses from '@/components/account/AccountAddresses';
+import AccountProfile from '@/components/account/AccountProfile';
+import AccountSecurity from '@/components/account/AccountSecurity';
+import AccountSavedSearches from '@/components/account/AccountSavedSearches';
+
+const menuItems = [
+  { id: 'dashboard', label: 'Resumen', icon: LayoutDashboard },
+  { id: 'orders', label: 'Pedidos', icon: Package },
+  { id: 'addresses', label: 'Direcciones', icon: MapPin },
+  { id: 'profile', label: 'Detalles', icon: User },
+  { id: 'security', label: 'Seguridad', icon: Shield },
+  { id: 'searches', label: 'Búsquedas', icon: Search },
+];
+
+const Account = () => {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <AccountDashboard onNavigate={setActiveTab} />;
+      case 'orders':
+        return <AccountOrders />;
+      case 'addresses':
+        return <AccountAddresses />;
+      case 'profile':
+        return <AccountProfile />;
+      case 'security':
+        return <AccountSecurity />;
+      case 'searches':
+        return <AccountSavedSearches />;
+      default:
+        return <AccountDashboard onNavigate={setActiveTab} />;
+    }
+  };
+
+  const SidebarContent = () => (
+    <div className="space-y-2">
+      {menuItems.map((item) => {
+        const Icon = item.icon;
+        return (
+          <button
+            key={item.id}
+            onClick={() => {
+              setActiveTab(item.id);
+              setMobileMenuOpen(false);
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
+              activeTab === item.id
+                ? 'bg-green-100 text-green-800 font-medium'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Icon className="h-5 w-5" />
+            <span>{item.label}</span>
+          </button>
+        );
+      })}
+      <hr className="my-4" />
+      <button
+        onClick={handleSignOut}
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left text-red-600 hover:bg-red-50 transition-colors"
+      >
+        <LogOut className="h-5 w-5" />
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex flex-col">
+      <Header />
+      
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <div className="flex gap-8">
+          {/* Desktop sidebar */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="bg-white rounded-xl shadow-sm p-4 sticky top-24">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 px-4">Mi cuenta</h2>
+              <SidebarContent />
+            </div>
+          </aside>
+
+          {/* Mobile menu trigger */}
+          <div className="lg:hidden fixed bottom-4 right-4 z-50">
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button size="lg" className="rounded-full bg-green-600 hover:bg-green-700 shadow-lg">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80">
+                <div className="py-4">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4 px-4">Mi cuenta</h2>
+                  <SidebarContent />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* Content area */}
+          <div className="flex-1 min-w-0">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              {renderContent()}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default Account;
