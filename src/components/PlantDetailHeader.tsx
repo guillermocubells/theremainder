@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { ExternalLink, Thermometer, ChevronDown } from "lucide-react";
@@ -33,10 +34,13 @@ interface PlantDetailHeaderProps {
 
 const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) => {
   const { t } = useTranslation();
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
   const lightInfo = getLightInfo(plant.light);
   const growthInfo = getGrowthInfo(plant.growthRate);
   const LightIcon = lightInfo.icon;
   const GrowthIcon = growthInfo.icon;
+
+  const totalPrice = plant.price !== undefined ? plant.price * selectedQuantity : undefined;
 
   const getLightTooltip = (light: string) => {
     switch (light.toLowerCase()) {
@@ -245,15 +249,16 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
         {/* Price and Add to cart button */}
         {plant.quantity && Number(plant.quantity) > 0 && (
           <div className="pt-4 sm:pt-6 flex flex-col sm:flex-row sm:items-center gap-4">
-            {plant.price !== undefined && (
-              <p className="text-2xl sm:text-3xl font-bold text-green-700">
-                {plant.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+            {totalPrice !== undefined && (
+              <p className="text-2xl sm:text-3xl font-bold text-green-700 transition-all duration-200">
+                {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
               </p>
             )}
             <AddToCartButton
               plantId={plant.id}
               plantName={plant.name}
               maxQuantity={Number(plant.quantity)}
+              onQuantityChange={setSelectedQuantity}
             />
           </div>
         )}
