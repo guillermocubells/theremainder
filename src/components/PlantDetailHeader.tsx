@@ -4,6 +4,7 @@ import { ExternalLink, Thermometer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatHardinessZones, getZoneCountLabel } from "@/utils/hardinessZones";
+import AddToCartButton from "./AddToCartButton";
 
 interface Plant {
   id: string;
@@ -173,8 +174,16 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           </div>
         )}
 
-        {/* External link button */}
-        <div className="pt-2">
+        {/* Add to cart and external link buttons */}
+        <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-4">
+          {plant.quantity && Number(plant.quantity) > 0 && (
+            <AddToCartButton
+              plantId={plant.id}
+              plantName={plant.name}
+              maxQuantity={Number(plant.quantity)}
+            />
+          )}
+          
           <Button 
             asChild
             variant="outline" 
