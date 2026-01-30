@@ -1,6 +1,8 @@
 
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, TreePalm } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, TreePalm, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from 'react-i18next';
 import { plants } from "@/data/plants";
 import { plantDetails } from "@/data/plantDetailData";
@@ -18,9 +20,19 @@ import LanguageSwitcher from "./LanguageSwitcher";
 
 const PlantDetail = () => {
   const { plantId } = useParams();
+  const navigate = useNavigate();
   const isHeaderVisible = useScrollDirection();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const plant = plants.find(p => p.id === plantId);
+
+  const handleAccountClick = () => {
+    if (user) {
+      navigate('/account');
+    } else {
+      navigate('/auth');
+    }
+  };
 
   if (!plant) {
     return (
@@ -59,11 +71,21 @@ const PlantDetail = () => {
               
               {/* Right side - Navigation */}
               <div className="flex items-center space-x-1 sm:space-x-2 text-green-700 flex-shrink-0">
-                {/* Cart drawer */}
-                <CartDrawer />
-
                 {/* Language switcher */}
                 <LanguageSwitcher />
+
+                {/* Account button */}
+                <Button 
+                  onClick={handleAccountClick}
+                  variant="ghost" 
+                  size="sm"
+                  className="hover:bg-green-100 text-green-700"
+                >
+                  <User className="h-5 w-5" />
+                </Button>
+
+                {/* Cart drawer */}
+                <CartDrawer />
               </div>
             </div>
           </div>
