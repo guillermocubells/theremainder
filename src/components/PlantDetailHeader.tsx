@@ -75,7 +75,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
       <div className="flex flex-col space-y-4">
         {/* Title row with external link button */}
         <div className="flex items-center justify-between gap-4">
-          <div className="flex-1">
+          <div className="flex-1 flex items-center">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800">
               {plant.name}
             </h1>
