@@ -1,6 +1,6 @@
 
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, User } from "lucide-react";
+import { ArrowLeft, User, TreePalm } from "lucide-react";
 import { plants } from "@/data/plants";
 import { plantDetails } from "@/data/plantDetailData";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -46,20 +46,34 @@ const PlantDetail = () => {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
-        {/* Header */}
+        {/* Header - matching main header styling */}
         <header className="bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between">
-              <Link 
-                to="/" 
-                className="flex items-center space-x-2 text-green-700 hover:text-green-800 transition-colors text-sm sm:text-base"
-              >
-                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="hidden sm:inline">Volver al catálogo</span>
-                <span className="sm:hidden">Volver</span>
-              </Link>
+              {/* Left side - Logo and back link */}
+              <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="bg-green-600 p-1.5 sm:p-2 rounded-full flex-shrink-0">
+                    <TreePalm className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Fronda Prima</h1>
+                    <p className="text-xs sm:text-sm text-green-600 hidden sm:block">The lost trees of the high altitudes</p>
+                  </div>
+                </Link>
+              </div>
               
-              <div className="flex items-center space-x-1 sm:space-x-2">
+              {/* Right side - Navigation */}
+              <div className="flex items-center space-x-1 sm:space-x-2 text-green-700 flex-shrink-0">
+                {/* Back to catalog */}
+                <Link 
+                  to="/" 
+                  className="flex items-center space-x-1 text-green-700 hover:text-green-800 transition-colors text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 rounded-md hover:bg-green-100"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Catálogo</span>
+                </Link>
+
                 {/* Cart drawer */}
                 <CartDrawer />
 
