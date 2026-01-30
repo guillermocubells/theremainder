@@ -255,16 +255,17 @@
       "sitemap": "Sitemap"
     },
     "newsletter": {
-      "title": "Newsletter",
-      "description": "Recibe novedades sobre nuevas especies y consejos de cultivo",
-      "placeholder": "Tu email",
+      "title": "Comunicados",
+      "description": "Nuevas especies, ensayos botánicos y notas sobre cultivo en altura.",
+      "placeholder": "correo@ejemplo.com",
       "subscribe": "Suscribirse",
       "success": "¡Suscripción exitosa!"
     },
     "social": {
       "title": "Síguenos"
     },
-    "tagline": "Botánica experimental de altura"
+    "tagline": "Botánica experimental en altura",
+    "quoteBreak": "un acto de silenciosa rebeldía contra el olvido."
   },
   "common": {
     "loading": "Cargando...",

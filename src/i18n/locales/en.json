@@ -224,16 +224,17 @@
       "sitemap": "Sitemap"
     },
     "newsletter": {
-      "title": "Newsletter",
-      "description": "Receive updates on new species and cultivation tips",
-      "placeholder": "Your email",
+      "title": "Dispatches",
+      "description": "New species, botanical trials and notes on high-altitude cultivation.",
+      "placeholder": "email@example.com",
       "subscribe": "Subscribe",
       "success": "Successfully subscribed!"
     },
     "social": {
       "title": "Follow Us"
     },
-    "tagline": "Experimental high-altitude botanics"
+    "tagline": "Experimental high-altitude botanics",
+    "quoteBreak": "an act of quiet defiance against forgetting."
   },
   "common": {
     "loading": "Loading...",
