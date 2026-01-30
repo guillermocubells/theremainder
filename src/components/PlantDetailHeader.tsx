@@ -84,8 +84,8 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               className="flex items-center gap-2"
             >
               <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Ver más información</span>
-              <span className="sm:hidden">Info</span>
+              <span className="hidden sm:inline">Ver más información de la especie</span>
+              <span className="sm:hidden">Info especie</span>
             </a>
           </Button>
         </div>
