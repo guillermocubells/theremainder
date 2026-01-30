@@ -62,19 +62,30 @@ const PlantCard = ({ plant }: PlantCardProps) => {
               {plant.name}
             </CardTitle>
             {plant.quantity && (
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <span className="bg-green-100 text-green-800 text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full flex-shrink-0 cursor-help">
-                    {plant.quantity}x
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <span className={`text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full cursor-help ${
+                      plant.quantity < 2 
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200' 
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {plant.quantity}x
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="start" className="text-left">
+                    <div>
+                      <p className="font-semibold">Disponibilidad</p>
+                      <p>Cantidad disponible: {plant.quantity} {plant.quantity === 1 ? 'unidad' : 'unidades'}</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                {plant.quantity === 1 && (
+                  <span className="text-[10px] sm:text-xs text-amber-600/80 italic">
+                    Última unidad
                   </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" align="start" className="text-left">
-                  <div>
-                    <p className="font-semibold">Disponibilidad</p>
-                    <p>Cantidad disponible: {plant.quantity} {plant.quantity === 1 ? 'planta' : 'plantas'}</p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
+                )}
+              </div>
             )}
           </div>
           {plant.variety && <p className="text-xs sm:text-sm font-medium text-green-600">{plant.variety}</p>}
