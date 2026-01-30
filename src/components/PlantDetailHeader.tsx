@@ -150,7 +150,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200 cursor-help">
-                  <Thermometer className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <Thermometer className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>{formatHardinessZones(plant.hardinessZones)}</span>
                 </div>
               </TooltipTrigger>
