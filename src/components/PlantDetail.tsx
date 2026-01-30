@@ -65,15 +65,6 @@ const PlantDetail = () => {
               
               {/* Right side - Navigation */}
               <div className="flex items-center space-x-1 sm:space-x-2 text-green-700 flex-shrink-0">
-                {/* Back to catalog */}
-                <Link 
-                  to="/" 
-                  className="flex items-center space-x-1 text-green-700 hover:text-green-800 transition-colors text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 rounded-md hover:bg-green-100"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Catálogo</span>
-                </Link>
-
                 {/* Cart drawer */}
                 <CartDrawer />
 
@@ -96,6 +87,15 @@ const PlantDetail = () => {
 
         <div className="container mx-auto px-4 py-6 sm:py-8">
           <div className="max-w-6xl mx-auto">
+            {/* Back link */}
+            <Link 
+              to="/" 
+              className="inline-flex items-center space-x-2 text-green-700 hover:text-green-800 transition-colors text-sm mb-4"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Volver al catálogo</span>
+            </Link>
+
             {/* Plant Header with origin info */}
             <PlantDetailHeader 
               plant={plant} 
