@@ -13,7 +13,7 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
 
   if (!images || images.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center min-h-[300px]">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200 h-full flex items-center justify-center min-h-[300px]">
         <div className="text-center text-gray-400">
           <div className="w-16 h-16 mx-auto mb-2 bg-gray-100 rounded-lg flex items-center justify-center">
             <Search className="w-8 h-8" />
@@ -29,10 +29,10 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
 
   return (
     <>
-      <div className="h-full flex flex-col">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200 h-full flex flex-col">
         {/* Main Image */}
         <div 
-          className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3 cursor-pointer group shadow-lg"
+          className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3 cursor-pointer group shadow-lg flex-1"
           onClick={() => setLightboxOpen(true)}
         >
           <img
@@ -54,12 +54,12 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
 
         {/* Thumbnails */}
         {displayImages.length > 1 && (
-          <div className="flex gap-2 justify-start">
+          <div className="flex gap-2 justify-start overflow-x-auto">
             {displayImages.map((image, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedIndex(index)}
-                className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 shadow-md ${
+                className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 shadow-md ${
                   selectedIndex === index 
                     ? 'ring-2 ring-green-500 ring-offset-2' 
                     : 'opacity-80 hover:opacity-100 hover:ring-1 hover:ring-green-300'
