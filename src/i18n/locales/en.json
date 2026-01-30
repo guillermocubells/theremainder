@@ -1,7 +1,7 @@
 {
   "header": {
     "title": "Frondaprima",
-    "subtitle": "The lost plants of the high altitudes",
+    "subtitle": "Plants selected at altitude",
     "subtitleMobile": "High altitude botanica",
     "findPlant": "Find your plant",
     "myAccount": "My account",
@@ -13,8 +13,8 @@
     "catalog": "Catalog"
   },
   "hero": {
-    "title": "Discover Unique High Mountain Plants",
-    "subtitle": "Explore our exclusive collection of palms and exotic plants adapted to temperate climates and high altitudes.",
+    "title": "Plants Selected at Altitude",
+    "subtitle": "Explore our collection of palms, ferns, and exotic plants adapted to temperate-humid climates and high altitudes.",
     "exploreCatalog": "Explore Catalog",
     "findIdealPlant": "Find Your Ideal Plant"
   },
