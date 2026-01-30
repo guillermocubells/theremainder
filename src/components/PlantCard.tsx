@@ -62,7 +62,10 @@ const PlantCard = ({ plant }: PlantCardProps) => {
               {plant.name}
             </CardTitle>
             {plant.quantity && (
-              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {plant.quantity === 1 && (
+                  <span className="text-base sm:text-lg">🍂</span>
+                )}
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <span className={`text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full cursor-help ${
@@ -80,11 +83,6 @@ const PlantCard = ({ plant }: PlantCardProps) => {
                     </div>
                   </TooltipContent>
                 </Tooltip>
-                {plant.quantity === 1 && (
-                  <span className="text-xs text-amber-600/80">
-                    🍂
-                  </span>
-                )}
               </div>
             )}
           </div>
