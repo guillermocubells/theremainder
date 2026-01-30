@@ -1,5 +1,6 @@
 import { ShoppingCart, Minus, Plus, Trash2, Check, Truck } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -16,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 
 const CartDrawer = () => {
   const { items, updateQuantity, removeFromCart, getTotalItems, getTotalPrice, clearCart } = useCart();
+  const navigate = useNavigate();
   const totalItems = getTotalItems();
   const totalPrice = getTotalPrice();
   const taxAmount = calculateTax(totalPrice);
@@ -179,12 +181,15 @@ const CartDrawer = () => {
                       {t('cart.continueShopping')}
                     </Button>
                   </SheetClose>
-                  <Button 
-                    className="flex-1 bg-foreground hover:bg-foreground/90 text-background"
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    {t('cart.checkout')}
-                  </Button>
+                  <SheetClose asChild>
+                    <Button 
+                      onClick={() => navigate('/checkout')}
+                      className="flex-1 bg-foreground hover:bg-foreground/90 text-background"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      {t('cart.checkout')}
+                    </Button>
+                  </SheetClose>
                 </div>
 
                 {/* Clear cart link */}

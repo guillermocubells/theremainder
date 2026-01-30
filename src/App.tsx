@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Account from "./pages/Account";
+import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 import PlantDetail from "./components/PlantDetail";
 
@@ -31,6 +32,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/plant/:plantId" element={<PlantDetail />} />
+              <Route path="/checkout" element={<Checkout />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
