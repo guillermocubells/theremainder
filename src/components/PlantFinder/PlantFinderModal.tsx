@@ -127,35 +127,22 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
                 Anterior
               </Button>
 
-              <div className="flex items-center gap-2">
-                {!currentQuestion.required && (
-                  <Button
-                    variant="ghost"
-                    onClick={handleSkip}
-                    className="text-gray-400 text-sm"
-                  >
-                    <SkipForward className="h-4 w-4 mr-1" />
-                    Saltar
-                  </Button>
+              <Button
+                onClick={handleNext}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isLastStep ? (
+                  <>
+                    Ver resultados
+                    <Search className="h-4 w-4 ml-1" />
+                  </>
+                ) : (
+                  <>
+                    Siguiente
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </>
                 )}
-                
-                <Button
-                  onClick={handleNext}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {isLastStep ? (
-                    <>
-                      Ver resultados
-                      <Search className="h-4 w-4 ml-1" />
-                    </>
-                  ) : (
-                    <>
-                      Siguiente
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </>
-                  )}
-                </Button>
-              </div>
+              </Button>
             </div>
           </div>
         ) : (
