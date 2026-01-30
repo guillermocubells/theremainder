@@ -1,13 +1,11 @@
-import { TreePalm, Gift, Search, User } from "lucide-react";
+import { TreePalm, Search, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PlantFinderModal } from "@/components/PlantFinder";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPlantFinderOpen, setIsPlantFinderOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -60,33 +58,6 @@ const Header = () => {
                 </span>
               </Button>
 
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="hover:bg-green-100">
-                    <Gift className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-[90vw] sm:max-w-md w-full mx-auto text-center">
-                  <DialogHeader className="text-center">
-                    <DialogTitle className="text-sm sm:text-base lg:text-lg font-bold text-green-800 leading-tight text-center">
-                      Condiciones de Frondaprima
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-3 pt-2 text-center">
-                    <p className="text-gray-700 leading-relaxed text-xs sm:text-sm lg:text-base text-center">
-                      El regalo se entrega a finales de septiembre/principios de octubre para solventar las vacaciones. El regalo no es intercambiable. Se aceptan preguntas y condiciones de cómo plantar. No están obligados a llevarse todas las plantas, son posibilidades dentro del régimen climático Balear y Cantábrico. Es posible que en octubre haya nuevas posibilidades, hablaremos entonces.
-                    </p>
-                    <div className="flex justify-center pt-2">
-                      <Button 
-                        onClick={() => setIsDialogOpen(false)} 
-                        className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
-                      >
-                        Aceptamos
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
             </div>
           </div>
         </div>
