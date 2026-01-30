@@ -57,10 +57,10 @@ const PlantCard = ({ plant }: PlantCardProps) => {
 
   return (
     <Link to={`/plant/${plant.id}`} className="group flex">
-      <Card className="w-full h-full flex flex-col transition-all duration-300 hover:shadow-xl hover:scale-105 bg-white/80 backdrop-blur-sm border-green-200 relative overflow-hidden">
+      <Card className="w-full h-full flex flex-col transition-all duration-300 hover:shadow-xl hover:scale-105 bg-card/80 backdrop-blur-sm border-border relative overflow-hidden">
         <CardHeader className="flex-shrink-0 pb-3 sm:pb-4 h-36 sm:h-40">
           <div className="flex justify-between items-start mb-2">
-            <CardTitle className="text-base sm:text-lg font-bold text-gray-800 group-hover:text-green-700 transition-colors leading-tight flex-1 pr-2">
+            <CardTitle className="text-base sm:text-lg font-bold text-foreground group-hover:text-primary transition-colors leading-tight flex-1 pr-2">
               {plant.name}
             </CardTitle>
             {plant.quantity && (
@@ -73,7 +73,7 @@ const PlantCard = ({ plant }: PlantCardProps) => {
                     <span className={`text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full cursor-help ${
                       plant.quantity < 2 
                         ? 'bg-amber-50 text-amber-700 border border-amber-200' 
-                        : 'bg-green-100 text-green-800'
+                        : 'bg-secondary text-secondary-foreground'
                     }`}>
                       {plant.quantity}x
                     </span>
@@ -88,19 +88,19 @@ const PlantCard = ({ plant }: PlantCardProps) => {
               </div>
             )}
           </div>
-          {plant.variety && <p className="text-xs sm:text-sm font-medium text-green-600">{plant.variety}</p>}
-          <CardDescription className="text-gray-600 font-medium text-xs sm:text-sm">
+          {plant.variety && <p className="text-xs sm:text-sm font-medium text-primary">{plant.variety}</p>}
+          <CardDescription className="text-muted-foreground font-medium text-xs sm:text-sm">
             {plant.commonName}
           </CardDescription>
           {plant.price !== undefined && (
-            <p className="text-green-700 font-semibold text-xs sm:text-sm mt-1">
+            <p className="text-primary font-semibold text-xs sm:text-sm mt-1">
               {plant.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
             </p>
           )}
         </CardHeader>
         <CardContent className="flex-1 flex flex-col pb-4 sm:pb-6">
           <div className="flex-1 flex flex-col">
-            <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 flex-1 line-clamp-3">{plant.description}</p>
+            <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 flex-1 line-clamp-3">{plant.description}</p>
             
             {/* Visual tags for light and growth - fixed at bottom */}
             <div className="flex gap-1 sm:gap-2 mt-auto flex-wrap">
@@ -151,14 +151,14 @@ const PlantCard = ({ plant }: PlantCardProps) => {
             
             {/* Product name tag - positioned at top with same style as quantity */}
             <div className="absolute top-2 sm:top-3 left-2 sm:left-3">
-              <span className="bg-green-100 text-green-800 text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full shadow-md">
+              <span className="bg-secondary text-secondary-foreground text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full shadow-md">
                 {plant.name}
               </span>
             </div>
             
             {/* Ver Detalles button - positioned at bottom right */}
             <div className="absolute bottom-3 sm:bottom-6 right-3 sm:right-6">
-              <span className="bg-white/90 text-gray-700 font-medium text-xs px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors block text-center shadow-lg">
+              <span className="bg-card/90 text-foreground font-medium text-xs px-2 py-1 rounded-lg hover:bg-muted transition-colors block text-center shadow-lg">
                 {t('plant.viewDetails')} →
               </span>
             </div>

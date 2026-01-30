@@ -18,7 +18,7 @@ const LanguageSwitcher = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="hover:bg-green-100 text-green-700">
+        <Button variant="ghost" size="sm" className="hover:bg-secondary text-primary">
           <Globe className="h-5 w-5" />
           <span className="hidden sm:inline ml-1 uppercase">{i18n.language.slice(0, 2)}</span>
         </Button>
@@ -26,13 +26,13 @@ const LanguageSwitcher = () => {
       <DropdownMenuContent align="end">
         <DropdownMenuItem 
           onClick={() => changeLanguage('es')}
-          className={i18n.language === 'es' ? 'bg-green-50' : ''}
+          className={i18n.language === 'es' ? 'bg-secondary' : ''}
         >
           🇪🇸 {t('language.es')}
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => changeLanguage('en')}
-          className={i18n.language === 'en' ? 'bg-green-50' : ''}
+          className={i18n.language === 'en' ? 'bg-secondary' : ''}
         >
           🇬🇧 {t('language.en')}
         </DropdownMenuItem>

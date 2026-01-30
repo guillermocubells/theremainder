@@ -78,8 +78,8 @@ const Account = () => {
             }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
               activeTab === item.id
-                ? 'bg-green-100 text-green-800 font-medium'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-secondary text-foreground font-medium'
+                : 'text-muted-foreground hover:bg-muted'
             }`}
           >
             <Icon className="h-5 w-5" />
@@ -87,10 +87,10 @@ const Account = () => {
           </button>
         );
       })}
-      <hr className="my-4" />
+      <hr className="my-4 border-border" />
       <button
         onClick={handleSignOut}
-        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left text-red-600 hover:bg-red-50 transition-colors"
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left text-destructive hover:bg-destructive/10 transition-colors"
       >
         <LogOut className="h-5 w-5" />
         <span>{t('auth.logout')}</span>
@@ -99,15 +99,15 @@ const Account = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="flex gap-8">
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl shadow-sm p-4 sticky top-24">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 px-4">{t('account.title')}</h2>
+            <div className="bg-card rounded-xl shadow-sm p-4 sticky top-24">
+              <h2 className="text-lg font-semibold text-foreground mb-4 px-4">{t('account.title')}</h2>
               <SidebarContent />
             </div>
           </aside>
@@ -116,13 +116,13 @@ const Account = () => {
           <div className="lg:hidden fixed bottom-4 right-4 z-50">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button size="lg" className="rounded-full bg-green-600 hover:bg-green-700 shadow-lg">
+                <Button size="lg" className="rounded-full shadow-lg">
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-80">
                 <div className="py-4">
-                  <h2 className="text-lg font-semibold text-gray-800 mb-4 px-4">{t('account.title')}</h2>
+                  <h2 className="text-lg font-semibold text-foreground mb-4 px-4">{t('account.title')}</h2>
                   <SidebarContent />
                 </div>
               </SheetContent>
@@ -131,7 +131,7 @@ const Account = () => {
 
           {/* Content area */}
           <div className="flex-1 min-w-0">
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-card rounded-xl shadow-sm p-6">
               {renderContent()}
             </div>
           </div>

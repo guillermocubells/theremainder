@@ -78,21 +78,21 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
     : null;
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-green-200">
+    <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-border">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
         <div className="flex items-center gap-2">
-          <div className="p-1 sm:p-1.5 bg-green-100 rounded-lg">
-            <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
+          <div className="p-1 sm:p-1.5 bg-secondary rounded-lg">
+            <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-green-800">
+            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-foreground">
               {t('reviews.title')}
             </h2>
             {reviews.length > 0 && (
               <div className="flex items-center gap-2 mt-0.5">
                 {renderStars(Math.round(Number(averageRating)))}
-                <span className="text-xs sm:text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-muted-foreground">
                   {averageRating} {t('reviews.of')} 5 ({reviews.length} {reviews.length === 1 ? t('reviews.review') : t('reviews.reviewsCount')})
                 </span>
               </div>
@@ -103,7 +103,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
         {!showForm && (
           <Button
             onClick={() => setShowForm(true)}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-primary hover:bg-primary/90"
           >
             {t('reviews.writeReview')}
           </Button>
@@ -112,25 +112,25 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
 
       {/* Review Form */}
       {showForm && (
-        <form onSubmit={handleSubmitReview} className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
-          <h3 className="font-semibold text-gray-800 text-sm sm:text-base mb-3 sm:mb-4">{t('reviews.yourOpinion')} {plantName}</h3>
+        <form onSubmit={handleSubmitReview} className="mb-4 sm:mb-6 p-3 sm:p-4 bg-secondary rounded-lg border border-border">
+          <h3 className="font-semibold text-foreground text-sm sm:text-base mb-3 sm:mb-4">{t('reviews.yourOpinion')} {plantName}</h3>
           
           <div className="space-y-3 sm:space-y-4">
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                 {t('reviews.yourName')}
               </label>
               <Input
                 value={newReview.author}
                 onChange={(e) => setNewReview({ ...newReview, author: e.target.value })}
                 placeholder={t('reviews.namePlaceholder')}
-                className="border-green-200 focus:border-green-400 text-sm"
+                className="border-border focus:border-primary text-sm"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                 {t('reviews.rating')}
               </label>
               {renderStars(newReview.rating, true, (rating) => 
@@ -139,20 +139,20 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-1">
                 {t('reviews.yourExperience')}
               </label>
               <Textarea
                 value={newReview.comment}
                 onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
                 placeholder={t('reviews.experiencePlaceholder')}
-                className="border-green-200 focus:border-green-400 min-h-[80px] sm:min-h-[100px] text-sm"
+                className="border-border focus:border-primary min-h-[80px] sm:min-h-[100px] text-sm"
                 required
               />
             </div>
 
             <div className="flex gap-2 sm:gap-3">
-              <Button type="submit" size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm">
+              <Button type="submit" size="sm" className="bg-primary hover:bg-primary/90 text-xs sm:text-sm">
                 {t('reviews.publishReview')}
               </Button>
               <Button
@@ -160,7 +160,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowForm(false)}
-                className="border-gray-300 text-xs sm:text-sm"
+                className="border-border text-xs sm:text-sm"
               >
                 {t('common.cancel')}
               </Button>
@@ -172,11 +172,11 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
       {/* Reviews List */}
       {reviews.length === 0 ? (
         <div className="text-center py-6 sm:py-8">
-          <div className="p-3 bg-gray-100 rounded-full inline-block mb-3">
-            <MessageSquare className="h-6 w-6 text-gray-400" />
+          <div className="p-3 bg-muted rounded-full inline-block mb-3">
+            <MessageSquare className="h-6 w-6 text-muted-foreground" />
           </div>
-          <p className="text-gray-600 text-sm sm:text-base mb-1">{t('reviews.noReviews')}</p>
-          <p className="text-xs sm:text-sm text-gray-500">
+          <p className="text-muted-foreground text-sm sm:text-base mb-1">{t('reviews.noReviews')}</p>
+          <p className="text-xs sm:text-sm text-muted-foreground/70">
             {t('reviews.beFirst')}
           </p>
         </div>
@@ -185,21 +185,21 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-100"
+              className="p-3 sm:p-4 bg-muted rounded-lg border border-border"
             >
               <div className="flex items-start gap-2 sm:gap-3">
-                <div className="p-1.5 bg-green-100 rounded-full">
-                  <User className="h-3 w-3 sm:h-4 sm:w-4 text-green-700" />
+                <div className="p-1.5 bg-secondary rounded-full">
+                  <User className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                 </div>
                 <div className="flex-1">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-1 mb-1.5">
-                    <span className="font-medium text-gray-800 text-sm">{review.author}</span>
-                    <span className="text-xs text-gray-500">{review.date}</span>
+                    <span className="font-medium text-foreground text-sm">{review.author}</span>
+                    <span className="text-xs text-muted-foreground">{review.date}</span>
                   </div>
                   <div className="mb-1.5">
                     {renderStars(review.rating)}
                   </div>
-                  <p className="text-gray-700 text-xs sm:text-sm lg:text-base leading-relaxed">{review.comment}</p>
+                  <p className="text-muted-foreground text-xs sm:text-sm lg:text-base leading-relaxed">{review.comment}</p>
                 </div>
               </div>
             </div>
