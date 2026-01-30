@@ -35,20 +35,20 @@ const AddToCartButton = ({ plantId, plantName, maxQuantity }: AddToCartButtonPro
   }
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3">
+    <div className="flex items-center gap-3 sm:gap-4">
       <QuantitySelector
         quantity={selectedQuantity}
         maxQuantity={availableToAdd}
         onChange={setSelectedQuantity}
-        size="sm"
+        size="default"
       />
       <Button
         onClick={handleAddToCart}
-        size="sm"
-        className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm"
+        size="lg"
+        className="bg-rose-600 hover:bg-rose-700 text-white text-sm sm:text-base px-6 sm:px-8"
       >
-        <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-        Añadir
+        <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+        Añadir al carrito
       </Button>
     </div>
   );
