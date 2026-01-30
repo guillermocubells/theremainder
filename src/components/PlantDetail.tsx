@@ -9,6 +9,7 @@ import PlantPhotoCarousel from "./PlantPhotoCarousel";
 import CareInstructions from "./CareInstructions";
 import PlantCharacteristics from "./PlantCharacteristics";
 import PlantCuriousFacts from "./PlantCuriousFacts";
+import PlantReviews from "./PlantReviews";
 
 const PlantDetail = () => {
   const { plantId } = useParams();
@@ -74,6 +75,11 @@ const PlantDetail = () => {
                 <PlantCuriousFacts curiousFacts={detail.curiousFacts} />
               </div>
             )}
+
+            {/* Reviews Section */}
+            <div className="mb-6 sm:mb-8">
+              <PlantReviews plantId={plant.id} plantName={plant.name} />
+            </div>
           </div>
         </div>
       </div>

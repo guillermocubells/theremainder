@@ -1,0 +1,210 @@
+import { useState } from "react";
+import { Star, MessageSquare, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+
+interface Review {
+  id: string;
+  author: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
+interface PlantReviewsProps {
+  plantId: string;
+  plantName: string;
+}
+
+const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [newReview, setNewReview] = useState({
+    author: "",
+    rating: 5,
+    comment: ""
+  });
+
+  const handleSubmitReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReview.author.trim() || !newReview.comment.trim()) return;
+
+    const review: Review = {
+      id: `${plantId}-${Date.now()}`,
+      author: newReview.author,
+      rating: newReview.rating,
+      comment: newReview.comment,
+      date: new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    };
+
+    setReviews([review, ...reviews]);
+    setNewReview({ author: "", rating: 5, comment: "" });
+    setShowForm(false);
+  };
+
+  const renderStars = (rating: number, interactive = false, onSelect?: (rating: number) => void) => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            disabled={!interactive}
+            onClick={() => onSelect?.(star)}
+            className={`${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : 'cursor-default'}`}
+          >
+            <Star
+              className={`h-5 w-5 ${
+                star <= rating
+                  ? 'fill-amber-400 text-amber-400'
+                  : 'fill-gray-200 text-gray-200'
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  const averageRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
+
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 rounded-lg">
+            <MessageSquare className="h-5 w-5 text-green-700" />
+          </div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+              Opiniones y Reseñas
+            </h2>
+            {reviews.length > 0 && (
+              <div className="flex items-center gap-2 mt-1">
+                {renderStars(Math.round(Number(averageRating)))}
+                <span className="text-sm text-gray-600">
+                  {averageRating} de 5 ({reviews.length} {reviews.length === 1 ? 'reseña' : 'reseñas'})
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {!showForm && (
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            Escribir una reseña
+          </Button>
+        )}
+      </div>
+
+      {/* Review Form */}
+      {showForm && (
+        <form onSubmit={handleSubmitReview} className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200">
+          <h3 className="font-semibold text-gray-800 mb-4">Tu opinión sobre {plantName}</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tu nombre
+              </label>
+              <Input
+                value={newReview.author}
+                onChange={(e) => setNewReview({ ...newReview, author: e.target.value })}
+                placeholder="Nombre"
+                className="border-green-200 focus:border-green-400"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Valoración
+              </label>
+              {renderStars(newReview.rating, true, (rating) => 
+                setNewReview({ ...newReview, rating })
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tu experiencia
+              </label>
+              <Textarea
+                value={newReview.comment}
+                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                placeholder="Comparte tu experiencia con esta planta..."
+                className="border-green-200 focus:border-green-400 min-h-[100px]"
+                required
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">
+                Publicar reseña
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowForm(false)}
+                className="border-gray-300"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* Reviews List */}
+      {reviews.length === 0 ? (
+        <div className="text-center py-8 sm:py-12">
+          <div className="p-4 bg-gray-100 rounded-full inline-block mb-4">
+            <MessageSquare className="h-8 w-8 text-gray-400" />
+          </div>
+          <p className="text-gray-600 mb-2">Aún no hay reseñas para esta planta</p>
+          <p className="text-sm text-gray-500">
+            ¡Sé el primero en compartir tu experiencia!
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {reviews.map((review) => (
+            <div
+              key={review.id}
+              className="p-4 bg-gray-50 rounded-xl border border-gray-100"
+            >
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-100 rounded-full">
+                  <User className="h-4 w-4 text-green-700" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
+                    <span className="font-medium text-gray-800">{review.author}</span>
+                    <span className="text-xs text-gray-500">{review.date}</span>
+                  </div>
+                  <div className="mb-2">
+                    {renderStars(review.rating)}
+                  </div>
+                  <p className="text-gray-700 text-sm sm:text-base">{review.comment}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default PlantReviews;
