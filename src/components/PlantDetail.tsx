@@ -37,9 +37,9 @@ const PlantDetail = () => {
   if (!plant) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center px-4">
-        <div className="text-center">
+        <div className="text-center animate-fade-in">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">{t('plant.notFound')}</h1>
-          <Link to="/" className="text-green-600 hover:text-green-700 text-sm sm:text-base">
+          <Link to="/" className="text-green-600 hover:text-green-700 text-sm sm:text-base transition-colors">
             ← {t('navigation.backToCatalog')}
           </Link>
         </div>
@@ -58,8 +58,8 @@ const PlantDetail = () => {
             <div className="flex items-center justify-between">
               {/* Left side - Logo and back link */}
               <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="bg-green-600 p-1.5 sm:p-2 rounded-full flex-shrink-0">
+                <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group">
+                  <div className="bg-green-600 p-1.5 sm:p-2 rounded-full flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
                     <TreePalm className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -82,7 +82,7 @@ const PlantDetail = () => {
                   onClick={handleAccountClick}
                   variant="ghost" 
                   size="sm"
-                  className="hover:bg-green-100 text-green-700"
+                  className="hover:bg-green-100 text-green-700 transition-colors duration-200"
                 >
                   <User className="h-5 w-5 sm:mr-1" />
                   <span className="hidden sm:inline">
@@ -99,47 +99,57 @@ const PlantDetail = () => {
             {/* Back link */}
             <Link 
               to="/" 
-              className="inline-flex items-center space-x-2 text-green-700 hover:text-green-800 transition-colors text-sm mb-4"
+              className="inline-flex items-center space-x-2 text-green-700 hover:text-green-800 transition-colors duration-200 text-sm mb-4 group"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
               <span>{t('navigation.backToCatalog')}</span>
             </Link>
 
-            {/* Plant Header with origin info */}
-            <PlantDetailHeader 
-              plant={plant} 
-              origin={detail?.origin}
-              climate={detail?.climate}
-            />
+            {/* Plant Header with origin info - with stagger animation */}
+            <div className="animate-fade-in" style={{ animationDelay: '0ms' }}>
+              <PlantDetailHeader 
+                plant={plant} 
+                origin={detail?.origin}
+                climate={detail?.climate}
+              />
+            </div>
 
             {/* Photo Carousel */}
-            <PlantPhotoCarousel images={plant.images} plantName={plant.name} />
+            <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
+              <PlantPhotoCarousel images={plant.images} plantName={plant.name} />
+            </div>
 
             {/* Specifications Section */}
-            <PlantSpecifications 
-              containerSize={plant.containerSize}
-              height={detail?.height}
-              origin={detail?.origin}
-              family={detail?.family}
-            />
+            <div className="animate-fade-in" style={{ animationDelay: '150ms' }}>
+              <PlantSpecifications 
+                containerSize={plant.containerSize}
+                height={detail?.height}
+                origin={detail?.origin}
+                family={detail?.family}
+              />
+            </div>
 
             {/* Care Instructions and Characteristics Section */}
             {detail && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
-                <CareInstructions instructions={detail.careInstructions} />
-                <PlantCharacteristics characteristics={detail.characteristics} />
+                <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+                  <CareInstructions instructions={detail.careInstructions} />
+                </div>
+                <div className="animate-fade-in" style={{ animationDelay: '250ms' }}>
+                  <PlantCharacteristics characteristics={detail.characteristics} />
+                </div>
               </div>
             )}
 
             {/* Curious Facts Section - now takes full width */}
             {detail && (
-              <div className="mb-6 sm:mb-8">
+              <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '300ms' }}>
                 <PlantCuriousFacts curiousFacts={detail.curiousFacts} />
               </div>
             )}
 
             {/* Reviews Section */}
-            <div className="mb-6 sm:mb-8">
+            <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '350ms' }}>
               <PlantReviews plantId={plant.id} plantName={plant.name} />
             </div>
           </div>
