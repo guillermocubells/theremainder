@@ -1,4 +1,3 @@
-
 export interface Plant {
   id: string;
   name: string;
@@ -13,25 +12,13 @@ export interface Plant {
   notes: string;
   price?: number;
   images?: string[];
-  hardinessZones?: number[]; // USDA hardiness zones (e.g., [8, 9, 10])
+  hardinessZones?: string[]; // USDA hardiness zones with sub-zones (e.g., ["8a", "8b", "9a"])
   ornamentalValue?: 'Convencional' | 'Bonito' | 'Hermoso' | 'Impresionante' | 'Único';
   waterNeeds?: 'Baja' | 'Moderada' | 'Alta';
 }
 
-// Helper function to format hardiness zone display
-export const formatHardinessZones = (zones: number[] | undefined): string => {
-  if (!zones || zones.length === 0) return '';
-  if (zones.length === 1) return `Zona ${zones[0]}`;
-  const sorted = [...zones].sort((a, b) => a - b);
-  return `Zonas ${sorted[0]}–${sorted[sorted.length - 1]}`;
-};
-
-// Helper function to get zone count label
-export const getZoneCountLabel = (zones: number[] | undefined): string => {
-  if (!zones || zones.length === 0) return '';
-  if (zones.length === 1) return '1 zona de rusticidad';
-  return `${zones.length} zonas de rusticidad`;
-};
+// Re-export helper functions from hardinessZones utility
+export { formatHardinessZones, getZoneCountLabel } from '@/utils/hardinessZones';
 
 export const plants: Plant[] = [{
   id: "rhopalostylis-sapida",
@@ -46,7 +33,7 @@ export const plants: Plant[] = [{
   growthRate: "Medio",
   notes: "Variedas muy resistentes al frio. La variedad Oceana es conocidad por crecer más rápido y por ser más resistente y robusta que las demás. De pequeñas, principalmente los 1-3 años necesitan una cobertura de para filtrar la luz.",
   price: 85,
-  hardinessZones: [9, 10, 11],
+  hardinessZones: ["9a", "9b", "10a", "10b", "11a", "11b"],
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Moderada',
   images: [
@@ -70,7 +57,7 @@ export const plants: Plant[] = [{
   growthRate: "Lento",
   notes: "Ideal para una zona con orientación norte o noroeste. Esta palmera necesita luz filtrada",
   price: 120,
-  hardinessZones: [9, 10],
+  hardinessZones: ["9a", "9b", "10a", "10b"],
   ornamentalValue: 'Único',
   waterNeeds: 'Alta',
   images: [
@@ -92,7 +79,7 @@ export const plants: Plant[] = [{
   growthRate: "Lento",
   notes: "Tolera la luz mas directa, Ideal para el spot más soleado del jardín, eso si sin olvidarse del agua",
   price: 150,
-  hardinessZones: [8, 9, 10, 11],
+  hardinessZones: ["8a", "8b", "9a", "9b", "10a", "10b", "11a", "11b"],
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Baja',
   images: [
@@ -116,7 +103,7 @@ export const plants: Plant[] = [{
   growthRate: "Medio",
   notes: "Extiento en habitat, una rareza se descubrió hace ya 40 años perdido en un jardín de Florida. Tolera el sol directo",
   price: 95,
-  hardinessZones: [9, 10, 11],
+  hardinessZones: ["9a", "9b", "10a", "10b", "11a", "11b"],
   ornamentalValue: 'Único',
   waterNeeds: 'Baja',
   images: [
@@ -138,7 +125,7 @@ export const plants: Plant[] = [{
   growthRate: "Rápido",
   notes: "Tremendamente resistente al frío de las montañas del sudeste asiático. A nivel paisajistico combina muy bien si se planta en grupos",
   price: 75,
-  hardinessZones: [10, 11],
+  hardinessZones: ["10a", "10b", "11a", "11b"],
   ornamentalValue: 'Hermoso',
   waterNeeds: 'Alta',
   images: [
@@ -160,7 +147,7 @@ export const plants: Plant[] = [{
   growthRate: "Rápido",
   notes: "Planta monocarpica que al llegar a su edad adulta muere. Preciosidad que puede monopolizar un espacio en el jardín de forma rápida",
   price: 110,
-  hardinessZones: [9, 10, 11],
+  hardinessZones: ["9a", "9b", "10a", "10b", "11a", "11b"],
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Moderada',
   images: [
@@ -183,7 +170,7 @@ export const plants: Plant[] = [{
   growthRate: "Medio",
   notes: "Pendiente de producción. Mi idea es daros varias especies con diferentes alturas pero no tengo del todo claro que va a salir adelante",
   price: 65,
-  hardinessZones: [9, 10, 11],
+  hardinessZones: ["9a", "9b", "10a", "10b", "11a", "11b"],
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Alta',
   images: [
@@ -206,7 +193,7 @@ export const plants: Plant[] = [{
   growthRate: "Medio",
   notes: "My parecidas a las Cyatheas pero con tronco más robusto y ancho. Pendiente de producción. Mi idea es daros varias especies con diferentes alturas pero no tengo del todo claro que va a salir adelante",
   price: 70,
-  hardinessZones: [8, 9, 10],
+  hardinessZones: ["8a", "8b", "9a", "9b", "10a", "10b"],
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Alta',
   images: [
@@ -229,7 +216,7 @@ export const plants: Plant[] = [{
   growthRate: "Lento",
   notes: "Especie no clasificada probablemente extinta en habitat",
   price: 130,
-  hardinessZones: [8, 9, 10, 11],
+  hardinessZones: ["8a", "8b", "9a", "9b", "10a", "10b", "11a", "11b"],
   ornamentalValue: 'Único',
   waterNeeds: 'Baja',
   images: [
@@ -250,7 +237,7 @@ export const plants: Plant[] = [{
   growthRate: "Rápido",
   notes: "Espectacular magnolia compacta. De Yunnan una rareza y una belleza para un lugar del jardín con orientación oeste o este",
   price: 90,
-  hardinessZones: [7, 8, 9],
+  hardinessZones: ["7a", "7b", "8a", "8b", "9a", "9b"],
   ornamentalValue: 'Hermoso',
   waterNeeds: 'Moderada',
   images: [
@@ -272,7 +259,7 @@ export const plants: Plant[] = [{
   growthRate: "Lento",
   notes: "Muy resistente al frío estamos hablando de hasta -10c algo muy alto para una palmera",
   price: 55,
-  hardinessZones: [8],
+  hardinessZones: ["8a", "8b"],
   ornamentalValue: 'Bonito',
   waterNeeds: 'Moderada',
   images: [
@@ -294,7 +281,7 @@ export const plants: Plant[] = [{
   growthRate: "Lento",
   notes: "De crecimiento muy lento necesita una cobertura de joven. No resiste heladas y necesita un clima mas favorable de árboles que le pueda proteger de las heladas",
   price: 140,
-  hardinessZones: [10, 11],
+  hardinessZones: ["10a", "10b", "11a", "11b"],
   ornamentalValue: 'Único',
   waterNeeds: 'Alta',
   images: [

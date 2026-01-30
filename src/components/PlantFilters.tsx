@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plant } from "@/data/plants";
+import { HARDINESS_ZONES, getShortZoneLabel } from "@/utils/hardinessZones";
 
 interface PlantFiltersProps {
   plants: Plant[];
@@ -38,10 +39,6 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
   const ornamentalOptions = ['Convencional', 'Bonito', 'Hermoso', 'Impresionante', 'Único'];
   const waterOptions = ['Baja', 'Moderada', 'Alta'];
   
-  // Extract unique hardiness zones from plant data
-  const zoneOptions = Array.from(new Set(
-    plants.flatMap(p => p.hardinessZones || [])
-  )).sort((a, b) => a - b);
 
   const applyFilters = (newFilters: FilterState) => {
     let filtered = plants;
@@ -56,9 +53,8 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
       filtered = filtered.filter(plant => plant.location === newFilters.location);
     }
     if (newFilters.zone) {
-      const zoneNum = parseInt(newFilters.zone, 10);
       filtered = filtered.filter(plant => 
-        plant.hardinessZones && plant.hardinessZones.includes(zoneNum)
+        plant.hardinessZones && plant.hardinessZones.includes(newFilters.zone)
       );
     }
     if (newFilters.stock) {
@@ -229,11 +225,11 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
               <SelectTrigger className="border-green-200 bg-white">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50 max-h-[300px]">
                 <SelectItem value="all">Todas</SelectItem>
-                {zoneOptions.map(zone => (
-                  <SelectItem key={zone} value={zone.toString()}>
-                    Zona {zone}
+                {HARDINESS_ZONES.map(zone => (
+                  <SelectItem key={zone.code} value={zone.code}>
+                    {zone.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -291,7 +287,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
             )}
             {filters.zone && (
               <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
-                Zona {filters.zone}
+                {getShortZoneLabel(filters.zone)}
               </span>
             )}
             {filters.location && (
