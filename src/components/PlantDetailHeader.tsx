@@ -200,20 +200,9 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           </div>
         )}
 
-        {/* Add to cart button */}
-        {plant.quantity && Number(plant.quantity) > 0 && (
-          <div className="pt-6 sm:pt-8">
-            <AddToCartButton
-              plantId={plant.id}
-              plantName={plant.name}
-              maxQuantity={Number(plant.quantity)}
-            />
-          </div>
-        )}
-
         {/* Product Details Section */}
         {(plant.containerSize || plant.germinationDate) && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-5 mt-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-5">
             <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
               {t('plant.productDetails')}
             </h3>
@@ -239,6 +228,17 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Add to cart button */}
+        {plant.quantity && Number(plant.quantity) > 0 && (
+          <div className="pt-4 sm:pt-6">
+            <AddToCartButton
+              plantId={plant.id}
+              plantName={plant.name}
+              maxQuantity={Number(plant.quantity)}
+            />
           </div>
         )}
       </div>
