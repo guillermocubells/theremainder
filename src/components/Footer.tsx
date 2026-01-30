@@ -3,16 +3,19 @@ import { Leaf, Heart } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-green-800 text-white py-8 sm:py-12">
+    <footer className="bg-green-900 text-white py-10 sm:py-14">
       <div className="container mx-auto px-4 text-center">
-        <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
-          <div className="flex items-center space-x-2">
-            <Leaf className="h-5 w-5 sm:h-6 sm:w-6" />
-            <span className="text-lg sm:text-xl font-semibold text-center">Una casa siempre debería empezar por un jardín</span>
-            <Heart className="h-5 w-5 sm:h-6 sm:w-6" />
+        <div className="max-w-2xl mx-auto">
+          <p className="text-green-200/80 text-xs uppercase tracking-[0.25em] mb-4">Fronda Prima</p>
+          <p className="text-base sm:text-lg font-light italic text-green-100 mb-6 leading-relaxed">
+            "To plant a tree from a high place is to carry elevation into the lowlands — an act of quiet defiance against forgetting."
+          </p>
+          <div className="flex items-center justify-center space-x-3 text-green-300/60">
+            <div className="w-8 h-px bg-current"></div>
+            <Leaf className="h-4 w-4" />
+            <div className="w-8 h-px bg-current"></div>
           </div>
         </div>
-        <p className="text-green-200 text-sm sm:text-base leading-relaxed max-w-3xl mx-auto">Porque cuando nada parece que avanza, plantar se convierte en un acto de resistencia, crecimiento y de fe</p>
       </div>
     </footer>
   );
