@@ -51,9 +51,6 @@ const Header = () => {
                 <span className="hidden sm:inline">{t('header.findPlant')}</span>
               </Button>
 
-              {/* Cart drawer */}
-              <CartDrawer />
-
               {/* Language switcher */}
               <LanguageSwitcher />
 
@@ -70,6 +67,8 @@ const Header = () => {
                 )}
               </Button>
 
+              {/* Cart drawer */}
+              <CartDrawer />
             </div>
           </div>
         </div>
