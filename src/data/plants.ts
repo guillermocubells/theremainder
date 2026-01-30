@@ -250,7 +250,7 @@ export const plants: Plant[] = [{
   hardinessZones: ["7a", "7b", "8a", "8b", "9a", "9b"],
   ornamentalValue: 'Hermoso',
   waterNeeds: 'Moderada',
-  plantGroup: 'Árboles ornamentales',
+  plantGroup: 'Arbustos ornamentales',
   images: [
     "/lovable-uploads/a04b7d73-9b68-4e31-9174-3d181aad491c.png",
     "/lovable-uploads/9b38e27d-78c3-4b53-a08a-b3441009766c.png",
