@@ -9,7 +9,7 @@ const Footer = () => {
     <footer className="bg-green-900 text-white py-10 sm:py-14">
       <div className="container mx-auto px-4 text-center">
         <div className="max-w-2xl mx-auto">
-          <p className="text-green-200/80 text-xs uppercase tracking-[0.25em] mb-4">Fronda Prima</p>
+          <p className="text-green-200/80 text-xs uppercase tracking-[0.25em] mb-4">Frondaprima</p>
           <p className="text-base sm:text-lg font-light italic text-green-100 mb-6 leading-relaxed">
             "{t('footer.quote')}"
           </p>
