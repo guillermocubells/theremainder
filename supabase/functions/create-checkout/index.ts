@@ -81,6 +81,24 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
+    // Helper function to convert relative URLs to absolute
+    const getAbsoluteImageUrl = (imageUrl: string | undefined, origin: string): string[] | undefined => {
+      if (!imageUrl) return undefined;
+      
+      // If already an absolute URL, use it
+      if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+        return [imageUrl];
+      }
+      
+      // Convert relative path to absolute URL
+      const baseUrl = origin.replace(/\/$/, ""); // Remove trailing slash
+      const imagePath = imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`;
+      return [`${baseUrl}${imagePath}`];
+    };
+
+    // Get origin for success/cancel URLs
+    const origin = req.headers.get("origin") || "https://wedding-gift-botanicals.lovable.app";
+
     // Build line items for Stripe Checkout
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item) => ({
       price_data: {
@@ -88,15 +106,13 @@ serve(async (req) => {
         product_data: {
           name: item.name,
           description: item.containerSize || undefined,
-          images: item.image ? [item.image] : undefined,
+          images: getAbsoluteImageUrl(item.image, origin),
         },
         unit_amount: Math.round(item.price * 100), // Convert to cents
       },
       quantity: item.quantity,
     }));
 
-    // Get origin for success/cancel URLs
-    const origin = req.headers.get("origin") || "https://wedding-gift-botanicals.lovable.app";
 
     // Create Stripe Checkout session with European payment methods
     const session = await stripe.checkout.sessions.create({
