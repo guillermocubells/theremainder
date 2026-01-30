@@ -1,10 +1,10 @@
-
 import { useTranslation } from "react-i18next";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
-import { ExternalLink, Thermometer } from "lucide-react";
+import { ExternalLink, Thermometer, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatHardinessZones, getZoneCountLabel } from "@/utils/hardinessZones";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AddToCartButton from "./AddToCartButton";
 
 interface Plant {
@@ -192,43 +192,53 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           </div>
         )}
 
-        {/* Notes in green box with title - now more responsive */}
+        {/* Notes as collapsible */}
         {plant.notes && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
-            <h3 className="font-bold text-green-800 mb-2 text-sm sm:text-base">{t('plant.notes')}:</h3>
-            <p className="text-gray-700 leading-relaxed text-xs sm:text-sm lg:text-base">{plant.notes}</p>
-          </div>
+          <Collapsible defaultOpen className="bg-green-50 border border-green-200 rounded-lg overflow-hidden">
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-3 sm:p-4 hover:bg-green-100/50 transition-colors">
+              <h3 className="font-bold text-green-800 text-sm sm:text-base">{t('plant.notes')}</h3>
+              <ChevronDown className="h-4 w-4 text-green-700 transition-transform duration-200 data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 sm:px-4 sm:pb-4">
+              <p className="text-gray-700 leading-relaxed text-xs sm:text-sm lg:text-base">{plant.notes}</p>
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
-        {/* Product Details Section */}
+        {/* Product Details as collapsible */}
         {(plant.containerSize || plant.germinationDate) && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-5">
-            <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
-              {t('plant.productDetails')}
-            </h3>
-            <div className="flex flex-wrap gap-4 sm:gap-6">
-              {plant.containerSize && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">
-                    {t('specifications.container')}
-                  </span>
-                  <span className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-800 border-2 border-green-600 rounded transition-all duration-200 hover:bg-green-50">
-                    {plant.containerSize}
-                  </span>
-                </div>
-              )}
-              {plant.germinationDate && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">
-                    {t('plant.germinationDate')}
-                  </span>
-                  <span className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-800 border-2 border-green-600 rounded transition-all duration-200 hover:bg-green-50">
-                    {plant.germinationDate}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
+          <Collapsible defaultOpen className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-3 sm:p-4 hover:bg-gray-100/50 transition-colors">
+              <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
+                {t('plant.productDetails')}
+              </h3>
+              <ChevronDown className="h-4 w-4 text-gray-600 transition-transform duration-200 data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 sm:px-4 sm:pb-4">
+              <div className="flex flex-wrap gap-4 sm:gap-6">
+                {plant.containerSize && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">
+                      {t('specifications.container')}
+                    </span>
+                    <span className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-800 border-2 border-green-600 rounded transition-all duration-200 hover:bg-green-50">
+                      {plant.containerSize}
+                    </span>
+                  </div>
+                )}
+                {plant.germinationDate && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">
+                      {t('plant.germinationDate')}
+                    </span>
+                    <span className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-800 border-2 border-green-600 rounded transition-all duration-200 hover:bg-green-50">
+                      {plant.germinationDate}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
         {/* Add to cart button */}
