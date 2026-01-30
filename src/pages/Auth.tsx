@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,12 +12,13 @@ import { TreePalm, Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
 
-const emailSchema = z.string().email('Introduce un email válido');
-const passwordSchema = z.string().min(6, 'La contraseña debe tener al menos 6 caracteres');
-
 const Auth = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get('mode');
+  
+  const emailSchema = z.string().email(t('auth.errors.invalidEmail'));
+  const passwordSchema = z.string().min(6, t('auth.errors.passwordLength'));
   
   const [activeTab, setActiveTab] = useState<'login' | 'register' | 'forgot' | 'reset'>(
     mode === 'reset' ? 'reset' : 'login'
@@ -48,7 +50,7 @@ const Auth = () => {
     try {
       emailSchema.parse(email);
     } catch {
-      setError('Introduce un email válido');
+      setError(t('auth.errors.invalidEmail'));
       return false;
     }
 
@@ -56,18 +58,18 @@ const Auth = () => {
       try {
         passwordSchema.parse(password);
       } catch {
-        setError('La contraseña debe tener al menos 6 caracteres');
+        setError(t('auth.errors.passwordLength'));
         return false;
       }
     }
 
     if (activeTab === 'register' && password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError(t('auth.errors.passwordMismatch'));
       return false;
     }
 
     if (activeTab === 'reset' && password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError(t('auth.errors.passwordMismatch'));
       return false;
     }
 
@@ -85,9 +87,9 @@ const Auth = () => {
     
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
-        setError('Email o contraseña incorrectos');
+        setError(t('auth.errors.invalidCredentials'));
       } else if (error.message.includes('Email not confirmed')) {
-        setError('Por favor, confirma tu email antes de iniciar sesión');
+        setError(t('auth.errors.emailNotConfirmed'));
       } else {
         setError(error.message);
       }
@@ -107,12 +109,12 @@ const Auth = () => {
     
     if (error) {
       if (error.message.includes('User already registered')) {
-        setError('Este email ya está registrado. Intenta iniciar sesión.');
+        setError(t('auth.errors.userExists'));
       } else {
         setError(error.message);
       }
     } else {
-      setSuccess('Te hemos enviado un email de confirmación. Por favor, revisa tu bandeja de entrada.');
+      setSuccess(t('auth.success.emailSent'));
     }
     
     setLoading(false);
@@ -125,7 +127,7 @@ const Auth = () => {
     try {
       emailSchema.parse(email);
     } catch {
-      setError('Introduce un email válido');
+      setError(t('auth.errors.invalidEmail'));
       return;
     }
 
@@ -136,7 +138,7 @@ const Auth = () => {
     if (error) {
       setError(error.message);
     } else {
-      setSuccess('Te hemos enviado un email con instrucciones para restablecer tu contraseña.');
+      setSuccess(t('auth.success.passwordResetSent'));
     }
     
     setLoading(false);
@@ -154,7 +156,7 @@ const Auth = () => {
     if (error) {
       setError(error.message);
     } else {
-      setSuccess('Tu contraseña ha sido actualizada. Ya puedes iniciar sesión.');
+      setSuccess(t('auth.success.passwordUpdated'));
       setTimeout(() => {
         setActiveTab('login');
         setSuccess(null);
@@ -171,7 +173,7 @@ const Auth = () => {
         <div className="container mx-auto">
           <Link to="/" className="flex items-center gap-2 text-green-700 hover:text-green-800 w-fit">
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm">Volver a la tienda</span>
+            <span className="text-sm">{t('navigation.backToStore')}</span>
           </Link>
         </div>
       </header>
@@ -187,10 +189,10 @@ const Auth = () => {
             </div>
             <CardTitle className="text-2xl text-gray-800">Fronda Prima</CardTitle>
             <CardDescription>
-              {activeTab === 'login' && 'Accede a tu cuenta'}
-              {activeTab === 'register' && 'Crea tu cuenta'}
-              {activeTab === 'forgot' && 'Recupera tu contraseña'}
-              {activeTab === 'reset' && 'Establece una nueva contraseña'}
+              {activeTab === 'login' && t('auth.accessAccount')}
+              {activeTab === 'register' && t('auth.createYourAccount')}
+              {activeTab === 'forgot' && t('auth.recoverPassword')}
+              {activeTab === 'reset' && t('auth.setNewPassword')}
             </CardDescription>
           </CardHeader>
 
@@ -210,18 +212,18 @@ const Auth = () => {
             {activeTab === 'forgot' ? (
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="forgot-email">Email</Label>
+                  <Label htmlFor="forgot-email">{t('auth.email')}</Label>
                   <Input
                     id="forgot-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="tu@email.com"
+                    placeholder={t('auth.emailPlaceholder')}
                     required
                   />
                 </div>
                 <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enviar instrucciones'}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.sendInstructions')}
                 </Button>
                 <Button
                   type="button"
@@ -233,20 +235,20 @@ const Auth = () => {
                     setSuccess(null);
                   }}
                 >
-                  Volver al inicio de sesión
+                  {t('auth.backToLogin')}
                 </Button>
               </form>
             ) : activeTab === 'reset' ? (
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">Nueva contraseña</Label>
+                  <Label htmlFor="new-password">{t('auth.newPassword')}</Label>
                   <div className="relative">
                     <Input
                       id="new-password"
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder={t('auth.passwordPlaceholder')}
                       required
                     />
                     <Button
@@ -261,18 +263,18 @@ const Auth = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-new-password">Confirmar contraseña</Label>
+                  <Label htmlFor="confirm-new-password">{t('auth.confirmNewPassword')}</Label>
                   <Input
                     id="confirm-new-password"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder={t('auth.passwordPlaceholder')}
                     required
                   />
                 </div>
                 <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Actualizar contraseña'}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.updatePassword')}
                 </Button>
               </form>
             ) : (
@@ -282,32 +284,32 @@ const Auth = () => {
                 setSuccess(null);
               }}>
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
-                  <TabsTrigger value="register">Registrarse</TabsTrigger>
+                  <TabsTrigger value="login">{t('auth.login')}</TabsTrigger>
+                  <TabsTrigger value="register">{t('auth.register')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login">
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email">Email</Label>
+                      <Label htmlFor="login-email">{t('auth.email')}</Label>
                       <Input
                         id="login-email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="tu@email.com"
+                        placeholder={t('auth.emailPlaceholder')}
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="login-password">Contraseña</Label>
+                      <Label htmlFor="login-password">{t('auth.password')}</Label>
                       <div className="relative">
                         <Input
                           id="login-password"
                           type={showPassword ? 'text' : 'password'}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          placeholder="••••••••"
+                          placeholder={t('auth.passwordPlaceholder')}
                           required
                         />
                         <Button
@@ -322,7 +324,7 @@ const Auth = () => {
                       </div>
                     </div>
                     <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
-                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Iniciar sesión'}
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.login')}
                     </Button>
                     <Button
                       type="button"
@@ -334,7 +336,7 @@ const Auth = () => {
                         setSuccess(null);
                       }}
                     >
-                      ¿Olvidaste tu contraseña?
+                      {t('auth.forgotPassword')}
                     </Button>
                   </form>
                 </TabsContent>
@@ -342,35 +344,35 @@ const Auth = () => {
                 <TabsContent value="register">
                   <form onSubmit={handleRegister} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="register-name">Nombre completo</Label>
+                      <Label htmlFor="register-name">{t('auth.fullName')}</Label>
                       <Input
                         id="register-name"
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Tu nombre"
+                        placeholder={t('auth.fullNamePlaceholder')}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="register-email">Email</Label>
+                      <Label htmlFor="register-email">{t('auth.email')}</Label>
                       <Input
                         id="register-email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="tu@email.com"
+                        placeholder={t('auth.emailPlaceholder')}
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="register-password">Contraseña</Label>
+                      <Label htmlFor="register-password">{t('auth.password')}</Label>
                       <div className="relative">
                         <Input
                           id="register-password"
                           type={showPassword ? 'text' : 'password'}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Mínimo 6 caracteres"
+                          placeholder={t('auth.minCharacters')}
                           required
                         />
                         <Button
@@ -385,18 +387,18 @@ const Auth = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="register-confirm-password">Confirmar contraseña</Label>
+                      <Label htmlFor="register-confirm-password">{t('auth.confirmPassword')}</Label>
                       <Input
                         id="register-confirm-password"
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Repite la contraseña"
+                        placeholder={t('auth.repeatPassword')}
                         required
                       />
                     </div>
                     <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
-                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Crear cuenta'}
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.createAccount')}
                     </Button>
                   </form>
                 </TabsContent>

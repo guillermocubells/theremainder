@@ -1,4 +1,5 @@
 
+import { useTranslation } from "react-i18next";
 import { Leaf } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -7,11 +8,13 @@ interface PlantCharacteristicsProps {
 }
 
 const PlantCharacteristics = ({ characteristics }: PlantCharacteristicsProps) => {
+  const { t } = useTranslation();
+  
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-green-200">
       <CardHeader className="pb-3 sm:pb-4">
-        <CardTitle className="text-green-800 text-base sm:text-lg lg:text-xl">Características Principales</CardTitle>
-        <CardDescription className="text-xs sm:text-sm">Lo que hace especial a esta planta</CardDescription>
+        <CardTitle className="text-green-800 text-base sm:text-lg lg:text-xl">{t('characteristics.title')}</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">{t('characteristics.subtitle')}</CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
         <ul className="space-y-2 sm:space-y-3">

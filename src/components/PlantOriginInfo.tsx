@@ -1,4 +1,5 @@
 
+import { useTranslation } from "react-i18next";
 import { MapPin, Thermometer, Sun } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,14 +10,16 @@ interface PlantOriginInfoProps {
 }
 
 const PlantOriginInfo = ({ origin, climate, light }: PlantOriginInfoProps) => {
+  const { t } = useTranslation();
+  
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-green-200">
       <CardHeader>
         <CardTitle className="text-green-800 flex items-center space-x-2">
           <MapPin className="h-5 w-5" />
-          <span>Información de Origen</span>
+          <span>{t('originInfo.title')}</span>
         </CardTitle>
-        <CardDescription>Datos sobre el hábitat natural y condiciones ideales</CardDescription>
+        <CardDescription>{t('originInfo.subtitle')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -25,7 +28,7 @@ const PlantOriginInfo = ({ origin, climate, light }: PlantOriginInfoProps) => {
               <MapPin className="h-4 w-4 text-blue-600" />
             </div>
             <div>
-              <h4 className="font-medium text-gray-800">Origen</h4>
+              <h4 className="font-medium text-gray-800">{t('originInfo.origin')}</h4>
               <p className="text-gray-600">{origin}</p>
             </div>
           </div>
@@ -35,7 +38,7 @@ const PlantOriginInfo = ({ origin, climate, light }: PlantOriginInfoProps) => {
               <Thermometer className="h-4 w-4 text-orange-600" />
             </div>
             <div>
-              <h4 className="font-medium text-gray-800">Tipo de Clima</h4>
+              <h4 className="font-medium text-gray-800">{t('originInfo.climateType')}</h4>
               <p className="text-gray-600">{climate}</p>
             </div>
           </div>
@@ -45,7 +48,7 @@ const PlantOriginInfo = ({ origin, climate, light }: PlantOriginInfoProps) => {
               <Sun className="h-4 w-4 text-yellow-600" />
             </div>
             <div>
-              <h4 className="font-medium text-gray-800">Mejor Ubicación</h4>
+              <h4 className="font-medium text-gray-800">{t('originInfo.bestLocation')}</h4>
               <p className="text-gray-600">{light}</p>
             </div>
           </div>

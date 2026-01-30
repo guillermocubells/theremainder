@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -24,20 +25,21 @@ import AccountProfile from '@/components/account/AccountProfile';
 import AccountSecurity from '@/components/account/AccountSecurity';
 import AccountSavedSearches from '@/components/account/AccountSavedSearches';
 
-const menuItems = [
-  { id: 'dashboard', label: 'Resumen', icon: LayoutDashboard },
-  { id: 'orders', label: 'Pedidos', icon: Package },
-  { id: 'addresses', label: 'Direcciones', icon: MapPin },
-  { id: 'profile', label: 'Detalles', icon: User },
-  { id: 'security', label: 'Seguridad', icon: Shield },
-  { id: 'searches', label: 'Búsquedas', icon: Search },
-];
-
 const Account = () => {
+  const { t } = useTranslation();
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const menuItems = [
+    { id: 'dashboard', label: t('account.dashboard'), icon: LayoutDashboard },
+    { id: 'orders', label: t('account.orders'), icon: Package },
+    { id: 'addresses', label: t('account.addresses'), icon: MapPin },
+    { id: 'profile', label: t('account.profile'), icon: User },
+    { id: 'security', label: t('account.security'), icon: Shield },
+    { id: 'searches', label: t('account.savedSearches'), icon: Search },
+  ];
 
   const handleSignOut = async () => {
     await signOut();
@@ -91,7 +93,7 @@ const Account = () => {
         className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left text-red-600 hover:bg-red-50 transition-colors"
       >
         <LogOut className="h-5 w-5" />
-        <span>Cerrar sesión</span>
+        <span>{t('auth.logout')}</span>
       </button>
     </div>
   );
@@ -105,7 +107,7 @@ const Account = () => {
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="bg-white rounded-xl shadow-sm p-4 sticky top-24">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 px-4">Mi cuenta</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 px-4">{t('account.title')}</h2>
               <SidebarContent />
             </div>
           </aside>
@@ -120,7 +122,7 @@ const Account = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-80">
                 <div className="py-4">
-                  <h2 className="text-lg font-semibold text-gray-800 mb-4 px-4">Mi cuenta</h2>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4 px-4">{t('account.title')}</h2>
                   <SidebarContent />
                 </div>
               </SheetContent>

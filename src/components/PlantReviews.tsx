@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Star, MessageSquare, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +19,7 @@ interface PlantReviewsProps {
 }
 
 const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
+  const { t, i18n } = useTranslation();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [newReview, setNewReview] = useState({
@@ -35,7 +37,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
       author: newReview.author,
       rating: newReview.rating,
       comment: newReview.comment,
-      date: new Date().toLocaleDateString('es-ES', {
+      date: new Date().toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
@@ -85,13 +87,13 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
           </div>
           <div>
             <h2 className="text-base sm:text-lg lg:text-xl font-bold text-green-800">
-              Opiniones y Reseñas
+              {t('reviews.title')}
             </h2>
             {reviews.length > 0 && (
               <div className="flex items-center gap-2 mt-0.5">
                 {renderStars(Math.round(Number(averageRating)))}
                 <span className="text-xs sm:text-sm text-gray-600">
-                  {averageRating} de 5 ({reviews.length} {reviews.length === 1 ? 'reseña' : 'reseñas'})
+                  {averageRating} {t('reviews.of')} 5 ({reviews.length} {reviews.length === 1 ? t('reviews.review') : t('reviews.reviewsCount')})
                 </span>
               </div>
             )}
@@ -103,7 +105,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
             onClick={() => setShowForm(true)}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
-            Escribir una reseña
+            {t('reviews.writeReview')}
           </Button>
         )}
       </div>
@@ -111,17 +113,17 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
       {/* Review Form */}
       {showForm && (
         <form onSubmit={handleSubmitReview} className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
-          <h3 className="font-semibold text-gray-800 text-sm sm:text-base mb-3 sm:mb-4">Tu opinión sobre {plantName}</h3>
+          <h3 className="font-semibold text-gray-800 text-sm sm:text-base mb-3 sm:mb-4">{t('reviews.yourOpinion')} {plantName}</h3>
           
           <div className="space-y-3 sm:space-y-4">
             <div>
               <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                Tu nombre
+                {t('reviews.yourName')}
               </label>
               <Input
                 value={newReview.author}
                 onChange={(e) => setNewReview({ ...newReview, author: e.target.value })}
-                placeholder="Nombre"
+                placeholder={t('reviews.namePlaceholder')}
                 className="border-green-200 focus:border-green-400 text-sm"
                 required
               />
@@ -129,7 +131,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
 
             <div>
               <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                Valoración
+                {t('reviews.rating')}
               </label>
               {renderStars(newReview.rating, true, (rating) => 
                 setNewReview({ ...newReview, rating })
@@ -138,12 +140,12 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
 
             <div>
               <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                Tu experiencia
+                {t('reviews.yourExperience')}
               </label>
               <Textarea
                 value={newReview.comment}
                 onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                placeholder="Comparte tu experiencia con esta planta..."
+                placeholder={t('reviews.experiencePlaceholder')}
                 className="border-green-200 focus:border-green-400 min-h-[80px] sm:min-h-[100px] text-sm"
                 required
               />
@@ -151,7 +153,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
 
             <div className="flex gap-2 sm:gap-3">
               <Button type="submit" size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm">
-                Publicar reseña
+                {t('reviews.publishReview')}
               </Button>
               <Button
                 type="button"
@@ -160,7 +162,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
                 onClick={() => setShowForm(false)}
                 className="border-gray-300 text-xs sm:text-sm"
               >
-                Cancelar
+                {t('common.cancel')}
               </Button>
             </div>
           </div>
@@ -173,9 +175,9 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
           <div className="p-3 bg-gray-100 rounded-full inline-block mb-3">
             <MessageSquare className="h-6 w-6 text-gray-400" />
           </div>
-          <p className="text-gray-600 text-sm sm:text-base mb-1">Aún no hay reseñas para esta planta</p>
+          <p className="text-gray-600 text-sm sm:text-base mb-1">{t('reviews.noReviews')}</p>
           <p className="text-xs sm:text-sm text-gray-500">
-            ¡Sé el primero en compartir tu experiencia!
+            {t('reviews.beFirst')}
           </p>
         </div>
       ) : (

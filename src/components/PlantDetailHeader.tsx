@@ -1,4 +1,5 @@
 
+import { useTranslation } from "react-i18next";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { ExternalLink, Thermometer } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ interface PlantDetailHeaderProps {
 }
 
 const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) => {
+  const { t } = useTranslation();
   const lightInfo = getLightInfo(plant.light);
   const growthInfo = getGrowthInfo(plant.growthRate);
   const LightIcon = lightInfo.icon;
@@ -36,28 +38,28 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
   const getLightTooltip = (light: string) => {
     switch (light.toLowerCase()) {
       case 'soleada':
-        return 'Necesita luz solar directa durante la mayor parte del día';
+        return t('light.sunnyTooltip');
       case 'semisol':
-        return 'Prefiere luz solar parcial, unas 4-6 horas al día';
+        return t('light.semiSunTooltip');
       case 'semisombra':
-        return 'Tolera sombra parcial con algo de luz filtrada';
+        return t('light.semiShadeTooltip');
       case 'sombreada':
-        return 'Prefiere áreas con poca luz directa o sombra completa';
+        return t('light.shadedTooltip');
       default:
-        return 'Requerimientos de luz específicos';
+        return t('light.defaultTooltip');
     }
   };
 
   const getGrowthTooltip = (growth: string) => {
     switch (growth.toLowerCase()) {
       case 'rápido':
-        return 'Crecimiento acelerado, verás cambios notables en poco tiempo';
+        return t('growth.fastTooltip');
       case 'medio':
-        return 'Crecimiento moderado, desarrollo constante a ritmo normal';
+        return t('growth.mediumTooltip');
       case 'lento':
-        return 'Crecimiento pausado, requiere paciencia pero muy gratificante';
+        return t('growth.slowTooltip');
       default:
-        return 'Ritmo de crecimiento específico';
+        return t('growth.defaultTooltip');
     }
   };
 
@@ -84,8 +86,8 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               className="flex items-center gap-2"
             >
               <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Ver más información de la especie</span>
-              <span className="sm:hidden">Info especie</span>
+              <span className="hidden sm:inline">{t('plant.viewMoreInfo')}</span>
+              <span className="sm:hidden">{t('plant.infoSpecies')}</span>
             </a>
           </Button>
         </div>
@@ -109,7 +111,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             </TooltipTrigger>
             <TooltipContent side="bottom" align="start" className="text-left">
               <div>
-                <p className="font-semibold">Luz</p>
+                <p className="font-semibold">{t('light.title')}</p>
                 <p className="text-xs sm:text-sm">{getLightTooltip(plant.light)}</p>
               </div>
             </TooltipContent>
@@ -124,7 +126,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             </TooltipTrigger>
             <TooltipContent side="bottom" align="start" className="text-left">
               <div>
-                <p className="font-semibold">Crecimiento</p>
+                <p className="font-semibold">{t('growth.title')}</p>
                 <p className="text-xs sm:text-sm">{getGrowthTooltip(plant.growthRate)}</p>
               </div>
             </TooltipContent>
@@ -134,13 +136,13 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800 cursor-help">
-                  <span>{plant.quantity}x disponibles</span>
+                  <span>{plant.quantity}x {t('plant.available')}</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom" align="start" className="text-left">
                 <div>
-                  <p className="font-semibold">Disponibilidad</p>
-                  <p className="text-xs sm:text-sm">Cantidad disponible: {plant.quantity} {plant.quantity === 1 ? 'unidad' : 'unidades'}</p>
+                  <p className="font-semibold">{t('plant.availability')}</p>
+                  <p className="text-xs sm:text-sm">{t('plant.availableQuantity')}: {plant.quantity} {plant.quantity === 1 ? t('plant.unit') : t('plant.units')}</p>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -156,9 +158,9 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               </TooltipTrigger>
               <TooltipContent side="bottom" align="start" className="text-left max-w-xs">
                 <div>
-                  <p className="font-semibold">Zona de Rusticidad</p>
+                  <p className="font-semibold">{t('hardiness.title')}</p>
                   <p className="text-xs sm:text-sm">{getZoneCountLabel(plant.hardinessZones)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Indica la tolerancia al frío según la clasificación USDA</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('hardiness.tooltip')}</p>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -172,17 +174,17 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
             {origin && (
               <span className="flex items-center gap-1">
-                <span className="font-medium">Origen:</span> {origin}
+                <span className="font-medium">{t('plant.origin')}:</span> {origin}
               </span>
             )}
             {climate && (
               <span className="flex items-center gap-1">
-                <span className="font-medium">Clima:</span> {climate}
+                <span className="font-medium">{t('plant.climate')}:</span> {climate}
               </span>
             )}
             {plant.location && (
               <span className="flex items-center gap-1">
-                <span className="font-medium">Ideal para:</span> {plant.location}
+                <span className="font-medium">{t('plant.idealFor')}:</span> {plant.location}
               </span>
             )}
           </div>
@@ -191,7 +193,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
         {/* Notes in green box with title - now more responsive */}
         {plant.notes && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
-            <h3 className="font-bold text-green-800 mb-2 text-sm sm:text-base">Notas:</h3>
+            <h3 className="font-bold text-green-800 mb-2 text-sm sm:text-base">{t('plant.notes')}:</h3>
             <p className="text-gray-700 leading-relaxed text-xs sm:text-sm lg:text-base">{plant.notes}</p>
           </div>
         )}
