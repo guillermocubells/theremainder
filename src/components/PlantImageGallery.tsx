@@ -32,13 +32,13 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
       <div className="h-full flex flex-col">
         {/* Main Image */}
         <div 
-          className="relative flex-1 min-h-[300px] rounded-xl overflow-hidden mb-3 cursor-pointer group shadow-lg"
+          className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3 cursor-pointer group shadow-lg"
           onClick={() => setLightboxOpen(true)}
         >
           <img
             src={displayImages[selectedIndex]}
             alt={`${plantName} - imagen ${selectedIndex + 1}`}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           {/* Zoom button */}
           <button 
