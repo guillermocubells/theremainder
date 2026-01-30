@@ -1,19 +1,32 @@
 
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, User } from "lucide-react";
 import { plants } from "@/data/plants";
 import { plantDetails } from "@/data/plantDetailData";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import PlantDetailHeader from "./PlantDetailHeader";
 import PlantPhotoCarousel from "./PlantPhotoCarousel";
 import CareInstructions from "./CareInstructions";
 import PlantCharacteristics from "./PlantCharacteristics";
 import PlantCuriousFacts from "./PlantCuriousFacts";
 import PlantReviews from "./PlantReviews";
+import CartDrawer from "./CartDrawer";
 
 const PlantDetail = () => {
   const { plantId } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const plant = plants.find(p => p.id === plantId);
+
+  const handleAccountClick = () => {
+    if (user) {
+      navigate('/account');
+    } else {
+      navigate('/auth');
+    }
+  };
 
   if (!plant) {
     return (
@@ -36,7 +49,7 @@ const PlantDetail = () => {
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-3 sm:py-4">
-            <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="flex items-center justify-between">
               <Link 
                 to="/" 
                 className="flex items-center space-x-2 text-green-700 hover:text-green-800 transition-colors text-sm sm:text-base"
@@ -45,6 +58,24 @@ const PlantDetail = () => {
                 <span className="hidden sm:inline">Volver al catálogo</span>
                 <span className="sm:hidden">Volver</span>
               </Link>
+              
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                {/* Cart drawer */}
+                <CartDrawer />
+
+                {/* Account button */}
+                <Button 
+                  onClick={handleAccountClick}
+                  variant="ghost" 
+                  size="sm"
+                  className="hover:bg-green-100 text-green-700"
+                >
+                  <User className="h-5 w-5 sm:mr-1" />
+                  <span className="hidden sm:inline">
+                    {user ? 'Mi cuenta' : 'Entrar'}
+                  </span>
+                </Button>
+              </div>
             </div>
           </div>
         </header>
