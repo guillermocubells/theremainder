@@ -1,4 +1,5 @@
 
+import { useTranslation } from "react-i18next";
 import { Droplets } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -7,11 +8,13 @@ interface CareInstructionsProps {
 }
 
 const CareInstructions = ({ instructions }: CareInstructionsProps) => {
+  const { t } = useTranslation();
+  
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-green-200">
       <CardHeader>
-        <CardTitle className="text-green-800">Instrucciones de Cuidado</CardTitle>
-        <CardDescription>Consejos esenciales para un crecimiento saludable</CardDescription>
+        <CardTitle className="text-green-800">{t('care.title')}</CardTitle>
+        <CardDescription>{t('care.subtitle')}</CardDescription>
       </CardHeader>
       <CardContent>
         <ul className="space-y-3">

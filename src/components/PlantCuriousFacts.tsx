@@ -1,4 +1,5 @@
 
+import { useTranslation } from "react-i18next";
 import { Lightbulb } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -7,14 +8,16 @@ interface PlantCuriousFactsProps {
 }
 
 const PlantCuriousFacts = ({ curiousFacts }: PlantCuriousFactsProps) => {
+  const { t } = useTranslation();
+  
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-green-200">
       <CardHeader className="pb-3 sm:pb-4">
         <CardTitle className="text-green-800 flex items-center space-x-2 text-base sm:text-lg lg:text-xl">
           <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span>Datos Curiosos</span>
+          <span>{t('curiousFacts.title')}</span>
         </CardTitle>
-        <CardDescription className="text-xs sm:text-sm">Hechos fascinantes y únicos sobre esta planta</CardDescription>
+        <CardDescription className="text-xs sm:text-sm">{t('curiousFacts.subtitle')}</CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
         <ul className="space-y-2 sm:space-y-3">

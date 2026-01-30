@@ -9,6 +9,7 @@
   },
   "navigation": {
     "backToCatalog": "Back to catalog",
+    "backToStore": "Back to store",
     "catalog": "Catalog"
   },
   "hero": {
@@ -33,9 +34,12 @@
   "plant": {
     "addToCart": "Add to cart",
     "added": "Added",
-    "viewDetails": "View details",
+    "viewDetails": "View Details",
+    "viewMoreInfo": "View more species info",
+    "infoSpecies": "Species info",
     "origin": "Origin",
     "climate": "Climate",
+    "idealFor": "Ideal for",
     "characteristics": "Characteristics",
     "careInstructions": "Care Instructions",
     "curiousFacts": "Curious Facts",
@@ -44,15 +48,81 @@
     "height": "Height",
     "spread": "Spread",
     "growth": "Growth",
-    "foliage": "Foliage"
+    "foliage": "Foliage",
+    "notes": "Notes",
+    "availability": "Availability",
+    "availableQuantity": "Available quantity",
+    "unit": "unit",
+    "units": "units",
+    "available": "available",
+    "preview": "preview"
+  },
+  "light": {
+    "title": "Light",
+    "sunny": "Full sun",
+    "semiSun": "Partial sun",
+    "semiShade": "Partial shade",
+    "shaded": "Full shade",
+    "sunnyTooltip": "Needs direct sunlight for most of the day",
+    "semiSunTooltip": "Prefers partial sunlight, about 4-6 hours a day",
+    "semiShadeTooltip": "Tolerates partial shade with some filtered light",
+    "shadedTooltip": "Prefers areas with little direct light or full shade",
+    "defaultTooltip": "Specific light requirements"
+  },
+  "growth": {
+    "title": "Growth",
+    "fast": "Fast",
+    "medium": "Medium",
+    "slow": "Slow",
+    "fastTooltip": "Rapid growth, you'll see noticeable changes quickly",
+    "mediumTooltip": "Moderate growth, steady development at normal pace",
+    "slowTooltip": "Slow growth, requires patience but very rewarding",
+    "defaultTooltip": "Specific growth rate"
+  },
+  "hardiness": {
+    "title": "Hardiness Zone",
+    "tooltip": "Indicates cold tolerance according to USDA classification"
   },
   "care": {
+    "title": "Care Instructions",
+    "subtitle": "Essential tips for healthy growth",
     "water": "Water",
     "light": "Light",
     "temperature": "Temperature",
     "humidity": "Humidity",
     "soil": "Soil",
     "fertilizer": "Fertilizer"
+  },
+  "characteristics": {
+    "title": "Main Characteristics",
+    "subtitle": "What makes this plant special"
+  },
+  "curiousFacts": {
+    "title": "Curious Facts",
+    "subtitle": "Fascinating and unique facts about this plant"
+  },
+  "reviews": {
+    "title": "Reviews & Opinions",
+    "of": "of",
+    "review": "review",
+    "reviewsCount": "reviews",
+    "writeReview": "Write a review",
+    "yourOpinion": "Your opinion about",
+    "yourName": "Your name",
+    "namePlaceholder": "Name",
+    "rating": "Rating",
+    "yourExperience": "Your experience",
+    "experiencePlaceholder": "Share your experience with this plant...",
+    "publishReview": "Publish review",
+    "noReviews": "No reviews for this plant yet",
+    "beFirst": "Be the first to share your experience!"
+  },
+  "originInfo": {
+    "title": "Origin Information",
+    "subtitle": "Data about natural habitat and ideal conditions",
+    "origin": "Origin",
+    "climateType": "Climate Type",
+    "bestLocation": "Best Location"
   },
   "cart": {
     "title": "Shopping Cart",
@@ -68,23 +138,52 @@
     "quantity": "Quantity"
   },
   "auth": {
-    "login": "Sign In",
-    "register": "Sign Up",
+    "login": "Sign in",
+    "register": "Sign up",
+    "createAccount": "Create account",
+    "accessAccount": "Access your account",
+    "createYourAccount": "Create your account",
+    "recoverPassword": "Recover your password",
+    "setNewPassword": "Set a new password",
     "email": "Email",
+    "emailPlaceholder": "you@email.com",
     "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "confirmNewPassword": "Confirm password",
+    "repeatPassword": "Repeat password",
+    "minCharacters": "Minimum 6 characters",
     "fullName": "Full name",
+    "fullNamePlaceholder": "Your name",
     "forgotPassword": "Forgot your password?",
+    "backToLogin": "Back to sign in",
+    "sendInstructions": "Send instructions",
+    "updatePassword": "Update password",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "errors": {
+      "invalidEmail": "Enter a valid email",
+      "passwordLength": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords don't match",
+      "invalidCredentials": "Invalid email or password",
+      "emailNotConfirmed": "Please confirm your email before signing in",
+      "userExists": "This email is already registered. Try signing in."
+    },
+    "success": {
+      "emailSent": "We've sent you a confirmation email. Please check your inbox.",
+      "passwordResetSent": "We've sent you an email with instructions to reset your password.",
+      "passwordUpdated": "Your password has been updated. You can now sign in."
+    }
   },
   "account": {
-    "title": "My Account",
+    "title": "My account",
     "dashboard": "Dashboard",
-    "profile": "Profile",
+    "profile": "Details",
     "orders": "Orders",
     "addresses": "Addresses",
-    "savedSearches": "Saved Searches",
+    "savedSearches": "Searches",
     "security": "Security"
   },
   "plantFinder": {
@@ -101,6 +200,7 @@
     "question4": "What is your hardiness zone?"
   },
   "footer": {
+    "quote": "To plant a tree from a high place is to carry elevation into the lowlands — an act of quiet defiance against forgetting.",
     "rights": "All rights reserved",
     "privacy": "Privacy",
     "terms": "Terms",

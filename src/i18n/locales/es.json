@@ -1,14 +1,15 @@
 {
   "header": {
     "title": "Fronda Prima",
-    "subtitle": "The lost trees of the high altitudes",
-    "subtitleMobile": "High altitude botanica",
+    "subtitle": "Los árboles perdidos de las alturas",
+    "subtitleMobile": "Botánica de altura",
     "findPlant": "Encuentra tu planta",
     "myAccount": "Mi cuenta",
     "login": "Entrar"
   },
   "navigation": {
     "backToCatalog": "Volver al catálogo",
+    "backToStore": "Volver a la tienda",
     "catalog": "Catálogo"
   },
   "hero": {
@@ -33,9 +34,12 @@
   "plant": {
     "addToCart": "Añadir al carrito",
     "added": "Añadido",
-    "viewDetails": "Ver detalles",
+    "viewDetails": "Ver Detalles",
+    "viewMoreInfo": "Ver más información de la especie",
+    "infoSpecies": "Info especie",
     "origin": "Origen",
     "climate": "Clima",
+    "idealFor": "Ideal para",
     "characteristics": "Características",
     "careInstructions": "Cuidados",
     "curiousFacts": "Datos Curiosos",
@@ -44,15 +48,81 @@
     "height": "Altura",
     "spread": "Extensión",
     "growth": "Crecimiento",
-    "foliage": "Follaje"
+    "foliage": "Follaje",
+    "notes": "Notas",
+    "availability": "Disponibilidad",
+    "availableQuantity": "Cantidad disponible",
+    "unit": "unidad",
+    "units": "unidades",
+    "available": "disponibles",
+    "preview": "vista previa"
+  },
+  "light": {
+    "title": "Luz",
+    "sunny": "Soleada",
+    "semiSun": "Semisol",
+    "semiShade": "Semisombra",
+    "shaded": "Sombreada",
+    "sunnyTooltip": "Necesita luz solar directa durante la mayor parte del día",
+    "semiSunTooltip": "Prefiere luz solar parcial, unas 4-6 horas al día",
+    "semiShadeTooltip": "Tolera sombra parcial con algo de luz filtrada",
+    "shadedTooltip": "Prefiere áreas con poca luz directa o sombra completa",
+    "defaultTooltip": "Requerimientos de luz específicos"
+  },
+  "growth": {
+    "title": "Crecimiento",
+    "fast": "Rápido",
+    "medium": "Medio",
+    "slow": "Lento",
+    "fastTooltip": "Crecimiento acelerado, verás cambios notables en poco tiempo",
+    "mediumTooltip": "Crecimiento moderado, desarrollo constante a ritmo normal",
+    "slowTooltip": "Crecimiento pausado, requiere paciencia pero muy gratificante",
+    "defaultTooltip": "Ritmo de crecimiento específico"
+  },
+  "hardiness": {
+    "title": "Zona de Rusticidad",
+    "tooltip": "Indica la tolerancia al frío según la clasificación USDA"
   },
   "care": {
+    "title": "Instrucciones de Cuidado",
+    "subtitle": "Consejos esenciales para un crecimiento saludable",
     "water": "Riego",
     "light": "Luz",
     "temperature": "Temperatura",
     "humidity": "Humedad",
     "soil": "Suelo",
     "fertilizer": "Fertilizante"
+  },
+  "characteristics": {
+    "title": "Características Principales",
+    "subtitle": "Lo que hace especial a esta planta"
+  },
+  "curiousFacts": {
+    "title": "Datos Curiosos",
+    "subtitle": "Hechos fascinantes y únicos sobre esta planta"
+  },
+  "reviews": {
+    "title": "Opiniones y Reseñas",
+    "of": "de",
+    "review": "reseña",
+    "reviewsCount": "reseñas",
+    "writeReview": "Escribir una reseña",
+    "yourOpinion": "Tu opinión sobre",
+    "yourName": "Tu nombre",
+    "namePlaceholder": "Nombre",
+    "rating": "Valoración",
+    "yourExperience": "Tu experiencia",
+    "experiencePlaceholder": "Comparte tu experiencia con esta planta...",
+    "publishReview": "Publicar reseña",
+    "noReviews": "Aún no hay reseñas para esta planta",
+    "beFirst": "¡Sé el primero en compartir tu experiencia!"
+  },
+  "originInfo": {
+    "title": "Información de Origen",
+    "subtitle": "Datos sobre el hábitat natural y condiciones ideales",
+    "origin": "Origen",
+    "climateType": "Tipo de Clima",
+    "bestLocation": "Mejor Ubicación"
   },
   "cart": {
     "title": "Carrito de Compra",
@@ -68,23 +138,52 @@
     "quantity": "Cantidad"
   },
   "auth": {
-    "login": "Iniciar Sesión",
+    "login": "Iniciar sesión",
     "register": "Registrarse",
-    "email": "Correo electrónico",
+    "createAccount": "Crear cuenta",
+    "accessAccount": "Accede a tu cuenta",
+    "createYourAccount": "Crea tu cuenta",
+    "recoverPassword": "Recupera tu contraseña",
+    "setNewPassword": "Establece una nueva contraseña",
+    "email": "Email",
+    "emailPlaceholder": "tu@email.com",
     "password": "Contraseña",
+    "passwordPlaceholder": "••••••••",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "confirmNewPassword": "Confirmar contraseña",
+    "repeatPassword": "Repite la contraseña",
+    "minCharacters": "Mínimo 6 caracteres",
     "fullName": "Nombre completo",
+    "fullNamePlaceholder": "Tu nombre",
     "forgotPassword": "¿Olvidaste tu contraseña?",
+    "backToLogin": "Volver al inicio de sesión",
+    "sendInstructions": "Enviar instrucciones",
+    "updatePassword": "Actualizar contraseña",
     "noAccount": "¿No tienes cuenta?",
     "hasAccount": "¿Ya tienes cuenta?",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "errors": {
+      "invalidEmail": "Introduce un email válido",
+      "passwordLength": "La contraseña debe tener al menos 6 caracteres",
+      "passwordMismatch": "Las contraseñas no coinciden",
+      "invalidCredentials": "Email o contraseña incorrectos",
+      "emailNotConfirmed": "Por favor, confirma tu email antes de iniciar sesión",
+      "userExists": "Este email ya está registrado. Intenta iniciar sesión."
+    },
+    "success": {
+      "emailSent": "Te hemos enviado un email de confirmación. Por favor, revisa tu bandeja de entrada.",
+      "passwordResetSent": "Te hemos enviado un email con instrucciones para restablecer tu contraseña.",
+      "passwordUpdated": "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión."
+    }
   },
   "account": {
-    "title": "Mi Cuenta",
-    "dashboard": "Panel",
-    "profile": "Perfil",
+    "title": "Mi cuenta",
+    "dashboard": "Resumen",
+    "profile": "Detalles",
     "orders": "Pedidos",
     "addresses": "Direcciones",
-    "savedSearches": "Búsquedas Guardadas",
+    "savedSearches": "Búsquedas",
     "security": "Seguridad"
   },
   "plantFinder": {
@@ -101,6 +200,7 @@
     "question4": "¿Cuál es tu zona de resistencia?"
   },
   "footer": {
+    "quote": "Plantar un árbol de un lugar elevado es llevar la altura a las tierras bajas — un acto de silenciosa rebeldía contra el olvido.",
     "rights": "Todos los derechos reservados",
     "privacy": "Privacidad",
     "terms": "Términos",

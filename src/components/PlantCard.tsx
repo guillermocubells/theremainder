@@ -1,5 +1,6 @@
 
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Plant } from "@/data/plants";
@@ -10,6 +11,7 @@ interface PlantCardProps {
 }
 
 const PlantCard = ({ plant }: PlantCardProps) => {
+  const { t } = useTranslation();
   const lightInfo = getLightInfo(plant.light);
   const growthInfo = getGrowthInfo(plant.growthRate);
   const LightIcon = lightInfo.icon;
@@ -18,28 +20,28 @@ const PlantCard = ({ plant }: PlantCardProps) => {
   const getLightTooltip = (light: string) => {
     switch (light.toLowerCase()) {
       case 'soleada':
-        return 'Necesita luz solar directa durante la mayor parte del día';
+        return t('light.sunnyTooltip');
       case 'semisol':
-        return 'Prefiere luz solar parcial, unas 4-6 horas al día';
+        return t('light.semiSunTooltip');
       case 'semisombra':
-        return 'Tolera sombra parcial con algo de luz filtrada';
+        return t('light.semiShadeTooltip');
       case 'sombreada':
-        return 'Prefiere áreas con poca luz directa o sombra completa';
+        return t('light.shadedTooltip');
       default:
-        return 'Requerimientos de luz específicos';
+        return t('light.defaultTooltip');
     }
   };
 
   const getGrowthTooltip = (growth: string) => {
     switch (growth.toLowerCase()) {
       case 'rápido':
-        return 'Crecimiento acelerado, verás cambios notables en poco tiempo';
+        return t('growth.fastTooltip');
       case 'medio':
-        return 'Crecimiento moderado, desarrollo constante a ritmo normal';
+        return t('growth.mediumTooltip');
       case 'lento':
-        return 'Crecimiento pausado, requiere paciencia pero muy gratificante';
+        return t('growth.slowTooltip');
       default:
-        return 'Ritmo de crecimiento específico';
+        return t('growth.defaultTooltip');
     }
   };
 
@@ -78,8 +80,8 @@ const PlantCard = ({ plant }: PlantCardProps) => {
                   </TooltipTrigger>
                   <TooltipContent side="bottom" align="start" className="text-left">
                     <div>
-                      <p className="font-semibold">Disponibilidad</p>
-                      <p>Cantidad disponible: {plant.quantity} {plant.quantity === 1 ? 'unidad' : 'unidades'}</p>
+                      <p className="font-semibold">{t('plant.availability')}</p>
+                      <p>{t('plant.availableQuantity')}: {plant.quantity} {plant.quantity === 1 ? t('plant.unit') : t('plant.units')}</p>
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -111,7 +113,7 @@ const PlantCard = ({ plant }: PlantCardProps) => {
                 </TooltipTrigger>
                 <TooltipContent side="bottom" align="start" className="text-left">
                   <div>
-                    <p className="font-semibold">Luz</p>
+                    <p className="font-semibold">{t('light.title')}</p>
                     <p>{getLightTooltip(plant.light)}</p>
                   </div>
                 </TooltipContent>
@@ -126,7 +128,7 @@ const PlantCard = ({ plant }: PlantCardProps) => {
                 </TooltipTrigger>
                 <TooltipContent side="bottom" align="start" className="text-left">
                   <div>
-                    <p className="font-semibold">Crecimiento</p>
+                    <p className="font-semibold">{t('growth.title')}</p>
                     <p>{getGrowthTooltip(plant.growthRate)}</p>
                   </div>
                 </TooltipContent>
@@ -141,7 +143,7 @@ const PlantCard = ({ plant }: PlantCardProps) => {
               <div className="flex-1 relative">
                 <img 
                   src={getHoverImage()} 
-                  alt={`${plant.name} - vista previa`}
+                  alt={`${plant.name} - ${t('plant.preview')}`}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -157,7 +159,7 @@ const PlantCard = ({ plant }: PlantCardProps) => {
             {/* Ver Detalles button - positioned at bottom right */}
             <div className="absolute bottom-3 sm:bottom-6 right-3 sm:right-6">
               <span className="bg-white/90 text-gray-700 font-medium text-xs px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors block text-center shadow-lg">
-                Ver Detalles →
+                {t('plant.viewDetails')} →
               </span>
             </div>
           </div>
