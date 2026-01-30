@@ -62,11 +62,17 @@ const Header = () => {
                 onClick={handleAccountClick}
                 variant="ghost" 
                 size="sm"
-                className="hover:bg-secondary text-primary"
+                className="hover:bg-secondary text-primary relative"
               >
                 <User className="h-5 w-5 sm:mr-1" />
                 {user && (
-                  <span className="hidden sm:inline">{t('header.myAccount')}</span>
+                  <>
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-moss rounded-full border border-card" />
+                    <span className="hidden sm:inline">{t('header.myAccount')}</span>
+                  </>
+                )}
+                {!user && (
+                  <span className="hidden sm:inline">{t('header.login')}</span>
                 )}
               </Button>
 
