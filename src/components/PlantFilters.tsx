@@ -12,6 +12,7 @@ interface PlantFiltersProps {
 }
 
 interface FilterState {
+  plantGroup: string;
   light: string;
   growth: string;
   location: string;
@@ -23,6 +24,7 @@ interface FilterState {
 
 const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) => {
   const [filters, setFilters] = useState<FilterState>({
+    plantGroup: "",
     light: "",
     growth: "",
     location: "",
@@ -33,16 +35,24 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
   });
 
   // Get unique values for each filter
+  const plantGroupOptions = [
+    'Palmeras', 'Helechos arbóreos', 'Cícadas', 'Árboles ornamentales', 
+    'Arbustos ornamentales', 'Bambús', 'Hierbas', 'Bromeliáceas', 
+    'Heliconias', 'Estrelicias', 'Jengibres', 'Plátanos', 
+    'Agaves y yucas', 'Aráceas', 'Suculentas', 'Cactus', 'Coníferas', 'Perennes'
+  ];
   const lightOptions = Array.from(new Set(plants.map(p => p.light))).sort();
   const growthOptions = Array.from(new Set(plants.map(p => p.growthRate))).sort();
   const locationOptions = Array.from(new Set(plants.map(p => p.location))).sort();
   const ornamentalOptions = ['Convencional', 'Bonito', 'Hermoso', 'Impresionante', 'Único'];
   const waterOptions = ['Baja', 'Moderada', 'Alta'];
-  
 
   const applyFilters = (newFilters: FilterState) => {
     let filtered = plants;
 
+    if (newFilters.plantGroup) {
+      filtered = filtered.filter(plant => plant.plantGroup === newFilters.plantGroup);
+    }
     if (newFilters.light) {
       filtered = filtered.filter(plant => plant.light === newFilters.light);
     }
@@ -83,6 +93,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
 
   const clearAllFilters = () => {
     const emptyFilters: FilterState = {
+      plantGroup: "",
       light: "",
       growth: "",
       location: "",
@@ -118,7 +129,27 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+          {/* Plant Group filter */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-1 block">
+              Grupo de Plantas
+            </label>
+            <Select value={filters.plantGroup || "all"} onValueChange={(v) => handleFilterChange('plantGroup', v)}>
+              <SelectTrigger className="border-green-200 bg-white">
+                <SelectValue placeholder="Todas" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50 max-h-[300px]">
+                <SelectItem value="all">Todas</SelectItem>
+                {plantGroupOptions.map(option => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Stock filter */}
           <div>
             <label className="text-sm font-medium text-gray-700 mb-1 block">
@@ -260,6 +291,11 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
         {hasActiveFilters && (
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="text-sm text-gray-600">Filtros activos:</span>
+            {filters.plantGroup && (
+              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                {filters.plantGroup}
+              </span>
+            )}
             {filters.stock && (
               <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full">
                 {filters.stock === 'disponible' ? 'Disponible' : 'Agotado'}
