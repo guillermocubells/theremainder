@@ -195,7 +195,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
 
         {/* Add to cart button */}
         {plant.quantity && Number(plant.quantity) > 0 && (
-          <div className="pt-2">
+          <div className="pt-6 sm:pt-8">
             <AddToCartButton
               plantId={plant.id}
               plantName={plant.name}
