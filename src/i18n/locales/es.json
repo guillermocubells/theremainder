@@ -118,6 +118,13 @@
     "yes": "Sí",
     "no": "No"
   },
+  "specifications": {
+    "title": "Especificaciones",
+    "container": "Contenedor",
+    "height": "Altura",
+    "origin": "Origen",
+    "family": "Familia"
+  },
   "language": {
     "select": "Idioma",
     "es": "Español",
