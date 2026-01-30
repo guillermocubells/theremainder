@@ -49,7 +49,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
 
   const renderStars = (rating: number, interactive = false, onSelect?: (rating: number) => void) => {
     return (
-      <div className="flex gap-1">
+      <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
@@ -59,7 +59,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
             className={`${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : 'cursor-default'}`}
           >
             <Star
-              className={`h-5 w-5 ${
+              className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
                 star <= rating
                   ? 'fill-amber-400 text-amber-400'
                   : 'fill-gray-200 text-gray-200'
@@ -76,21 +76,21 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
     : null;
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200">
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-green-200">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <MessageSquare className="h-5 w-5 text-green-700" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+        <div className="flex items-center gap-2">
+          <div className="p-1 sm:p-1.5 bg-green-100 rounded-lg">
+            <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
           </div>
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-green-800">
               Opiniones y Reseñas
             </h2>
             {reviews.length > 0 && (
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-0.5">
                 {renderStars(Math.round(Number(averageRating)))}
-                <span className="text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-gray-600">
                   {averageRating} de 5 ({reviews.length} {reviews.length === 1 ? 'reseña' : 'reseñas'})
                 </span>
               </div>
@@ -110,25 +110,25 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
 
       {/* Review Form */}
       {showForm && (
-        <form onSubmit={handleSubmitReview} className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200">
-          <h3 className="font-semibold text-gray-800 mb-4">Tu opinión sobre {plantName}</h3>
+        <form onSubmit={handleSubmitReview} className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
+          <h3 className="font-semibold text-gray-800 text-sm sm:text-base mb-3 sm:mb-4">Tu opinión sobre {plantName}</h3>
           
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Tu nombre
               </label>
               <Input
                 value={newReview.author}
                 onChange={(e) => setNewReview({ ...newReview, author: e.target.value })}
                 placeholder="Nombre"
-                className="border-green-200 focus:border-green-400"
+                className="border-green-200 focus:border-green-400 text-sm"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Valoración
               </label>
               {renderStars(newReview.rating, true, (rating) => 
@@ -137,27 +137,28 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Tu experiencia
               </label>
               <Textarea
                 value={newReview.comment}
                 onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
                 placeholder="Comparte tu experiencia con esta planta..."
-                className="border-green-200 focus:border-green-400 min-h-[100px]"
+                className="border-green-200 focus:border-green-400 min-h-[80px] sm:min-h-[100px] text-sm"
                 required
               />
             </div>
 
-            <div className="flex gap-3">
-              <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">
+            <div className="flex gap-2 sm:gap-3">
+              <Button type="submit" size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm">
                 Publicar reseña
               </Button>
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
                 onClick={() => setShowForm(false)}
-                className="border-gray-300"
+                className="border-gray-300 text-xs sm:text-sm"
               >
                 Cancelar
               </Button>
@@ -168,35 +169,35 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
 
       {/* Reviews List */}
       {reviews.length === 0 ? (
-        <div className="text-center py-8 sm:py-12">
-          <div className="p-4 bg-gray-100 rounded-full inline-block mb-4">
-            <MessageSquare className="h-8 w-8 text-gray-400" />
+        <div className="text-center py-6 sm:py-8">
+          <div className="p-3 bg-gray-100 rounded-full inline-block mb-3">
+            <MessageSquare className="h-6 w-6 text-gray-400" />
           </div>
-          <p className="text-gray-600 mb-2">Aún no hay reseñas para esta planta</p>
-          <p className="text-sm text-gray-500">
+          <p className="text-gray-600 text-sm sm:text-base mb-1">Aún no hay reseñas para esta planta</p>
+          <p className="text-xs sm:text-sm text-gray-500">
             ¡Sé el primero en compartir tu experiencia!
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="p-4 bg-gray-50 rounded-xl border border-gray-100"
+              className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-100"
             >
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-green-100 rounded-full">
-                  <User className="h-4 w-4 text-green-700" />
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="p-1.5 bg-green-100 rounded-full">
+                  <User className="h-3 w-3 sm:h-4 sm:w-4 text-green-700" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
-                    <span className="font-medium text-gray-800">{review.author}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-1 mb-1.5">
+                    <span className="font-medium text-gray-800 text-sm">{review.author}</span>
                     <span className="text-xs text-gray-500">{review.date}</span>
                   </div>
-                  <div className="mb-2">
+                  <div className="mb-1.5">
                     {renderStars(review.rating)}
                   </div>
-                  <p className="text-gray-700 text-sm sm:text-base">{review.comment}</p>
+                  <p className="text-gray-700 text-xs sm:text-sm lg:text-base leading-relaxed">{review.comment}</p>
                 </div>
               </div>
             </div>
