@@ -37,7 +37,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
     <>
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200 mb-6 sm:mb-8 transition-all duration-300 hover:shadow-lg">
         <h2 className="text-xl sm:text-2xl font-bold text-green-800 mb-4 sm:mb-6">
-          {t('plant.photos', 'Fotos')}
+          {t('plant.visualReferences', 'Referencias visuales futuras')}
         </h2>
         <Carousel className="w-full max-w-4xl mx-auto">
           <CarouselContent className="-ml-2 md:-ml-4">
