@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { PlantFinderModal } from "@/components/PlantFinder";
 import { useAuth } from "@/contexts/AuthContext";
 import CartDrawer from "@/components/CartDrawer";
+import { useScrollDirection } from "@/hooks/useScrollDirection";
 
 const Header = () => {
   const [isPlantFinderOpen, setIsPlantFinderOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isHeaderVisible = useScrollDirection();
   
   const handleAccountClick = () => {
     if (user) {
@@ -21,7 +23,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-50">
+      <header className={`bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
