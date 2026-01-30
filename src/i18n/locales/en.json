@@ -76,6 +76,7 @@
       "sortBy": "Sort by",
       "sortOptions": {
         "relevance": "Relevance",
+        "newest": "Newest first",
         "priceLow": "Price: low to high",
         "priceHigh": "Price: high to low",
         "nameAZ": "Name: A-Z"
