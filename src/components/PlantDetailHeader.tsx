@@ -3,7 +3,7 @@ import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { ExternalLink, Thermometer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatHardinessZones, getZoneCountLabel } from "@/data/plants";
+import { formatHardinessZones, getZoneCountLabel } from "@/utils/hardinessZones";
 
 interface Plant {
   id: string;
@@ -17,7 +17,7 @@ interface Plant {
   link: string;
   location: string;
   notes: string;
-  hardinessZones?: number[];
+  hardinessZones?: string[];
 }
 
 interface PlantDetailHeaderProps {
