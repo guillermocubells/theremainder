@@ -24,6 +24,7 @@ interface Plant {
   containerSize?: string;
   germinationDate?: string;
   price?: number;
+  images?: string[];
 }
 
 interface PlantDetailHeaderProps {
@@ -258,6 +259,9 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               plantId={plant.id}
               plantName={plant.name}
               maxQuantity={Number(plant.quantity)}
+              price={plant.price || 0}
+              image={plant.images?.[0]}
+              containerSize={plant.containerSize}
               onQuantityChange={setSelectedQuantity}
             />
           </div>

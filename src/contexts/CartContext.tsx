@@ -6,37 +6,43 @@ export interface CartItem {
   name: string;
   quantity: number;
   maxQuantity: number;
+  price: number;
+  image?: string;
+  containerSize?: string;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (plantId: string, name: string, quantity: number, maxQuantity: number) => void;
+  addToCart: (item: Omit<CartItem, 'quantity'> & { quantity: number }) => void;
   removeFromCart: (plantId: string) => void;
   updateQuantity: (plantId: string, quantity: number) => void;
   getItemQuantity: (plantId: string) => number;
   getTotalItems: () => number;
+  getTotalPrice: () => number;
   clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const TAX_RATE = 0.21; // 21% IVA
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  const addToCart = (plantId: string, name: string, quantity: number, maxQuantity: number) => {
+  const addToCart = (newItem: Omit<CartItem, 'quantity'> & { quantity: number }) => {
     setItems(prev => {
-      const existing = prev.find(item => item.plantId === plantId);
+      const existing = prev.find(item => item.plantId === newItem.plantId);
       if (existing) {
-        const newQuantity = Math.min(existing.quantity + quantity, maxQuantity);
-        toast.success(`${name} actualizado en el carrito (${newQuantity} uds.)`);
+        const newQuantity = Math.min(existing.quantity + newItem.quantity, newItem.maxQuantity);
+        toast.success(`${newItem.name} actualizado en el carrito (${newQuantity} uds.)`);
         return prev.map(item =>
-          item.plantId === plantId
-            ? { ...item, quantity: newQuantity }
+          item.plantId === newItem.plantId
+            ? { ...item, quantity: newQuantity, price: newItem.price, image: newItem.image, containerSize: newItem.containerSize }
             : item
         );
       }
-      toast.success(`${name} añadido al carrito (${quantity} uds.)`);
-      return [...prev, { plantId, name, quantity, maxQuantity }];
+      toast.success(`${newItem.name} añadido al carrito (${newItem.quantity} uds.)`);
+      return [...prev, newItem];
     });
   };
 
@@ -66,6 +72,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return items.reduce((total, item) => total + item.quantity, 0);
   };
 
+  const getTotalPrice = () => {
+    return items.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
   const clearCart = () => {
     setItems([]);
   };
@@ -78,6 +88,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       updateQuantity,
       getItemQuantity,
       getTotalItems,
+      getTotalPrice,
       clearCart
     }}>
       {children}
@@ -91,4 +102,8 @@ export const useCart = () => {
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
+};
+
+export const calculateTax = (totalPrice: number) => {
+  return totalPrice - (totalPrice / (1 + TAX_RATE));
 };

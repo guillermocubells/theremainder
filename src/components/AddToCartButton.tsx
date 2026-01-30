@@ -9,10 +9,21 @@ interface AddToCartButtonProps {
   plantId: string;
   plantName: string;
   maxQuantity: number;
+  price: number;
+  image?: string;
+  containerSize?: string;
   onQuantityChange?: (quantity: number) => void;
 }
 
-const AddToCartButton = ({ plantId, plantName, maxQuantity, onQuantityChange }: AddToCartButtonProps) => {
+const AddToCartButton = ({ 
+  plantId, 
+  plantName, 
+  maxQuantity, 
+  price,
+  image,
+  containerSize,
+  onQuantityChange 
+}: AddToCartButtonProps) => {
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const { addToCart, getItemQuantity } = useCart();
   const { t } = useTranslation();
@@ -30,7 +41,15 @@ const AddToCartButton = ({ plantId, plantName, maxQuantity, onQuantityChange }: 
 
   const handleAddToCart = () => {
     if (selectedQuantity > 0 && selectedQuantity <= availableToAdd) {
-      addToCart(plantId, plantName, selectedQuantity, maxQuantity);
+      addToCart({
+        plantId,
+        name: plantName,
+        quantity: selectedQuantity,
+        maxQuantity,
+        price,
+        image,
+        containerSize
+      });
       setSelectedQuantity(1);
     }
   };

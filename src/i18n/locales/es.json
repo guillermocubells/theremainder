@@ -188,10 +188,17 @@
     "subtotal": "Subtotal",
     "shipping": "Envío",
     "shippingCalculated": "Calculado al finalizar",
+    "shippingTbd": "Gastos de envío por determinar",
     "total": "Total",
-    "checkout": "Finalizar Compra",
-    "remove": "Eliminar",
-    "quantity": "Cantidad"
+    "totalWithTax": "Total (IVA incl.)",
+    "includedTaxes": "Impuestos incluidos",
+    "checkout": "Finalizar compra",
+    "continueShopping": "Seguir comprando",
+    "remove": "Vaciar carrito",
+    "quantity": "Cantidad",
+    "item": "artículo",
+    "items": "artículos",
+    "container": "Contenedor"
   },
   "auth": {
     "login": "Iniciar sesión",
