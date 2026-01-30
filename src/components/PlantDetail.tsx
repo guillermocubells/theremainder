@@ -114,19 +114,14 @@ const PlantDetail = () => {
               />
             </div>
 
+            {/* Specifications Section - after notes */}
+            <div className="animate-fade-in" style={{ animationDelay: '50ms' }}>
+              <PlantSpecifications containerSize={plant.containerSize} />
+            </div>
+
             {/* Photo Carousel */}
             <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
               <PlantPhotoCarousel images={plant.images} plantName={plant.name} />
-            </div>
-
-            {/* Specifications Section */}
-            <div className="animate-fade-in" style={{ animationDelay: '150ms' }}>
-              <PlantSpecifications 
-                containerSize={plant.containerSize}
-                height={detail?.height}
-                origin={detail?.origin}
-                family={detail?.family}
-              />
             </div>
 
             {/* Care Instructions and Characteristics Section */}
