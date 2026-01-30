@@ -37,7 +37,7 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { icon: Instagram, href: '#', label: 'Instagram' },
+    { icon: Instagram, href: 'https://www.instagram.com/frondaprima/', label: 'Instagram' },
     { icon: Facebook, href: '#', label: 'Facebook' },
     { icon: Mail, href: '#', label: 'Email' },
   ];
