@@ -173,12 +173,6 @@ const Footer = () => {
               <div className="flex items-center gap-2">
                 <span className="font-medium">© {new Date().getFullYear()} Frondaprima</span>
               </div>
-              
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-px bg-primary-foreground/15"></div>
-                <Leaf className="h-2.5 w-2.5 text-moss/40" />
-                <div className="w-5 h-px bg-primary-foreground/15"></div>
-              </div>
 
               <span className="text-primary-foreground/25">
                 {t('footer.rights')}
