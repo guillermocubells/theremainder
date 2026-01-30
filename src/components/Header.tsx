@@ -16,9 +16,9 @@ const Header = () => {
               <TreePalm className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Frondaprima</h1>
-              <p className="text-xs sm:text-sm text-green-600 hidden sm:block">Una colección destinada a un nuevo proyecto</p>
-              <p className="text-xs text-green-600 sm:hidden">Colección botánica</p>
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Fronda Prima</h1>
+              <p className="text-xs sm:text-sm text-green-600 hidden sm:block">The lost trees of the high altitudes</p>
+              <p className="text-xs text-green-600 sm:hidden">High altitude botanica</p>
             </div>
           </div>
           <div className="flex items-center space-x-2 text-green-700 flex-shrink-0">
