@@ -20,6 +20,8 @@ interface Plant {
   location: string;
   notes: string;
   hardinessZones?: string[];
+  containerSize?: string;
+  germinationDate?: string;
 }
 
 interface PlantDetailHeaderProps {
@@ -206,6 +208,37 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               plantName={plant.name}
               maxQuantity={Number(plant.quantity)}
             />
+          </div>
+        )}
+
+        {/* Product Details Section */}
+        {(plant.containerSize || plant.germinationDate) && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-5 mt-4">
+            <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
+              {t('plant.productDetails')}
+            </h3>
+            <div className="flex flex-wrap gap-4 sm:gap-6">
+              {plant.containerSize && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    {t('specifications.container')}
+                  </span>
+                  <span className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-800 border-2 border-green-600 rounded transition-all duration-200 hover:bg-green-50">
+                    {plant.containerSize}
+                  </span>
+                </div>
+              )}
+              {plant.germinationDate && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    {t('plant.germinationDate')}
+                  </span>
+                  <span className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-800 border-2 border-green-600 rounded transition-all duration-200 hover:bg-green-50">
+                    {plant.germinationDate}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -10,7 +10,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 import PlantDetailHeader from "./PlantDetailHeader";
 import PlantPhotoCarousel from "./PlantPhotoCarousel";
-import PlantSpecifications from "./PlantSpecifications";
 import CareInstructions from "./CareInstructions";
 import PlantCharacteristics from "./PlantCharacteristics";
 import PlantCuriousFacts from "./PlantCuriousFacts";
@@ -114,10 +113,6 @@ const PlantDetail = () => {
               />
             </div>
 
-            {/* Specifications Section - after notes */}
-            <div className="animate-fade-in" style={{ animationDelay: '50ms' }}>
-              <PlantSpecifications containerSize={plant.containerSize} />
-            </div>
 
             {/* Photo Carousel */}
             <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>

@@ -55,7 +55,9 @@
     "unit": "unidad",
     "units": "unidades",
     "available": "disponibles",
-    "preview": "vista previa"
+    "preview": "vista previa",
+    "productDetails": "Detalles del producto",
+    "germinationDate": "Germinación"
   },
   "light": {
     "title": "Luz",
