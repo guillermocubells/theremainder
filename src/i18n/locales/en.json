@@ -205,9 +205,21 @@
   "footer": {
     "quote": "To plant a tree from a high place is to carry elevation into the lowlands — an act of quiet defiance against forgetting.",
     "rights": "All rights reserved",
-    "privacy": "Privacy",
-    "terms": "Terms",
-    "contact": "Contact"
+    "information": "Information",
+    "contact": "Contact us",
+    "visitUs": "Visit us",
+    "delivery": "Delivery",
+    "faq": "FAQ",
+    "legal": "Legal",
+    "legalNotice": "Legal Notice",
+    "terms": "Terms of Sales",
+    "privacy": "Privacy Policy",
+    "sitemap": "Sitemap",
+    "newsletter": "Newsletter",
+    "emailPlaceholder": "Your email address",
+    "subscribe": "Subscribe",
+    "privacyConsent": "* By submitting this form, I have read and accept the privacy policy of this site. I accept that the information entered will be used as part of the commercial relationship that may result.",
+    "followUs": "Follow us on the networks"
   },
   "common": {
     "loading": "Loading...",
