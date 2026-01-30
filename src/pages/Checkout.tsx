@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Truck, ShoppingBag, CreditCard, AlertCircle, Lock } from "lucide-react";
+import { ArrowLeft, Truck, ShoppingBag, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import Header from "@/components/Header";
@@ -9,11 +9,15 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useCart, calculateTax } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { CountrySelector } from "@/components/checkout/CountrySelector";
+import { ShippingPreview } from "@/components/checkout/ShippingPreview";
+import { OrderSummary } from "@/components/checkout/OrderSummary";
+import { useShippingQuote } from "@/hooks/useShippingQuote";
+import { COUNTRY_NAMES } from "@/utils/shippingCalculator";
 
 interface ShippingForm {
   email: string;
@@ -24,7 +28,6 @@ interface ShippingForm {
   postalCode: string;
   city: string;
   province: string;
-  country: string;
   notes: string;
 }
 
@@ -37,24 +40,27 @@ const INITIAL_FORM: ShippingForm = {
   postalCode: "",
   city: "",
   province: "",
-  country: "España",
   notes: "",
 };
 
 const Checkout = () => {
   const { t, i18n } = useTranslation();
-  const { items, getTotalPrice } = useCart();
+  const { items } = useCart();
   const { user } = useAuth();
+
+  const [shippingCountry, setShippingCountry] = useState<string>("ES");
   const [form, setForm] = useState<ShippingForm>({
     ...INITIAL_FORM,
     email: user?.email || "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Partial<ShippingForm>>({});
+  const [errors, setErrors] = useState<Partial<ShippingForm & { country: string }>>({});
 
-
-  const totalPrice = getTotalPrice();
-  const taxAmount = calculateTax(totalPrice);
+  // Get shipping quote from backend
+  const { quote, isLoading: isQuoteLoading, error: quoteError } = useShippingQuote({
+    items,
+    countryCode: shippingCountry,
+  });
 
   // Redirect if cart is empty
   if (items.length === 0) {
@@ -77,7 +83,7 @@ const Checkout = () => {
   }
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<ShippingForm> = {};
+    const newErrors: Partial<ShippingForm & { country: string }> = {};
 
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       newErrors.email = t("checkout.errors.invalidEmail");
@@ -97,6 +103,9 @@ const Checkout = () => {
     if (!form.province.trim()) {
       newErrors.province = t("checkout.errors.required");
     }
+    if (!shippingCountry) {
+      newErrors.country = t("checkout.errors.required");
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -109,6 +118,13 @@ const Checkout = () => {
     }
   };
 
+  const handleCountryChange = (value: string) => {
+    setShippingCountry(value);
+    if (errors.country) {
+      setErrors((prev) => ({ ...prev, country: undefined }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -117,24 +133,29 @@ const Checkout = () => {
       return;
     }
 
+    if (!quote || !quote.supported) {
+      toast.error(t("checkout.noShippingAvailable"));
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Prepare cart items for Stripe
       const cartItems = items.map((item) => ({
         plantId: item.plantId,
-        name: item.name,
-        price: item.price,
         quantity: item.quantity,
         image: item.image,
         containerSize: item.containerSize,
       }));
 
-      // Call the Stripe checkout edge function
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           items: cartItems,
-          shippingAddress: form,
+          shippingCountry,
+          shippingAddress: {
+            ...form,
+            country: COUNTRY_NAMES[shippingCountry] || shippingCountry,
+          },
           locale: i18n.language,
         },
       });
@@ -144,8 +165,12 @@ const Checkout = () => {
         throw new Error(error.message || "Failed to create checkout session");
       }
 
+      if (data?.error === "SHIPPING_NOT_AVAILABLE") {
+        toast.error(t("checkout.noShippingAvailable"));
+        return;
+      }
+
       if (data?.url) {
-        // Redirect to Stripe Checkout
         window.location.href = data.url;
       } else {
         throw new Error("No checkout URL returned");
@@ -157,6 +182,8 @@ const Checkout = () => {
       setIsSubmitting(false);
     }
   };
+
+  const canSubmit = quote?.supported && !isQuoteLoading;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -180,6 +207,29 @@ const Checkout = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left: Shipping form */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Shipping country - FIRST */}
+              <section className="bg-card border border-border rounded-xl p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-moss" />
+                  {t("checkout.shippingDestination")}
+                </h2>
+
+                <div className="space-y-4">
+                  <CountrySelector
+                    value={shippingCountry}
+                    onChange={handleCountryChange}
+                    error={errors.country}
+                  />
+
+                  <ShippingPreview
+                    quote={quote}
+                    isLoading={isQuoteLoading}
+                    error={quoteError}
+                    countryCode={shippingCountry}
+                  />
+                </div>
+              </section>
+
               {/* Contact section */}
               <section className="bg-card border border-border rounded-xl p-6">
                 <h2 className="text-lg font-semibold text-foreground mb-4">
@@ -208,8 +258,7 @@ const Checkout = () => {
 
               {/* Shipping address section */}
               <section className="bg-card border border-border rounded-xl p-6">
-                <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Truck className="h-5 w-5 text-moss" />
+                <h2 className="text-lg font-semibold text-foreground mb-4">
                   {t("checkout.shippingAddress")}
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -305,11 +354,9 @@ const Checkout = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="country">{t("checkout.country")}</Label>
+                    <Label>{t("checkout.country")}</Label>
                     <Input
-                      id="country"
-                      value={form.country}
-                      onChange={(e) => handleChange("country", e.target.value)}
+                      value={COUNTRY_NAMES[shippingCountry] || shippingCountry}
                       disabled
                       className="bg-muted"
                     />
@@ -333,105 +380,13 @@ const Checkout = () => {
 
             {/* Right: Order summary */}
             <div className="lg:col-span-1">
-              <div className="bg-card border border-border rounded-xl p-6 sticky top-24">
-                <h2 className="text-lg font-semibold text-foreground mb-4">
-                  {t("checkout.orderSummary")}
-                </h2>
-
-                {/* Products list */}
-                <div className="space-y-3 mb-4">
-                  {items.map((item) => (
-                    <div key={item.plantId} className="flex gap-3">
-                      <div className="w-14 h-14 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <ShoppingBag className="h-6 w-6 text-muted-foreground/30" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground line-clamp-1 italic">
-                          {item.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.quantity} × {item.price.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
-                        </p>
-                        {item.containerSize && (
-                          <p className="text-xs text-muted-foreground">{item.containerSize}</p>
-                        )}
-                      </div>
-                      <p className="text-sm font-medium text-foreground">
-                        {(item.price * item.quantity).toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <Separator className="my-4" />
-
-                {/* Totals */}
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t("checkout.subtotal")}</span>
-                    <span className="text-foreground">
-                      {totalPrice.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Truck className="h-4 w-4 text-moss" />
-                    <span className="text-moss italic text-xs">{t("checkout.shippingTbd")}</span>
-                  </div>
-                </div>
-
-                <Separator className="my-4" />
-
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-semibold text-foreground">{t("checkout.total")}</span>
-                  <span className="font-bold text-xl text-foreground">
-                    {totalPrice.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground mb-6">
-                  {t("checkout.includedTaxes")}:{" "}
-                  {taxAmount.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
-                </p>
-
-                {/* Payment methods info */}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                  <Lock className="h-3 w-3" />
-                  <span>{t("checkout.securePayment")}</span>
-                </div>
-
-                {/* Submit button */}
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full bg-[#635BFF] hover:bg-[#5851DB] text-white"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center gap-2">
-                      <span className="animate-spin">⏳</span>
-                      {t("checkout.processing")}
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4" />
-                      {t("checkout.placeOrder")}
-                    </span>
-                  )}
-                </Button>
-
-                <p className="text-xs text-muted-foreground text-center mt-4">
-                  {t("checkout.termsNote")}
-                </p>
-              </div>
+              <OrderSummary
+                items={items}
+                quote={quote}
+                isQuoteLoading={isQuoteLoading}
+                isSubmitting={isSubmitting}
+                canSubmit={canSubmit}
+              />
             </div>
           </div>
         </form>
