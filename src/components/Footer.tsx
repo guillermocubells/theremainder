@@ -59,7 +59,7 @@ const Footer = () => {
       <section className="py-14 sm:py-20 px-4 relative z-10">
         <div className="container mx-auto">
           {/* Main footer grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-10 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-10 mb-10">
             
             {/* Brand column - refined hierarchy */}
             <div className="lg:col-span-1">
@@ -154,12 +154,12 @@ const Footer = () => {
           </div>
 
           {/* Subtle divider before quote */}
-          <div className="flex items-center justify-center mb-10">
+          <div className="flex items-center justify-center mb-6">
             <div className="w-16 h-px bg-gradient-to-r from-transparent via-primary-foreground/15 to-transparent" />
           </div>
 
           {/* Quote - editorial treatment with line break for impact */}
-          <div className="max-w-xl mx-auto text-center mb-12">
+          <div className="max-w-xl mx-auto text-center mb-8">
             <blockquote className="text-[13px] sm:text-sm font-light italic text-primary-foreground/35 leading-[1.9] tracking-wide">
               <span className="block">
                 "{t('footer.quote').split('—')[0].trim()}"
