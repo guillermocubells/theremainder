@@ -81,8 +81,8 @@ const PlantCard = ({ plant }: PlantCardProps) => {
                   </TooltipContent>
                 </Tooltip>
                 {plant.quantity === 1 && (
-                  <span className="text-[10px] sm:text-xs text-amber-600/80 italic">
-                    Última unidad
+                  <span className="text-xs text-amber-600/80">
+                    🍂
                   </span>
                 )}
               </div>
