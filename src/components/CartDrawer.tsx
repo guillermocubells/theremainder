@@ -1,4 +1,5 @@
-import { ShoppingCart, Minus, Plus, Trash2, X } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -9,12 +10,12 @@ import {
 } from "@/components/ui/sheet";
 import { useCart } from "@/contexts/CartContext";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
 
 const CartDrawer = () => {
   const { items, updateQuantity, removeFromCart, getTotalItems, clearCart } = useCart();
   const totalItems = getTotalItems();
+  const { t } = useTranslation();
 
   return (
     <Sheet>
@@ -34,7 +35,7 @@ const CartDrawer = () => {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2 text-green-800">
             <ShoppingCart className="h-5 w-5" />
-            Tu carrito
+            {t('cart.title')}
           </SheetTitle>
         </SheetHeader>
         
@@ -42,8 +43,8 @@ const CartDrawer = () => {
           {items.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
               <ShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
-              <p className="text-gray-500 mb-2">Tu carrito está vacío</p>
-              <p className="text-sm text-gray-400">Explora nuestro catálogo y añade plantas</p>
+              <p className="text-gray-500 mb-2">{t('cart.empty')}</p>
+              <p className="text-sm text-gray-400">{t('cart.emptyMessage')}</p>
             </div>
           ) : (
             <>
@@ -98,7 +99,7 @@ const CartDrawer = () => {
 
               <div className="pt-4 border-t border-green-200 space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Total de plantas:</span>
+                  <span className="text-gray-600">{t('cart.total')}:</span>
                   <span className="font-bold text-lg text-green-800">{totalItems}</span>
                 </div>
                 
@@ -107,14 +108,14 @@ const CartDrawer = () => {
                     className="w-full bg-rose-600 hover:bg-rose-700 text-white"
                     size="lg"
                   >
-                    Proceder al pedido
+                    {t('cart.checkout')}
                   </Button>
                   <Button 
                     variant="outline" 
                     className="w-full text-gray-600"
                     onClick={clearCart}
                   >
-                    Vaciar carrito
+                    {t('cart.remove')}
                   </Button>
                 </div>
               </div>

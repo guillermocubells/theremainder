@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ShoppingCart } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import QuantitySelector from "./QuantitySelector";
@@ -13,6 +14,7 @@ interface AddToCartButtonProps {
 const AddToCartButton = ({ plantId, plantName, maxQuantity }: AddToCartButtonProps) => {
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const { addToCart, getItemQuantity } = useCart();
+  const { t } = useTranslation();
   
   const inCart = getItemQuantity(plantId);
   const availableToAdd = maxQuantity - inCart;
@@ -48,7 +50,7 @@ const AddToCartButton = ({ plantId, plantName, maxQuantity }: AddToCartButtonPro
         className="bg-rose-600 hover:bg-rose-700 text-white text-sm sm:text-base px-6 sm:px-8"
       >
         <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-        Añadir al carrito
+        {t('plant.addToCart')}
       </Button>
     </div>
   );

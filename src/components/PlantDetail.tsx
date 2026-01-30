@@ -1,6 +1,7 @@
 
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, User, TreePalm } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { plants } from "@/data/plants";
 import { plantDetails } from "@/data/plantDetailData";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,12 +15,14 @@ import PlantCharacteristics from "./PlantCharacteristics";
 import PlantCuriousFacts from "./PlantCuriousFacts";
 import PlantReviews from "./PlantReviews";
 import CartDrawer from "./CartDrawer";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const PlantDetail = () => {
   const { plantId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const isHeaderVisible = useScrollDirection();
+  const { t } = useTranslation();
   const plant = plants.find(p => p.id === plantId);
 
   const handleAccountClick = () => {
@@ -34,9 +37,9 @@ const PlantDetail = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center px-4">
         <div className="text-center">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Planta no encontrada</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">{t('plant.notFound')}</h1>
           <Link to="/" className="text-green-600 hover:text-green-700 text-sm sm:text-base">
-            ← Volver al catálogo
+            ← {t('navigation.backToCatalog')}
           </Link>
         </div>
       </div>
@@ -59,8 +62,8 @@ const PlantDetail = () => {
                     <TreePalm className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Fronda Prima</h1>
-                    <p className="text-xs sm:text-sm text-green-600 hidden sm:block">The lost trees of the high altitudes</p>
+                    <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">{t('header.title')}</h1>
+                    <p className="text-xs sm:text-sm text-green-600 hidden sm:block">{t('header.subtitle')}</p>
                   </div>
                 </Link>
               </div>
@@ -69,6 +72,9 @@ const PlantDetail = () => {
               <div className="flex items-center space-x-1 sm:space-x-2 text-green-700 flex-shrink-0">
                 {/* Cart drawer */}
                 <CartDrawer />
+
+                {/* Language switcher */}
+                <LanguageSwitcher />
 
                 {/* Account button */}
                 <Button 
@@ -79,7 +85,7 @@ const PlantDetail = () => {
                 >
                   <User className="h-5 w-5 sm:mr-1" />
                   <span className="hidden sm:inline">
-                    {user ? 'Mi cuenta' : 'Entrar'}
+                    {user ? t('header.myAccount') : t('header.login')}
                   </span>
                 </Button>
               </div>
@@ -95,7 +101,7 @@ const PlantDetail = () => {
               className="inline-flex items-center space-x-2 text-green-700 hover:text-green-800 transition-colors text-sm mb-4"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Volver al catálogo</span>
+              <span>{t('navigation.backToCatalog')}</span>
             </Link>
 
             {/* Plant Header with origin info */}
