@@ -45,7 +45,7 @@ export const getZoneLabel = (code: string): string => {
 
 // Get short zone label (just the zone code formatted)
 export const getShortZoneLabel = (code: string): string => {
-  return `Zone ${code.toUpperCase()}`;
+  return `Zona ${code.toUpperCase()}`;
 };
 
 // Format multiple zones for display
@@ -60,7 +60,7 @@ export const formatHardinessZones = (zones: string[] | undefined): string => {
     return a.localeCompare(b);
   });
   
-  return `Zones ${sorted[0].toUpperCase()}–${sorted[sorted.length - 1].toUpperCase()}`;
+  return `Zonas ${sorted[0].toUpperCase()}–${sorted[sorted.length - 1].toUpperCase()}`;
 };
 
 // Get zone count label
