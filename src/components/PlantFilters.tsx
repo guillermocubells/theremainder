@@ -14,29 +14,19 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
   const [lightFilter, setLightFilter] = useState<string>("");
   const [growthFilter, setGrowthFilter] = useState<string>("");
   const [locationFilter, setLocationFilter] = useState<string>("");
-  const [rusticityFilter, setRusticityFilter] = useState<string>("");
+  const [zoneFilter, setZoneFilter] = useState<string>("");
 
   // Get unique values for each filter
   const lightOptions = Array.from(new Set(plants.map(p => p.light))).sort();
   const growthOptions = Array.from(new Set(plants.map(p => p.growthRate))).sort();
   const locationOptions = Array.from(new Set(plants.map(p => p.location))).sort();
   
-  // Extract rusticity zones from plant notes/descriptions
-  const rusticityOptions = Array.from(new Set(
-    plants.flatMap(p => {
-      const text = `${p.notes} ${p.description}`.toLowerCase();
-      const zones = [];
-      if (text.includes('zona 8') || text.includes('zone 8')) zones.push('Zona 8');
-      if (text.includes('zona 9') || text.includes('zone 9')) zones.push('Zona 9');
-      if (text.includes('zona 10') || text.includes('zone 10')) zones.push('Zona 10');
-      if (text.includes('zona 11') || text.includes('zone 11')) zones.push('Zona 11');
-      if (text.includes('resistente') || text.includes('frío')) zones.push('Resistente al frío');
-      if (text.includes('tropical') || text.includes('cálido')) zones.push('Tropical/Cálido');
-      return zones;
-    })
-  )).sort();
+  // Extract unique hardiness zones from plant data
+  const zoneOptions = Array.from(new Set(
+    plants.flatMap(p => p.hardinessZones || [])
+  )).sort((a, b) => a - b);
 
-  const applyFilters = (light: string, growth: string, location: string, rusticity: string) => {
+  const applyFilters = (light: string, growth: string, location: string, zone: string) => {
     let filtered = plants;
 
     if (light) {
@@ -48,17 +38,11 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
     if (location) {
       filtered = filtered.filter(plant => plant.location === location);
     }
-    if (rusticity) {
-      filtered = filtered.filter(plant => {
-        const text = `${plant.notes} ${plant.description}`.toLowerCase();
-        if (rusticity === 'Zona 8') return text.includes('zona 8') || text.includes('zone 8');
-        if (rusticity === 'Zona 9') return text.includes('zona 9') || text.includes('zone 9');
-        if (rusticity === 'Zona 10') return text.includes('zona 10') || text.includes('zone 10');
-        if (rusticity === 'Zona 11') return text.includes('zona 11') || text.includes('zone 11');
-        if (rusticity === 'Resistente al frío') return text.includes('resistente') || text.includes('frío');
-        if (rusticity === 'Tropical/Cálido') return text.includes('tropical') || text.includes('cálido');
-        return false;
-      });
+    if (zone) {
+      const zoneNum = parseInt(zone, 10);
+      filtered = filtered.filter(plant => 
+        plant.hardinessZones && plant.hardinessZones.includes(zoneNum)
+      );
     }
 
     onFilterChange(filtered);
@@ -67,24 +51,24 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
   const handleLightChange = (value: string) => {
     const newValue = value === "all" ? "" : value;
     setLightFilter(newValue);
-    applyFilters(newValue, growthFilter, locationFilter, rusticityFilter);
+    applyFilters(newValue, growthFilter, locationFilter, zoneFilter);
   };
 
   const handleGrowthChange = (value: string) => {
     const newValue = value === "all" ? "" : value;
     setGrowthFilter(newValue);
-    applyFilters(lightFilter, newValue, locationFilter, rusticityFilter);
+    applyFilters(lightFilter, newValue, locationFilter, zoneFilter);
   };
 
   const handleLocationChange = (value: string) => {
     const newValue = value === "all" ? "" : value;
     setLocationFilter(newValue);
-    applyFilters(lightFilter, growthFilter, newValue, rusticityFilter);
+    applyFilters(lightFilter, growthFilter, newValue, zoneFilter);
   };
 
-  const handleRusticityChange = (value: string) => {
+  const handleZoneChange = (value: string) => {
     const newValue = value === "all" ? "" : value;
-    setRusticityFilter(newValue);
+    setZoneFilter(newValue);
     applyFilters(lightFilter, growthFilter, locationFilter, newValue);
   };
 
@@ -92,11 +76,11 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
     setLightFilter("");
     setGrowthFilter("");
     setLocationFilter("");
-    setRusticityFilter("");
+    setZoneFilter("");
     onFilterChange(plants);
   };
 
-  const hasActiveFilters = lightFilter || growthFilter || locationFilter || rusticityFilter;
+  const hasActiveFilters = lightFilter || growthFilter || locationFilter || zoneFilter;
 
   if (!isVisible) return null;
 
@@ -181,15 +165,15 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
             <label className="text-sm font-medium text-gray-700 mb-1 block">
               Zona de Rusticidad
             </label>
-            <Select value={rusticityFilter || "all"} onValueChange={handleRusticityChange}>
+            <Select value={zoneFilter || "all"} onValueChange={handleZoneChange}>
               <SelectTrigger className="border-green-200 bg-white">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="all">Todas</SelectItem>
-                {rusticityOptions.map(option => (
-                  <SelectItem key={option} value={option}>
-                    {option}
+                <SelectItem value="all">Todas las zonas</SelectItem>
+                {zoneOptions.map(zone => (
+                  <SelectItem key={zone} value={zone.toString()}>
+                    Zona {zone}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -215,9 +199,9 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
                 Ubicación: {locationFilter}
               </span>
             )}
-            {rusticityFilter && (
+            {zoneFilter && (
               <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
-                Rusticidad: {rusticityFilter}
+                Zona {zoneFilter}
               </span>
             )}
           </div>
