@@ -1,8 +1,9 @@
 
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Thermometer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatHardinessZones, getZoneCountLabel } from "@/data/plants";
 
 interface Plant {
   id: string;
@@ -16,6 +17,7 @@ interface Plant {
   link: string;
   location: string;
   notes: string;
+  hardinessZones?: number[];
 }
 
 interface PlantDetailHeaderProps {
@@ -115,7 +117,25 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               <TooltipContent side="bottom" align="start" className="text-left">
                 <div>
                   <p className="font-semibold">Disponibilidad</p>
-                  <p className="text-xs sm:text-sm">Cantidad disponible: {plant.quantity} {plant.quantity === 1 ? 'planta' : 'plantas'}</p>
+                  <p className="text-xs sm:text-sm">Cantidad disponible: {plant.quantity} {plant.quantity === 1 ? 'unidad' : 'unidades'}</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {plant.hardinessZones && plant.hardinessZones.length > 0 && (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200 cursor-help">
+                  <Thermometer className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>{formatHardinessZones(plant.hardinessZones)}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="start" className="text-left max-w-xs">
+                <div>
+                  <p className="font-semibold">Zona de Rusticidad</p>
+                  <p className="text-xs sm:text-sm">{getZoneCountLabel(plant.hardinessZones)}</p>
+                  <p className="text-xs text-gray-500 mt-1">Indica la tolerancia al frío según la clasificación USDA</p>
                 </div>
               </TooltipContent>
             </Tooltip>
