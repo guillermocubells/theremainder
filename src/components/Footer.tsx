@@ -153,10 +153,6 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Subtle divider before quote */}
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-16 h-px bg-gradient-to-r from-transparent via-primary-foreground/15 to-transparent" />
-          </div>
 
           {/* Quote - editorial treatment with line break for impact */}
           <div className="max-w-xl mx-auto text-center mb-8">
