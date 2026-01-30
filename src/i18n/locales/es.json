@@ -60,7 +60,28 @@
     "careTips": "Consejos de Cuidado",
     "water": "Agua",
     "coverage": "Cobertura",
-    "tip": "Consejo"
+    "tip": "Consejo",
+    "habitatBlock": {
+      "title": "¿Dónde vivirá tu planta?",
+      "description": "Define las condiciones de tu entorno para encontrar especies compatibles",
+      "sunExposure": "Exposición solar",
+      "waterNeeds": "Necesidad de agua",
+      "hardinessZone": "Zona de rusticidad",
+      "climate": "Clima / Ubicación"
+    },
+    "commercialBlock": {
+      "title": "Elige tu ejemplar",
+      "description": "Selecciona entre las especies compatibles con tu entorno",
+      "plantGroup": "Grupo de planta",
+      "availability": "Disponibilidad",
+      "sortBy": "Ordenar por",
+      "sortOptions": {
+        "relevance": "Relevancia",
+        "priceLow": "Precio: menor a mayor",
+        "priceHigh": "Precio: mayor a menor",
+        "nameAZ": "Nombre: A-Z"
+      }
+    }
   },
   "plant": {
     "addToCart": "Añadir al carrito",
