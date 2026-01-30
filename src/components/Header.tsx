@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlantFinderModal } from "@/components/PlantFinder";
 import { useAuth } from "@/contexts/AuthContext";
+import CartDrawer from "@/components/CartDrawer";
 
 const Header = () => {
   const [isPlantFinderOpen, setIsPlantFinderOpen] = useState(false);
@@ -44,6 +45,10 @@ const Header = () => {
                 <Search className="h-4 w-4 sm:mr-1" />
                 <span className="hidden sm:inline">Encuentra tu planta</span>
               </Button>
+
+              {/* Account button */}
+              {/* Cart drawer */}
+              <CartDrawer />
 
               {/* Account button */}
               <Button 
