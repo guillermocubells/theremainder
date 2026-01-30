@@ -167,11 +167,11 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-green-200 p-4">
+      <header className="bg-card/80 backdrop-blur-sm border-b border-border p-4">
         <div className="container mx-auto">
-          <Link to="/" className="flex items-center gap-2 text-green-700 hover:text-green-800 w-fit">
+          <Link to="/" className="flex items-center gap-2 text-primary hover:text-primary/80 w-fit">
             <ArrowLeft className="h-4 w-4" />
             <span className="text-sm">{t('navigation.backToStore')}</span>
           </Link>
@@ -183,11 +183,11 @@ const Auth = () => {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="bg-green-600 p-3 rounded-full">
-                <TreePalm className="h-8 w-8 text-white" />
+              <div className="bg-primary p-3 rounded-full">
+                <TreePalm className="h-8 w-8 text-primary-foreground" />
               </div>
             </div>
-            <CardTitle className="text-2xl text-gray-800">Frondaprima</CardTitle>
+            <CardTitle className="text-2xl text-foreground">Frondaprima</CardTitle>
             <CardDescription>
               {activeTab === 'login' && t('auth.accessAccount')}
               {activeTab === 'register' && t('auth.createYourAccount')}
@@ -204,8 +204,8 @@ const Auth = () => {
             )}
 
             {success && (
-              <Alert className="mb-4 border-green-200 bg-green-50">
-                <AlertDescription className="text-green-800">{success}</AlertDescription>
+              <Alert className="mb-4 border-primary/20 bg-secondary">
+                <AlertDescription className="text-foreground">{success}</AlertDescription>
               </Alert>
             )}
 
@@ -222,7 +222,7 @@ const Auth = () => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
+                <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.sendInstructions')}
                 </Button>
                 <Button
@@ -273,7 +273,7 @@ const Auth = () => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
+                <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.updatePassword')}
                 </Button>
               </form>
@@ -323,13 +323,13 @@ const Auth = () => {
                         </Button>
                       </div>
                     </div>
-                    <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
+                    <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.login')}
                     </Button>
                     <Button
                       type="button"
                       variant="link"
-                      className="w-full text-green-600"
+                      className="w-full text-primary"
                       onClick={() => {
                         setActiveTab('forgot');
                         setError(null);
@@ -397,7 +397,7 @@ const Auth = () => {
                         required
                       />
                     </div>
-                    <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
+                    <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.createAccount')}
                     </Button>
                   </form>

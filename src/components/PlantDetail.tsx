@@ -36,10 +36,10 @@ const PlantDetail = () => {
 
   if (!plant) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center animate-fade-in">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">{t('plant.notFound')}</h1>
-          <Link to="/" className="text-green-600 hover:text-green-700 text-sm sm:text-base transition-colors">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-4">{t('plant.notFound')}</h1>
+          <Link to="/" className="text-primary hover:text-primary/80 text-sm sm:text-base transition-colors">
             ← {t('navigation.backToCatalog')}
           </Link>
         </div>
@@ -51,26 +51,26 @@ const PlantDetail = () => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+      <div className="min-h-screen bg-background">
         {/* Header - matching main header styling */}
-        <header className={`bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <header className={`bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
           <div className="container mx-auto px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between">
               {/* Left side - Logo and back link */}
               <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                 <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group">
-                  <div className="bg-green-600 p-1.5 sm:p-2 rounded-full flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
-                    <TreePalm className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  <div className="bg-primary p-1.5 sm:p-2 rounded-full flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
+                    <TreePalm className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">{t('header.title')}</h1>
-                    <p className="text-xs sm:text-sm text-green-600 hidden sm:block">{t('header.subtitle')}</p>
+                    <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">{t('header.title')}</h1>
+                    <p className="text-xs sm:text-sm text-primary hidden sm:block">{t('header.subtitle')}</p>
                   </div>
                 </Link>
               </div>
               
               {/* Right side - Navigation */}
-              <div className="flex items-center space-x-1 sm:space-x-2 text-green-700 flex-shrink-0">
+              <div className="flex items-center space-x-1 sm:space-x-2 text-primary flex-shrink-0">
                 {/* Language switcher */}
                 <LanguageSwitcher />
 
@@ -79,7 +79,7 @@ const PlantDetail = () => {
                   onClick={handleAccountClick}
                   variant="ghost" 
                   size="sm"
-                  className="hover:bg-green-100 text-green-700"
+                  className="hover:bg-secondary text-primary"
                 >
                   <User className="h-5 w-5" />
                 </Button>
@@ -96,7 +96,7 @@ const PlantDetail = () => {
             {/* Back link */}
             <Link 
               to="/" 
-              className="inline-flex items-center space-x-2 text-green-700 hover:text-green-800 transition-colors duration-200 text-sm mb-4 group"
+              className="inline-flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors duration-200 text-sm mb-4 group"
             >
               <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
               <span>{t('navigation.backToCatalog')}</span>

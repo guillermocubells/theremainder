@@ -11,9 +11,9 @@ const PlantCuriousFacts = ({ curiousFacts }: PlantCuriousFactsProps) => {
   const { t } = useTranslation();
   
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-green-200 transition-all duration-300 hover:shadow-lg">
+    <Card className="bg-card/80 backdrop-blur-sm border-border transition-all duration-300 hover:shadow-lg">
       <CardHeader>
-        <CardTitle className="text-green-800">{t('curiousFacts.title')}</CardTitle>
+        <CardTitle className="text-foreground">{t('curiousFacts.title')}</CardTitle>
         <CardDescription>{t('curiousFacts.subtitle')}</CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
@@ -27,7 +27,7 @@ const PlantCuriousFacts = ({ curiousFacts }: PlantCuriousFactsProps) => {
               <div className="bg-amber-100 rounded-full p-0.5 sm:p-1 mt-0.5 sm:mt-1 flex-shrink-0 transition-all duration-200 group-hover:bg-amber-200 group-hover:scale-110">
                 <Lightbulb className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-amber-600" />
               </div>
-              <span className="text-gray-700 text-xs sm:text-sm lg:text-base leading-relaxed transition-colors duration-200 group-hover:text-gray-900">{fact}</span>
+              <span className="text-muted-foreground text-xs sm:text-sm lg:text-base leading-relaxed transition-colors duration-200 group-hover:text-foreground">{fact}</span>
             </li>
           ))}
         </ul>

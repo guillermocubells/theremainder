@@ -71,12 +71,12 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200 h-full w-full flex flex-col">
+    <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-border h-full w-full flex flex-col">
       <div className="flex flex-col space-y-4 flex-1">
         {/* Title row with external link button */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 flex items-center">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
               {plant.name}
             </h1>
           </div>
@@ -84,7 +84,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             asChild
             variant="outline" 
             size="sm"
-            className="flex-shrink-0 text-green-700 border-green-300 hover:bg-green-50 hover:border-green-400 text-xs sm:text-sm"
+            className="flex-shrink-0 text-primary border-border hover:bg-secondary hover:border-primary/30 text-xs sm:text-sm"
           >
             <a 
               href={plant.link} 
@@ -102,9 +102,9 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
         {/* Variety and common name */}
         <div>
           {plant.variety && (
-            <p className="text-base sm:text-lg font-medium text-green-600 mb-1">{plant.variety}</p>
+            <p className="text-base sm:text-lg font-medium text-primary mb-1">{plant.variety}</p>
           )}
-          <p className="text-lg sm:text-xl text-gray-600 font-medium">{plant.commonName}</p>
+          <p className="text-lg sm:text-xl text-muted-foreground font-medium">{plant.commonName}</p>
         </div>
 
         {/* Tags - now responsive */}
@@ -142,7 +142,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           {plant.quantity && (
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800 cursor-help">
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground cursor-help">
                   <span>{plant.quantity}x {t('plant.available')}</span>
                 </div>
               </TooltipTrigger>
@@ -167,18 +167,18 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
                 <div>
                   <p className="font-semibold">{t('hardiness.title')}</p>
                   <p className="text-xs sm:text-sm">{getZoneCountLabel(plant.hardinessZones)}</p>
-                  <p className="text-xs text-gray-500 mt-1">{t('hardiness.tooltip')}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t('hardiness.tooltip')}</p>
                 </div>
               </TooltipContent>
             </Tooltip>
           )}
         </div>
         
-        <p className="text-sm sm:text-base lg:text-lg text-gray-600">{plant.description}</p>
+        <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">{plant.description}</p>
         
         {/* Origin, climate and location information */}
         {(origin || climate || plant.location) && (
-          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
             {origin && (
               <span className="flex items-center gap-1">
                 <span className="font-medium">{t('plant.origin')}:</span> {origin}
@@ -199,44 +199,44 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
 
         {/* Notes as collapsible */}
         {plant.notes && (
-          <Collapsible className="bg-green-50 border border-green-200 rounded-lg overflow-hidden">
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-3 sm:p-4 hover:bg-green-100/50 transition-colors">
-              <h3 className="font-bold text-green-800 text-sm sm:text-base">{t('plant.notes')}</h3>
-              <ChevronDown className="h-4 w-4 text-green-700 transition-transform duration-200 data-[state=open]:rotate-180" />
+          <Collapsible className="bg-secondary border border-border rounded-lg overflow-hidden">
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-3 sm:p-4 hover:bg-muted/50 transition-colors">
+              <h3 className="font-bold text-foreground text-sm sm:text-base">{t('plant.notes')}</h3>
+              <ChevronDown className="h-4 w-4 text-primary transition-transform duration-200 data-[state=open]:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent className="px-3 pb-3 sm:px-4 sm:pb-4">
-              <p className="text-gray-700 leading-relaxed text-xs sm:text-sm lg:text-base">{plant.notes}</p>
+              <p className="text-muted-foreground leading-relaxed text-xs sm:text-sm lg:text-base">{plant.notes}</p>
             </CollapsibleContent>
           </Collapsible>
         )}
 
         {/* Product Details as collapsible */}
         {(plant.containerSize || plant.germinationDate) && (
-          <Collapsible className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-3 sm:p-4 hover:bg-gray-100/50 transition-colors">
-              <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
+          <Collapsible className="bg-muted border border-border rounded-lg overflow-hidden">
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-3 sm:p-4 hover:bg-muted/80 transition-colors">
+              <h3 className="font-semibold text-foreground text-sm sm:text-base">
                 {t('plant.productDetails')}
               </h3>
-              <ChevronDown className="h-4 w-4 text-gray-600 transition-transform duration-200 data-[state=open]:rotate-180" />
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 data-[state=open]:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent className="px-3 pb-3 sm:px-4 sm:pb-4">
               <div className="flex flex-wrap gap-4 sm:gap-6">
                 {plant.containerSize && (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    <span className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">
                       {t('specifications.container')}
                     </span>
-                    <span className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-800 border-2 border-green-600 rounded transition-all duration-200 hover:bg-green-50">
+                    <span className="px-3 py-1.5 text-xs sm:text-sm font-medium text-secondary-foreground border-2 border-primary rounded transition-all duration-200 hover:bg-secondary">
                       {plant.containerSize}
                     </span>
                   </div>
                 )}
                 {plant.germinationDate && (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    <span className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">
                       {t('plant.germinationDate')}
                     </span>
-                    <span className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-800 border-2 border-green-600 rounded transition-all duration-200 hover:bg-green-50">
+                    <span className="px-3 py-1.5 text-xs sm:text-sm font-medium text-secondary-foreground border-2 border-primary rounded transition-all duration-200 hover:bg-secondary">
                       {plant.germinationDate}
                     </span>
                   </div>
@@ -250,7 +250,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
         {plant.quantity && Number(plant.quantity) > 0 && (
           <div className="pt-4 sm:pt-6 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12">
             {totalPrice !== undefined && (
-              <p className="text-2xl sm:text-3xl font-bold text-green-700 transition-all duration-200 min-w-[120px] sm:min-w-[140px]">
+              <p className="text-2xl sm:text-3xl font-bold text-primary transition-all duration-200 min-w-[120px] sm:min-w-[140px]">
                 {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
               </p>
             )}

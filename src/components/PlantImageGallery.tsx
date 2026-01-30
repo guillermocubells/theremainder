@@ -14,8 +14,8 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
   if (!images || images.length === 0) {
     return (
       <div className="h-full flex items-center justify-center min-h-[300px]">
-        <div className="text-center text-gray-400">
-          <div className="w-16 h-16 mx-auto mb-2 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="text-center text-muted-foreground">
+          <div className="w-16 h-16 mx-auto mb-2 bg-muted rounded-lg flex items-center justify-center">
             <Search className="w-8 h-8" />
           </div>
           <p className="text-sm">Sin imágenes</p>
@@ -42,7 +42,7 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
           />
           {/* Zoom button */}
           <button 
-            className="absolute bottom-3 right-3 bg-yellow-500 hover:bg-yellow-600 text-white p-2.5 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+            className="absolute bottom-3 right-3 bg-primary hover:bg-primary/90 text-primary-foreground p-2.5 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
             onClick={(e) => {
               e.stopPropagation();
               setLightboxOpen(true);
@@ -61,8 +61,8 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
                 onClick={() => setSelectedIndex(index)}
                 className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 shadow-md ${
                   selectedIndex === index 
-                    ? 'ring-2 ring-green-500 ring-offset-2' 
-                    : 'opacity-80 hover:opacity-100 hover:ring-1 hover:ring-green-300'
+                    ? 'ring-2 ring-primary ring-offset-2' 
+                    : 'opacity-80 hover:opacity-100 hover:ring-1 hover:ring-primary/50'
                 }`}
               >
                 <img
