@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 import PlantDetailHeader from "./PlantDetailHeader";
 import PlantPhotoCarousel from "./PlantPhotoCarousel";
+import PlantImageGallery from "./PlantImageGallery";
 import CareInstructions from "./CareInstructions";
 import PlantCharacteristics from "./PlantCharacteristics";
 import PlantCuriousFacts from "./PlantCuriousFacts";
@@ -104,17 +105,24 @@ const PlantDetail = () => {
               <span>{t('navigation.backToCatalog')}</span>
             </Link>
 
-            {/* Plant Header with origin info - with stagger animation */}
-            <div className="animate-fade-in" style={{ animationDelay: '0ms' }}>
-              <PlantDetailHeader 
-                plant={plant} 
-                origin={detail?.origin}
-                climate={detail?.climate}
-              />
+            {/* Two column layout - Header and Image Gallery */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 sm:mb-8">
+              {/* Left column - Plant Header (2/3 width) */}
+              <div className="lg:col-span-2 animate-fade-in" style={{ animationDelay: '0ms' }}>
+                <PlantDetailHeader 
+                  plant={plant} 
+                  origin={detail?.origin}
+                  climate={detail?.climate}
+                />
+              </div>
+              
+              {/* Right column - Image Gallery (1/3 width) */}
+              <div className="animate-fade-in" style={{ animationDelay: '50ms' }}>
+                <PlantImageGallery images={plant.images} plantName={plant.name} />
+              </div>
             </div>
 
-
-            {/* Photo Carousel */}
+            {/* Photo Carousel - Future Visual References */}
             <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
               <PlantPhotoCarousel images={plant.images} plantName={plant.name} />
             </div>
