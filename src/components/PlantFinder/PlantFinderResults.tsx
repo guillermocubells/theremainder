@@ -59,7 +59,7 @@ const PlantFinderResults = ({
             className="text-gray-600"
           >
             <Edit2 className="h-4 w-4 mr-1" />
-            Editar respuestas
+            Editar
           </Button>
           <Button
             variant="outline"
