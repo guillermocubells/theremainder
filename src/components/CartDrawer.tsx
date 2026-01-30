@@ -16,7 +16,7 @@ import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 
 const CartDrawer = () => {
-  const { items, updateQuantity, removeFromCart, getTotalItems, getTotalPrice, clearCart } = useCart();
+  const { items, updateQuantity, removeFromCart, getTotalItems, getTotalPrice, clearCart, isCartOpen, setIsCartOpen } = useCart();
   const navigate = useNavigate();
   const totalItems = getTotalItems();
   const totalPrice = getTotalPrice();
@@ -24,9 +24,14 @@ const CartDrawer = () => {
   const { t } = useTranslation();
 
   return (
-    <Sheet>
+    <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className="hover:bg-secondary text-primary relative">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="hover:bg-secondary text-primary relative"
+          onClick={() => setIsCartOpen(true)}
+        >
           <ShoppingCart className="h-5 w-5" />
           {totalItems > 0 && (
             <Badge 

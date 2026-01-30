@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
+import { ShoppingCart } from 'lucide-react';
 
 export interface CartItem {
   plantId: string;
@@ -20,6 +21,8 @@ interface CartContextType {
   getTotalItems: () => number;
   getTotalPrice: () => number;
   clearCart: () => void;
+  isCartOpen: boolean;
+  setIsCartOpen: (open: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -28,20 +31,31 @@ const TAX_RATE = 0.21; // 21% IVA
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const showCartToast = (message: string) => {
+    toast.success(message, {
+      icon: <ShoppingCart className="h-4 w-4" />,
+      action: {
+        label: "Ver carrito",
+        onClick: () => setIsCartOpen(true),
+      },
+    });
+  };
 
   const addToCart = (newItem: Omit<CartItem, 'quantity'> & { quantity: number }) => {
     setItems(prev => {
       const existing = prev.find(item => item.plantId === newItem.plantId);
       if (existing) {
         const newQuantity = Math.min(existing.quantity + newItem.quantity, newItem.maxQuantity);
-        toast.success(`${newItem.name} actualizado en el carrito (${newQuantity} uds.)`);
+        showCartToast(`${newItem.name} actualizado en el carrito (${newQuantity} uds.)`);
         return prev.map(item =>
           item.plantId === newItem.plantId
             ? { ...item, quantity: newQuantity, price: newItem.price, image: newItem.image, containerSize: newItem.containerSize }
             : item
         );
       }
-      toast.success(`${newItem.name} añadido al carrito (${newItem.quantity} uds.)`);
+      showCartToast(`${newItem.name} añadido al carrito (${newItem.quantity} uds.)`);
       return [...prev, newItem];
     });
   };
@@ -89,7 +103,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       getItemQuantity,
       getTotalItems,
       getTotalPrice,
-      clearCart
+      clearCart,
+      isCartOpen,
+      setIsCartOpen
     }}>
       {children}
     </CartContext.Provider>
