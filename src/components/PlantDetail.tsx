@@ -6,6 +6,7 @@ import { plantDetails } from "@/data/plantDetailData";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useScrollDirection } from "@/hooks/useScrollDirection";
 import PlantDetailHeader from "./PlantDetailHeader";
 import PlantPhotoCarousel from "./PlantPhotoCarousel";
 import CareInstructions from "./CareInstructions";
@@ -18,6 +19,7 @@ const PlantDetail = () => {
   const { plantId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isHeaderVisible = useScrollDirection();
   const plant = plants.find(p => p.id === plantId);
 
   const handleAccountClick = () => {
@@ -47,7 +49,7 @@ const PlantDetail = () => {
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
         {/* Header - matching main header styling */}
-        <header className="bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-50">
+        <header className={`bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
           <div className="container mx-auto px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between">
               {/* Left side - Logo and back link */}
