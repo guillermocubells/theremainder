@@ -6,7 +6,7 @@ const HeroSection = () => {
   
   return (
     <section 
-      className="py-20 sm:py-28 lg:py-36 px-4 relative bg-cover bg-center bg-no-repeat min-h-[50vh] sm:min-h-[60vh] flex items-center"
+      className="py-16 sm:py-24 lg:py-28 px-4 relative bg-cover bg-center bg-no-repeat min-h-[45vh] sm:min-h-[50vh] flex items-center"
       style={{ backgroundImage: `url(${heroBackground})` }}
     >
       <div className="container mx-auto text-center relative z-10">
