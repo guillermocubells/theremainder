@@ -1,7 +1,7 @@
 import { Plant } from '@/data/plants';
 import PlantCard from '@/components/PlantCard';
 import { Button } from '@/components/ui/button';
-import { X, RotateCcw, Edit2, Sparkles } from 'lucide-react';
+import { RotateCcw, Edit2, Sparkles } from 'lucide-react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface PlantFinderResultsProps {
@@ -9,34 +9,31 @@ interface PlantFinderResultsProps {
   activeFilters: string[];
   onReset: () => void;
   onEditAnswers: () => void;
-  onClose: () => void;
 }
 
 const PlantFinderResults = ({ 
   plants, 
   activeFilters, 
   onReset, 
-  onEditAnswers,
-  onClose 
+  onEditAnswers
 }: PlantFinderResultsProps) => {
   return (
     <TooltipProvider>
       <div className="space-y-6">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 text-green-600">
-            <Sparkles className="h-5 w-5" />
-            <span className="text-sm font-medium">Basado en tu clima y espacio</span>
-          </div>
+        <div className="text-center space-y-3">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
             Recomendaciones para tu espacio
           </h2>
-          <p className="text-gray-500">
-            {plants.length === 0 
-              ? 'No encontramos plantas que coincidan exactamente con tus criterios'
-              : `${plants.length} ${plants.length === 1 ? 'planta encontrada' : 'plantas encontradas'}`
-            }
-          </p>
+          <div className="flex items-center justify-center gap-2 text-green-600">
+            <Sparkles className="h-5 w-5" />
+            <span className="text-sm font-medium">
+              {plants.length === 0 
+                ? 'Basado en tu clima y espacio, no encontramos plantas que coincidan exactamente con tus criterios'
+                : `Basado en tu clima y espacio, tenemos ${plants.length} ${plants.length === 1 ? 'planta que encaja' : 'plantas que encajan'} con lo que buscas`
+              }
+            </span>
+          </div>
         </div>
 
         {/* Active filters */}
@@ -72,15 +69,6 @@ const PlantFinderResults = ({
           >
             <RotateCcw className="h-4 w-4 mr-1" />
             Reiniciar
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={onClose}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <X className="h-4 w-4 mr-1" />
-            Cerrar y ver catálogo
           </Button>
         </div>
 

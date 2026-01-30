@@ -86,12 +86,15 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={`${showResults ? 'max-w-5xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto`}>
-        <DialogHeader>
-          <DialogTitle className="text-center text-green-800 flex items-center justify-center gap-2">
-            <Search className="h-5 w-5" />
-            Encuentra tu planta ideal
-          </DialogTitle>
-        </DialogHeader>
+        {!showResults && (
+          <DialogHeader>
+            <DialogTitle className="text-center text-green-800 flex items-center justify-center gap-2">
+              <Search className="h-5 w-5" />
+              Encuentra tu planta ideal
+            </DialogTitle>
+          </DialogHeader>
+        )}
+        {showResults && <DialogHeader><DialogTitle className="sr-only">Resultados</DialogTitle></DialogHeader>}
 
         {!showResults ? (
           <div className="space-y-6 py-4">
@@ -161,7 +164,6 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
             activeFilters={activeFilters}
             onReset={handleReset}
             onEditAnswers={handleEditAnswers}
-            onClose={handleClose}
           />
         )}
       </DialogContent>
