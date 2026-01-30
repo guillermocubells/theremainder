@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShoppingCart } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
@@ -9,15 +9,24 @@ interface AddToCartButtonProps {
   plantId: string;
   plantName: string;
   maxQuantity: number;
+  onQuantityChange?: (quantity: number) => void;
 }
 
-const AddToCartButton = ({ plantId, plantName, maxQuantity }: AddToCartButtonProps) => {
+const AddToCartButton = ({ plantId, plantName, maxQuantity, onQuantityChange }: AddToCartButtonProps) => {
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const { addToCart, getItemQuantity } = useCart();
   const { t } = useTranslation();
   
   const inCart = getItemQuantity(plantId);
   const availableToAdd = maxQuantity - inCart;
+
+  useEffect(() => {
+    onQuantityChange?.(selectedQuantity);
+  }, [selectedQuantity, onQuantityChange]);
+
+  const handleQuantityChange = (quantity: number) => {
+    setSelectedQuantity(quantity);
+  };
 
   const handleAddToCart = () => {
     if (selectedQuantity > 0 && selectedQuantity <= availableToAdd) {
@@ -41,7 +50,7 @@ const AddToCartButton = ({ plantId, plantName, maxQuantity }: AddToCartButtonPro
       <QuantitySelector
         quantity={selectedQuantity}
         maxQuantity={availableToAdd}
-        onChange={setSelectedQuantity}
+        onChange={handleQuantityChange}
         size="default"
       />
       <Button
