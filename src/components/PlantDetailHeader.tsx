@@ -62,37 +62,40 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200 mb-6 sm:mb-8 relative">
-      {/* External link button - top right */}
-      <Button 
-        asChild
-        variant="outline" 
-        size="sm"
-        className="absolute top-4 right-4 sm:top-6 sm:right-6 text-green-700 border-green-300 hover:bg-green-50 hover:border-green-400 text-xs sm:text-sm"
-      >
-        <a 
-          href={plant.link} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="flex items-center gap-2"
-        >
-          <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="hidden sm:inline">Ver más información</span>
-          <span className="sm:hidden">Info</span>
-        </a>
-      </Button>
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200 mb-6 sm:mb-8">
+      <div className="flex flex-col space-y-4">
+        {/* Title row with external link button */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800">
+              {plant.name}
+            </h1>
+          </div>
+          <Button 
+            asChild
+            variant="outline" 
+            size="sm"
+            className="flex-shrink-0 text-green-700 border-green-300 hover:bg-green-50 hover:border-green-400 text-xs sm:text-sm"
+          >
+            <a 
+              href={plant.link} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+            >
+              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Ver más información</span>
+              <span className="sm:hidden">Info</span>
+            </a>
+          </Button>
+        </div>
 
-      <div className="flex flex-col space-y-4 pr-20 sm:pr-40">
-        {/* Title and basic info */}
+        {/* Variety and common name */}
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2">
-            {plant.name}
-          </h1>
-          
           {plant.variety && (
             <p className="text-base sm:text-lg font-medium text-green-600 mb-1">{plant.variety}</p>
           )}
-          <p className="text-lg sm:text-xl text-gray-600 font-medium mb-3">{plant.commonName}</p>
+          <p className="text-lg sm:text-xl text-gray-600 font-medium">{plant.commonName}</p>
         </div>
 
         {/* Tags - now responsive */}
