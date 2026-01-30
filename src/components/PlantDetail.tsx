@@ -1,12 +1,10 @@
 
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, User, TreePalm } from "lucide-react";
+import { useParams, Link } from "react-router-dom";
+import { ArrowLeft, TreePalm } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { plants } from "@/data/plants";
 import { plantDetails } from "@/data/plantDetailData";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 import PlantDetailHeader from "./PlantDetailHeader";
 import PlantPhotoCarousel from "./PlantPhotoCarousel";
@@ -20,19 +18,9 @@ import LanguageSwitcher from "./LanguageSwitcher";
 
 const PlantDetail = () => {
   const { plantId } = useParams();
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const isHeaderVisible = useScrollDirection();
   const { t } = useTranslation();
   const plant = plants.find(p => p.id === plantId);
-
-  const handleAccountClick = () => {
-    if (user) {
-      navigate('/account');
-    } else {
-      navigate('/auth');
-    }
-  };
 
   if (!plant) {
     return (
@@ -76,19 +64,6 @@ const PlantDetail = () => {
 
                 {/* Language switcher */}
                 <LanguageSwitcher />
-
-                {/* Account button */}
-                <Button 
-                  onClick={handleAccountClick}
-                  variant="ghost" 
-                  size="sm"
-                  className="hover:bg-green-100 text-green-700 transition-colors duration-200"
-                >
-                  <User className="h-5 w-5 sm:mr-1" />
-                  <span className="hidden sm:inline">
-                    {user ? t('header.myAccount') : t('header.login')}
-                  </span>
-                </Button>
               </div>
             </div>
           </div>
