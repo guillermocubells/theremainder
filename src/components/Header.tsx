@@ -29,16 +29,19 @@ const Header = () => {
       <header className={`bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+            <button 
+              onClick={() => navigate('/')}
+              className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+            >
               <div className="bg-primary p-1.5 sm:p-2 rounded-full flex-shrink-0">
                 <TreePalm className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 text-left">
                 <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">{t('header.title')}</h1>
                 <p className="text-xs sm:text-sm text-primary hidden sm:block">{t('header.subtitle')}</p>
                 <p className="text-xs text-primary sm:hidden">{t('header.subtitleMobile')}</p>
               </div>
-            </div>
+            </button>
             <div className="flex items-center space-x-1 sm:space-x-2 text-primary flex-shrink-0">
               {/* Plant Finder CTA */}
               <Button 
