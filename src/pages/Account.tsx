@@ -103,6 +103,15 @@ const Account = () => {
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-8">
+        {/* Back to catalog link */}
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <span className="text-lg">←</span>
+          {t('navigation.backToCatalog')}
+        </Link>
+
         <div className="flex gap-8">
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
