@@ -81,9 +81,9 @@ const PlantDetail = () => {
             </Link>
 
             {/* Two column layout - Header and Image Gallery */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 sm:mb-8 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 sm:mb-8">
               {/* Left column - Plant Header (2/3 width) */}
-              <div className="lg:col-span-2 animate-fade-in h-full" style={{ animationDelay: '0ms' }}>
+              <div className="lg:col-span-2 animate-fade-in flex" style={{ animationDelay: '0ms' }}>
                 <PlantDetailHeader 
                   plant={plant} 
                   origin={detail?.origin}
@@ -92,7 +92,7 @@ const PlantDetail = () => {
               </div>
               
               {/* Right column - Image Gallery (1/3 width) */}
-              <div className="animate-fade-in h-full" style={{ animationDelay: '50ms' }}>
+              <div className="animate-fade-in flex" style={{ animationDelay: '50ms' }}>
                 <PlantImageGallery images={plant.images} plantName={plant.name} />
               </div>
             </div>
