@@ -122,26 +122,26 @@ const PlantDetail = () => {
               </div>
             </div>
 
-            {/* Photo Carousel - Future Visual References */}
-            <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
-              <PlantPhotoCarousel images={plant.images} plantName={plant.name} />
-            </div>
-
             {/* Care Instructions and Characteristics Section */}
             {detail && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
-                <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+                <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
                   <CareInstructions instructions={detail.careInstructions} />
                 </div>
-                <div className="animate-fade-in" style={{ animationDelay: '250ms' }}>
+                <div className="animate-fade-in" style={{ animationDelay: '150ms' }}>
                   <PlantCharacteristics characteristics={detail.characteristics} />
                 </div>
               </div>
             )}
 
+            {/* Photo Carousel - Future Visual References */}
+            <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+              <PlantPhotoCarousel images={plant.images} plantName={plant.name} />
+            </div>
+
             {/* Curious Facts Section - now takes full width */}
             {detail && (
-              <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '300ms' }}>
+              <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '250ms' }}>
                 <PlantCuriousFacts curiousFacts={detail.curiousFacts} />
               </div>
             )}
