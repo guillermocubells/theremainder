@@ -11,7 +11,7 @@ import { COUNTRY_NAMES } from "@/utils/shippingCalculator";
 import { Loader2 } from "lucide-react";
 
 // Load Stripe outside component to avoid recreating on every render
-const stripePromise = loadStripe(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 interface ShippingForm {
   email: string;
