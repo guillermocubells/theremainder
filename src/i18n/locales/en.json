@@ -357,6 +357,8 @@
     "includedTaxes": "Included taxes",
     "placeOrder": "Pay with Stripe",
     "processing": "Processing...",
+    "continueToPayment": "Continue to payment",
+    "payment": "Payment",
     "termsNote": "By placing your order, you accept our terms of sale",
     "orderSuccess": "Order placed successfully! We'll contact you soon.",
     "paymentMethods": "Payment methods",

@@ -358,6 +358,8 @@
     "includedTaxes": "Impuestos incluidos",
     "placeOrder": "Pagar con Stripe",
     "processing": "Procesando...",
+    "continueToPayment": "Continuar al pago",
+    "payment": "Pago",
     "termsNote": "Al realizar el pedido, aceptas nuestras condiciones de venta",
     "orderSuccess": "¡Pedido realizado con éxito! Te contactaremos pronto.",
     "paymentMethods": "Métodos de pago",

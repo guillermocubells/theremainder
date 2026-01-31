@@ -346,12 +346,13 @@ serve(async (req) => {
       },
     ];
 
-    // Create Stripe Checkout session
+    // Create Stripe Checkout session with embedded mode
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : customerEmail || undefined,
       line_items: lineItems,
       mode: "payment",
+      ui_mode: "embedded",
       payment_method_types: [
         "card",
         "sepa_debit",
@@ -381,15 +382,14 @@ serve(async (req) => {
           name: i.name,
         }))),
       },
-      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/checkout`,
+      return_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     });
 
     console.log("Checkout session created:", session.id);
 
     return new Response(
       JSON.stringify({ 
-        url: session.url, 
+        clientSecret: session.client_secret,
         sessionId: session.id,
         shippingCostCents: shippingResult.shippingCostCents,
         subtotalCents,
