@@ -34,13 +34,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const showCartToast = (message: string) => {
-    toast.success(message, {
-      icon: <ShoppingCart className="h-4 w-4" />,
-      action: {
-        label: "Ver carrito",
-        onClick: () => setIsCartOpen(true),
-      },
-    });
+    toast.success(
+      <div 
+        className="flex items-center gap-2 cursor-pointer w-full" 
+        onClick={() => setIsCartOpen(true)}
+      >
+        <span>{message}</span>
+      </div>,
+      {
+        icon: <ShoppingCart className="h-4 w-4" />,
+        action: {
+          label: "Ver carrito",
+          onClick: () => setIsCartOpen(true),
+        },
+      }
+    );
   };
 
   const addToCart = (newItem: Omit<CartItem, 'quantity'> & { quantity: number }) => {
