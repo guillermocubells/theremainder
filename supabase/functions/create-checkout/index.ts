@@ -391,6 +391,7 @@ serve(async (req) => {
       JSON.stringify({ 
         clientSecret: session.client_secret,
         sessionId: session.id,
+        publishableKey: Deno.env.get("VITE_STRIPE_PUBLISHABLE_KEY") || "",
         shippingCostCents: shippingResult.shippingCostCents,
         subtotalCents,
         totalCents: subtotalCents + shippingResult.shippingCostCents,
