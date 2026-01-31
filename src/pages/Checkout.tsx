@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Truck, ShoppingBag, AlertCircle } from "lucide-react";
+import { ArrowLeft, ShoppingBag, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import Header from "@/components/Header";
@@ -17,6 +17,12 @@ import { ShippingPreview } from "@/components/checkout/ShippingPreview";
 import { StripeEmbeddedCheckout } from "@/components/checkout/StripeEmbeddedCheckout";
 import { useShippingQuote } from "@/hooks/useShippingQuote";
 import { COUNTRY_NAMES } from "@/utils/shippingCalculator";
+import {
+  CheckoutAccordionItem,
+  StepNavigation,
+  CheckoutStep,
+  STEP_ICONS,
+} from "@/components/checkout/CheckoutAccordion";
 
 interface ShippingForm {
   email: string;
@@ -42,18 +48,21 @@ const INITIAL_FORM: ShippingForm = {
   notes: "",
 };
 
+const STEPS_ORDER: CheckoutStep[] = ["shipping", "contact", "address", "notes", "payment"];
+
 const Checkout = () => {
   const { t } = useTranslation();
   const { items } = useCart();
   const { user } = useAuth();
 
+  const [currentStep, setCurrentStep] = useState<CheckoutStep>("shipping");
+  const [completedSteps, setCompletedSteps] = useState<CheckoutStep[]>([]);
   const [shippingCountry, setShippingCountry] = useState<string>("ES");
   const [form, setForm] = useState<ShippingForm>({
     ...INITIAL_FORM,
     email: user?.email || "",
   });
   const [errors, setErrors] = useState<Partial<ShippingForm & { country: string }>>({});
-  const [showPayment, setShowPayment] = useState(false);
 
   // Get shipping quote from backend
   const { quote, isLoading: isQuoteLoading, error: quoteError } = useShippingQuote({
@@ -81,43 +90,87 @@ const Checkout = () => {
     );
   }
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<ShippingForm & { country: string }> = {};
+  const completeStep = (step: CheckoutStep) => {
+    if (!completedSteps.includes(step)) {
+      setCompletedSteps((prev) => [...prev, step]);
+    }
+  };
 
+  const goToStep = (step: CheckoutStep) => {
+    setCurrentStep(step);
+  };
+
+  const goToNextStep = () => {
+    const currentIndex = STEPS_ORDER.indexOf(currentStep);
+    if (currentIndex < STEPS_ORDER.length - 1) {
+      completeStep(currentStep);
+      setCurrentStep(STEPS_ORDER[currentIndex + 1]);
+    }
+  };
+
+  const validateShippingStep = (): boolean => {
+    if (!shippingCountry) {
+      setErrors({ country: t("checkout.errors.required") });
+      return false;
+    }
+    if (!quote?.supported) {
+      toast.error(t("checkout.noShippingAvailable"));
+      return false;
+    }
+    setErrors({});
+    return true;
+  };
+
+  const validateContactStep = (): boolean => {
+    const newErrors: Partial<ShippingForm> = {};
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       newErrors.email = t("checkout.errors.invalidEmail");
     }
-    if (!form.fullName.trim()) {
-      newErrors.fullName = t("checkout.errors.required");
-    }
-    if (!form.street.trim()) {
-      newErrors.street = t("checkout.errors.required");
-    }
-    if (!form.postalCode.trim()) {
-      newErrors.postalCode = t("checkout.errors.required");
-    }
-    if (!form.city.trim()) {
-      newErrors.city = t("checkout.errors.required");
-    }
-    if (!form.province.trim()) {
-      newErrors.province = t("checkout.errors.required");
-    }
-    if (!shippingCountry) {
-      newErrors.country = t("checkout.errors.required");
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const validateAddressStep = (): boolean => {
+    const newErrors: Partial<ShippingForm> = {};
+    if (!form.fullName.trim()) newErrors.fullName = t("checkout.errors.required");
+    if (!form.street.trim()) newErrors.street = t("checkout.errors.required");
+    if (!form.postalCode.trim()) newErrors.postalCode = t("checkout.errors.required");
+    if (!form.city.trim()) newErrors.city = t("checkout.errors.required");
+    if (!form.province.trim()) newErrors.province = t("checkout.errors.required");
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleStepContinue = (step: CheckoutStep) => {
+    let isValid = false;
+    switch (step) {
+      case "shipping":
+        isValid = validateShippingStep();
+        break;
+      case "contact":
+        isValid = validateContactStep();
+        break;
+      case "address":
+        isValid = validateAddressStep();
+        break;
+      case "notes":
+        isValid = true; // Notes are optional
+        break;
+      default:
+        isValid = true;
+    }
+
+    if (isValid) {
+      goToNextStep();
+    } else {
+      toast.error(t("checkout.errors.fixErrors"));
+    }
   };
 
   const handleChange = (field: keyof ShippingForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-    // Hide payment form when form changes
-    if (showPayment) {
-      setShowPayment(false);
     }
   };
 
@@ -126,27 +179,34 @@ const Checkout = () => {
     if (errors.country) {
       setErrors((prev) => ({ ...prev, country: undefined }));
     }
-    // Hide payment form when country changes
-    if (showPayment) {
-      setShowPayment(false);
+  };
+
+  const canProceedShipping = quote?.supported && !isQuoteLoading;
+
+  // Build summaries for collapsed steps
+  const getSummary = (step: CheckoutStep): string | undefined => {
+    switch (step) {
+      case "shipping":
+        const shippingEuros = quote ? quote.shippingCostCents / 100 : 0;
+        return quote ? `${COUNTRY_NAMES[shippingCountry]} - ${shippingEuros === 0 ? "Envío gratis" : `${shippingEuros.toFixed(2)}€`}` : undefined;
+      case "contact":
+        return form.email || undefined;
+      case "address":
+        return form.street ? `${form.street}, ${form.city}` : undefined;
+      case "notes":
+        return form.notes ? form.notes.substring(0, 50) + (form.notes.length > 50 ? "..." : "") : "Sin notas";
+      default:
+        return undefined;
     }
   };
 
-  const handleContinueToPayment = () => {
-    if (!validateForm()) {
-      toast.error(t("checkout.errors.fixErrors"));
-      return;
-    }
-
-    if (!quote || !quote.supported) {
-      toast.error(t("checkout.noShippingAvailable"));
-      return;
-    }
-
-    setShowPayment(true);
-  };
-
-  const canProceed = quote?.supported && !isQuoteLoading;
+  const stepConfigs = [
+    { id: "shipping" as CheckoutStep, title: t("checkout.shippingDestination"), icon: STEP_ICONS.shipping },
+    { id: "contact" as CheckoutStep, title: t("checkout.contact"), icon: STEP_ICONS.contact },
+    { id: "address" as CheckoutStep, title: t("checkout.shippingAddress"), icon: STEP_ICONS.address },
+    { id: "notes" as CheckoutStep, title: t("checkout.orderNotes"), icon: STEP_ICONS.notes },
+    { id: "payment" as CheckoutStep, title: t("checkout.payment"), icon: STEP_ICONS.payment },
+  ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -166,35 +226,44 @@ const Checkout = () => {
           {t("checkout.title")}
         </h1>
 
-        <div className="space-y-6">
-          {/* Shipping country - FIRST */}
-          <section className="bg-card border border-border rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Truck className="h-5 w-5 text-moss" />
-              {t("checkout.shippingDestination")}
-            </h2>
-
+        <div className="space-y-4">
+          {/* Step 1: Shipping Destination */}
+          <CheckoutAccordionItem
+            step={{ ...stepConfigs[0], summary: getSummary("shipping") }}
+            stepNumber={1}
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+            onStepClick={goToStep}
+          >
             <div className="space-y-4">
               <CountrySelector
                 value={shippingCountry}
                 onChange={handleCountryChange}
                 error={errors.country}
               />
-
               <ShippingPreview
                 quote={quote}
                 isLoading={isQuoteLoading}
                 error={quoteError}
                 countryCode={shippingCountry}
               />
+              <StepNavigation
+                onContinue={() => handleStepContinue("shipping")}
+                continueLabel={t("checkout.continue")}
+                disabled={!canProceedShipping}
+                isLoading={isQuoteLoading}
+              />
             </div>
-          </section>
+          </CheckoutAccordionItem>
 
-          {/* Contact section */}
-          <section className="bg-card border border-border rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              {t("checkout.contact")}
-            </h2>
+          {/* Step 2: Contact */}
+          <CheckoutAccordionItem
+            step={{ ...stepConfigs[1], summary: getSummary("contact") }}
+            stepNumber={2}
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+            onStepClick={goToStep}
+          >
             <div className="space-y-4">
               <div>
                 <Label htmlFor="email">{t("checkout.email")} *</Label>
@@ -213,14 +282,21 @@ const Checkout = () => {
                   </p>
                 )}
               </div>
+              <StepNavigation
+                onContinue={() => handleStepContinue("contact")}
+                continueLabel={t("checkout.continue")}
+              />
             </div>
-          </section>
+          </CheckoutAccordionItem>
 
-          {/* Shipping address section */}
-          <section className="bg-card border border-border rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              {t("checkout.shippingAddress")}
-            </h2>
+          {/* Step 3: Address */}
+          <CheckoutAccordionItem
+            step={{ ...stepConfigs[2], summary: getSummary("address") }}
+            stepNumber={3}
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+            onStepClick={goToStep}
+          >
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <Label htmlFor="fullName">{t("checkout.fullName")} *</Label>
@@ -321,50 +397,53 @@ const Checkout = () => {
                   className="bg-muted"
                 />
               </div>
+
+              <div className="sm:col-span-2">
+                <StepNavigation
+                  onContinue={() => handleStepContinue("address")}
+                  continueLabel={t("checkout.continue")}
+                />
+              </div>
             </div>
-          </section>
+          </CheckoutAccordionItem>
 
-          {/* Notes section */}
-          <section className="bg-card border border-border rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              {t("checkout.orderNotes")}
-            </h2>
-            <Textarea
-              value={form.notes}
-              onChange={(e) => handleChange("notes", e.target.value)}
-              placeholder={t("checkout.notesPlaceholder")}
-              rows={3}
-            />
-          </section>
-
-          {/* Continue to Payment button (only shown before payment form) */}
-          {!showPayment && (
-            <div className="flex justify-end">
-              <Button
-                type="button"
-                size="lg"
-                onClick={handleContinueToPayment}
-                disabled={!canProceed}
-                className="bg-moss hover:bg-moss/90 text-white min-w-[200px]"
-              >
-                {t("checkout.continueToPayment")}
-              </Button>
-            </div>
-          )}
-
-          {/* Stripe Embedded Checkout */}
-          {showPayment && (
-            <section>
-              <h2 className="text-lg font-semibold text-foreground mb-4">
-                {t("checkout.payment")}
-              </h2>
-              <StripeEmbeddedCheckout
-                items={items}
-                shippingCountry={shippingCountry}
-                shippingForm={form}
+          {/* Step 4: Notes */}
+          <CheckoutAccordionItem
+            step={{ ...stepConfigs[3], summary: getSummary("notes") }}
+            stepNumber={4}
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+            onStepClick={goToStep}
+          >
+            <div className="space-y-4">
+              <Textarea
+                value={form.notes}
+                onChange={(e) => handleChange("notes", e.target.value)}
+                placeholder={t("checkout.notesPlaceholder")}
+                rows={3}
               />
-            </section>
-          )}
+              <StepNavigation
+                onContinue={() => handleStepContinue("notes")}
+                continueLabel={t("checkout.continueToPayment")}
+              />
+            </div>
+          </CheckoutAccordionItem>
+
+          {/* Step 5: Payment */}
+          <CheckoutAccordionItem
+            step={stepConfigs[4]}
+            stepNumber={5}
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+            onStepClick={goToStep}
+            canEdit={completedSteps.includes("notes")}
+          >
+            <StripeEmbeddedCheckout
+              items={items}
+              shippingCountry={shippingCountry}
+              shippingForm={form}
+            />
+          </CheckoutAccordionItem>
         </div>
       </main>
 

@@ -358,6 +358,7 @@
     "placeOrder": "Pay with Stripe",
     "processing": "Processing...",
     "continueToPayment": "Continue to payment",
+    "continue": "Continue",
     "payment": "Payment",
     "termsNote": "By placing your order, you accept our terms of sale",
     "orderSuccess": "Order placed successfully! We'll contact you soon.",
