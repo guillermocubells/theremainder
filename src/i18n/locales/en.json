@@ -389,5 +389,54 @@
       "orderNumber": "Order number",
       "backToStore": "Back to store"
     }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Do you have questions about your order, our plants, or need advice? We're here to help.",
+    "info": {
+      "title": "Contact Information",
+      "address": "Address",
+      "phone": "Phone",
+      "email": "Email",
+      "hours": "Opening Hours",
+      "hoursDetail": "Monday - Friday: 10:00 - 18:00 (CET)"
+    },
+    "faqHint": {
+      "title": "Before contacting us:",
+      "description": "Check your order status in your account. Many questions about availability and shipping are answered in our FAQ."
+    },
+    "form": {
+      "title": "Contact Form",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "orderNumber": "Order number (optional)",
+      "orderNumberPlaceholder": "e.g. FP-20260001",
+      "subject": "Subject",
+      "subjectPlaceholder": "What is your inquiry about?",
+      "message": "Message",
+      "messagePlaceholder": "Describe your question or request in detail...",
+      "acceptPrivacy": "I have read and accept the",
+      "privacyLink": "privacy policy",
+      "submit": "Send Message",
+      "sending": "Sending..."
+    },
+    "gdpr": {
+      "responsible": "Data Controller",
+      "purpose": "Purpose",
+      "purposeText": "To respond to your inquiry",
+      "legitimation": "Legal Basis",
+      "legitimationText": "Consent and contract execution",
+      "recipients": "Recipients",
+      "recipientsText": "Data will not be shared with third parties",
+      "rights": "Rights",
+      "rightsText": "Access, rectify, and delete your data"
+    },
+    "success": {
+      "title": "Message sent!",
+      "message": "We've received your message and will respond within 24-48 business hours.",
+      "sendAnother": "Send another message"
+    }
   }
 }

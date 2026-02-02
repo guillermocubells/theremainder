@@ -13,6 +13,7 @@ import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import NotFound from "./pages/NotFound";
 import PlantDetail from "./components/PlantDetail";
+import Contact from "./pages/Contact";
 
 // Admin pages
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="/plant/:plantId" element={<PlantDetail />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/checkout/success" element={<CheckoutSuccess />} />
+              <Route path="/contact" element={<Contact />} />
               
               {/* Collection module routes */}
               <Route path="/collection" element={
