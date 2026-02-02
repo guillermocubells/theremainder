@@ -181,6 +181,216 @@ export type Database = {
         }
         Relationships: []
       }
+      owned_plants: {
+        Row: {
+          common_name: string | null
+          created_at: string
+          id: string
+          location_id: string | null
+          location_text: string | null
+          next_checkin_date: string | null
+          nickname: string
+          photos: string[] | null
+          purchase_date: string | null
+          scientific_name: string | null
+          source_plant_id: string | null
+          status: Database["public"]["Enums"]["plant_status"]
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          common_name?: string | null
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          location_text?: string | null
+          next_checkin_date?: string | null
+          nickname: string
+          photos?: string[] | null
+          purchase_date?: string | null
+          scientific_name?: string | null
+          source_plant_id?: string | null
+          status?: Database["public"]["Enums"]["plant_status"]
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          common_name?: string | null
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          location_text?: string | null
+          next_checkin_date?: string | null
+          nickname?: string
+          photos?: string[] | null
+          purchase_date?: string | null
+          scientific_name?: string | null
+          source_plant_id?: string | null
+          status?: Database["public"]["Enums"]["plant_status"]
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owned_plants_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "plant_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owned_plants_source_plant_id_fkey"
+            columns: ["source_plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plant_locations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      plant_notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          owned_plant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          owned_plant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          owned_plant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plant_notes_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plant_observations: {
+        Row: {
+          condition: Database["public"]["Enums"]["observation_condition"]
+          created_at: string
+          id: string
+          notes: string | null
+          observation_date: string
+          owned_plant_id: string
+          photos: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          condition?: Database["public"]["Enums"]["observation_condition"]
+          created_at?: string
+          id?: string
+          notes?: string | null
+          observation_date?: string
+          owned_plant_id: string
+          photos?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          condition?: Database["public"]["Enums"]["observation_condition"]
+          created_at?: string
+          id?: string
+          notes?: string | null
+          observation_date?: string
+          owned_plant_id?: string
+          photos?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plant_observations_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plant_public_slugs: {
+        Row: {
+          created_at: string
+          id: string
+          is_public: boolean
+          owned_plant_id: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          owned_plant_id: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          owned_plant_id?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plant_public_slugs_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: true
+            referencedRelation: "owned_plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plants: {
         Row: {
           care_instructions: Json | null
@@ -450,6 +660,7 @@ export type Database = {
     }
     Functions: {
       generate_order_number: { Args: never; Returns: string }
+      generate_plant_slug: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -460,12 +671,17 @@ export type Database = {
       is_order_item_owner: { Args: { oi_order_id: string }; Returns: boolean }
       is_own_address: { Args: { a_user_id: string }; Returns: boolean }
       is_own_order: { Args: { o_user_id: string }; Returns: boolean }
+      is_own_owned_plant: { Args: { op_user_id: string }; Returns: boolean }
+      is_own_plant_location: { Args: { pl_user_id: string }; Returns: boolean }
       is_own_profile: { Args: { p_user_id: string }; Returns: boolean }
       is_own_saved_search: { Args: { ss_user_id: string }; Returns: boolean }
+      owns_plant: { Args: { plant_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
+      observation_condition: "healthy" | "okay" | "concern" | "critical"
       order_status: "pending" | "paid" | "shipped" | "delivered" | "cancelled"
+      plant_status: "alive" | "dormant" | "sick" | "removed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -594,7 +810,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      observation_condition: ["healthy", "okay", "concern", "critical"],
       order_status: ["pending", "paid", "shipped", "delivered", "cancelled"],
+      plant_status: ["alive", "dormant", "sick", "removed"],
     },
   },
 } as const

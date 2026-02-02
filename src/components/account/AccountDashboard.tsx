@@ -1,9 +1,12 @@
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useOrders } from '@/hooks/useOrders';
 import { useAddresses } from '@/hooks/useAddresses';
+import { useOwnedPlants } from '@/hooks/collection/useOwnedPlants';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, MapPin, User, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Package, MapPin, User, Clock, Leaf, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -16,9 +19,11 @@ const AccountDashboard = ({ onNavigate }: AccountDashboardProps) => {
   const { data: profile } = useProfile();
   const { data: orders } = useOrders();
   const { data: addresses } = useAddresses();
+  const { data: ownedPlants } = useOwnedPlants();
 
   const recentOrders = orders?.slice(0, 3) || [];
   const defaultAddress = addresses?.find(a => a.is_default);
+  const alivePlantsCount = ownedPlants?.filter(p => p.status === 'alive').length || 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -53,18 +58,44 @@ const AccountDashboard = ({ onNavigate }: AccountDashboardProps) => {
         </p>
       </div>
 
+      {/* Plant Collection Card */}
+      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-green-100 p-3 rounded-full">
+                <Leaf className="h-8 w-8 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-green-900">Mi Colección de Plantas</h3>
+                <p className="text-green-700">
+                  {ownedPlants?.length || 0} plantas en tu colección
+                  {alivePlantsCount > 0 && ` • ${alivePlantsCount} vivas`}
+                </p>
+              </div>
+            </div>
+            <Link to="/collection">
+              <Button className="bg-green-600 hover:bg-green-700">
+                Ir a mi colección
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card 
           className="cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => onNavigate('orders')}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Pedidos</CardTitle>
-            <Package className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Pedidos</CardTitle>
+            <Package className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{orders?.length || 0}</div>
-            <p className="text-xs text-gray-500">pedidos realizados</p>
+            <p className="text-xs text-muted-foreground">pedidos realizados</p>
           </CardContent>
         </Card>
 
@@ -73,12 +104,12 @@ const AccountDashboard = ({ onNavigate }: AccountDashboardProps) => {
           onClick={() => onNavigate('addresses')}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Direcciones</CardTitle>
-            <MapPin className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Direcciones</CardTitle>
+            <MapPin className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{addresses?.length || 0}</div>
-            <p className="text-xs text-gray-500">direcciones guardadas</p>
+            <p className="text-xs text-muted-foreground">direcciones guardadas</p>
           </CardContent>
         </Card>
 
@@ -87,12 +118,12 @@ const AccountDashboard = ({ onNavigate }: AccountDashboardProps) => {
           onClick={() => onNavigate('profile')}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Perfil</CardTitle>
-            <User className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Perfil</CardTitle>
+            <User className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-sm font-medium truncate">{profile?.email || user?.email}</div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               {profile?.phone ? 'Teléfono añadido' : 'Sin teléfono'}
             </p>
           </CardContent>
