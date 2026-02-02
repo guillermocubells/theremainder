@@ -14,6 +14,15 @@ import CheckoutSuccess from "./pages/CheckoutSuccess";
 import NotFound from "./pages/NotFound";
 import PlantDetail from "./components/PlantDetail";
 
+// Admin pages
+import { AdminLayout } from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminPlants from "./pages/admin/AdminPlants";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminShipping from "./pages/admin/AdminShipping";
+import AdminSettings from "./pages/admin/AdminSettings";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -35,6 +44,17 @@ const App = () => (
               <Route path="/plant/:plantId" element={<PlantDetail />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/checkout/success" element={<CheckoutSuccess />} />
+              
+              {/* Admin routes */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="plants" element={<AdminPlants />} />
+                <Route path="categories" element={<AdminCategories />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="shipping" element={<AdminShipping />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

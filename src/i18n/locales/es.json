@@ -249,6 +249,14 @@
     "savedSearches": "Búsquedas",
     "security": "Seguridad"
   },
+  "admin": {
+    "dashboard": "Dashboard",
+    "plants": "Plantas",
+    "categories": "Categorías",
+    "orders": "Pedidos",
+    "shipping": "Envíos",
+    "settings": "Configuración"
+  },
   "plantFinder": {
     "title": "Encuentra tu Planta Ideal",
     "subtitle": "Responde unas preguntas para encontrar la planta perfecta para ti",
