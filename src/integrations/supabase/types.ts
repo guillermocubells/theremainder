@@ -98,6 +98,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_enabled: boolean
+          email_frequency: Database["public"]["Enums"]["email_frequency"]
+          id: string
+          push_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean
+          email_frequency?: Database["public"]["Enums"]["email_frequency"]
+          id?: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean
+          email_frequency?: Database["public"]["Enums"]["email_frequency"]
+          id?: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -677,6 +707,134 @@ export type Database = {
         }
         Relationships: []
       }
+      wishlist_items: {
+        Row: {
+          acquired_at: string | null
+          acquired_owned_plant_id: string | null
+          catalog_product_id: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          notes: string | null
+          notify_availability: boolean
+          notify_price_drop: boolean
+          price_max: number | null
+          price_min: number | null
+          priority: Database["public"]["Enums"]["wishlist_priority"]
+          provider_name: string | null
+          provider_url: string | null
+          scientific_name: string | null
+          source_preference: Database["public"]["Enums"]["wishlist_source"]
+          status: Database["public"]["Enums"]["wishlist_status"]
+          updated_at: string
+          user_id: string
+          variety_notes: string | null
+        }
+        Insert: {
+          acquired_at?: string | null
+          acquired_owned_plant_id?: string | null
+          catalog_product_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          notes?: string | null
+          notify_availability?: boolean
+          notify_price_drop?: boolean
+          price_max?: number | null
+          price_min?: number | null
+          priority?: Database["public"]["Enums"]["wishlist_priority"]
+          provider_name?: string | null
+          provider_url?: string | null
+          scientific_name?: string | null
+          source_preference?: Database["public"]["Enums"]["wishlist_source"]
+          status?: Database["public"]["Enums"]["wishlist_status"]
+          updated_at?: string
+          user_id: string
+          variety_notes?: string | null
+        }
+        Update: {
+          acquired_at?: string | null
+          acquired_owned_plant_id?: string | null
+          catalog_product_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          notes?: string | null
+          notify_availability?: boolean
+          notify_price_drop?: boolean
+          price_max?: number | null
+          price_min?: number | null
+          priority?: Database["public"]["Enums"]["wishlist_priority"]
+          provider_name?: string | null
+          provider_url?: string | null
+          scientific_name?: string | null
+          source_preference?: Database["public"]["Enums"]["wishlist_source"]
+          status?: Database["public"]["Enums"]["wishlist_status"]
+          updated_at?: string
+          user_id?: string
+          variety_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_acquired_owned_plant_id_fkey"
+            columns: ["acquired_owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_items_catalog_product_id_fkey"
+            columns: ["catalog_product_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wishlist_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+          wishlist_item_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+          wishlist_item_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+          wishlist_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_notifications_wishlist_item_id_fkey"
+            columns: ["wishlist_item_id"]
+            isOneToOne: false
+            referencedRelation: "wishlist_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -698,18 +856,29 @@ export type Database = {
       }
       is_order_item_owner: { Args: { oi_order_id: string }; Returns: boolean }
       is_own_address: { Args: { a_user_id: string }; Returns: boolean }
+      is_own_notification: { Args: { n_user_id: string }; Returns: boolean }
       is_own_order: { Args: { o_user_id: string }; Returns: boolean }
       is_own_owned_plant: { Args: { op_user_id: string }; Returns: boolean }
       is_own_plant_location: { Args: { pl_user_id: string }; Returns: boolean }
       is_own_profile: { Args: { p_user_id: string }; Returns: boolean }
       is_own_saved_search: { Args: { ss_user_id: string }; Returns: boolean }
+      is_own_wishlist_item: { Args: { wi_user_id: string }; Returns: boolean }
+      match_wishlist_to_order: {
+        Args: { p_order_id: string; p_user_id: string }
+        Returns: number
+      }
       owns_plant: { Args: { plant_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
+      email_frequency: "instant" | "daily" | "weekly"
+      notification_type: "available" | "price_drop" | "similar"
       observation_condition: "healthy" | "okay" | "concern" | "critical"
       order_status: "pending" | "paid" | "shipped" | "delivered" | "cancelled"
       plant_status: "alive" | "dormant" | "sick" | "removed"
+      wishlist_priority: "low" | "medium" | "high" | "urgent"
+      wishlist_source: "frondaprima" | "any" | "specific"
+      wishlist_status: "wishlist" | "looking" | "acquired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -838,9 +1007,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      email_frequency: ["instant", "daily", "weekly"],
+      notification_type: ["available", "price_drop", "similar"],
       observation_condition: ["healthy", "okay", "concern", "critical"],
       order_status: ["pending", "paid", "shipped", "delivered", "cancelled"],
       plant_status: ["alive", "dormant", "sick", "removed"],
+      wishlist_priority: ["low", "medium", "high", "urgent"],
+      wishlist_source: ["frondaprima", "any", "specific"],
+      wishlist_status: ["wishlist", "looking", "acquired"],
     },
   },
 } as const

@@ -31,6 +31,9 @@ import {
   PublicPlantPage 
 } from "./pages/collection";
 
+// Wishlist module pages
+import { WishlistDashboard } from "./pages/wishlist";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -67,6 +70,13 @@ const App = () => (
               <Route path="/collection/locations" element={
                 <ProtectedRoute>
                   <LocationsPage />
+                </ProtectedRoute>
+              } />
+              
+              {/* Wishlist module routes */}
+              <Route path="/account/wishlist" element={
+                <ProtectedRoute>
+                  <WishlistDashboard />
                 </ProtectedRoute>
               } />
               
