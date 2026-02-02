@@ -155,7 +155,7 @@ serve(async (req) => {
     const userMessage = buildUserMessage(user_prompt, filters, catalog);
 
     // Call Lovable AI
-    const aiResponse = await fetch("https://ai.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
