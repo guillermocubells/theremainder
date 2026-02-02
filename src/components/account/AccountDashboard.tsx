@@ -4,9 +4,10 @@ import { useProfile } from '@/hooks/useProfile';
 import { useOrders } from '@/hooks/useOrders';
 import { useAddresses } from '@/hooks/useAddresses';
 import { useOwnedPlants } from '@/hooks/collection/useOwnedPlants';
+import { useWishlistStats } from '@/hooks/wishlist';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, MapPin, User, Clock, Leaf, ArrowRight } from 'lucide-react';
+import { Package, MapPin, User, Clock, Leaf, ArrowRight, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -20,10 +21,12 @@ const AccountDashboard = ({ onNavigate }: AccountDashboardProps) => {
   const { data: orders } = useOrders();
   const { data: addresses } = useAddresses();
   const { data: ownedPlants } = useOwnedPlants();
+  const { data: wishlistStats } = useWishlistStats();
 
   const recentOrders = orders?.slice(0, 3) || [];
   const defaultAddress = addresses?.find(a => a.is_default);
   const alivePlantsCount = ownedPlants?.filter(p => p.status === 'alive').length || 0;
+  const totalWishlistItems = (wishlistStats?.wishlist || 0) + (wishlistStats?.looking || 0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -59,24 +62,50 @@ const AccountDashboard = ({ onNavigate }: AccountDashboardProps) => {
       </div>
 
       {/* Plant Collection Card */}
-      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 dark:from-green-950/20 dark:to-emerald-950/20 dark:border-green-800">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <div className="bg-green-100 p-3 rounded-full">
-                <Leaf className="h-8 w-8 text-green-600" />
+              <div className="bg-green-100 dark:bg-green-900/50 p-3 rounded-full">
+                <Leaf className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-green-900">Mi Colección de Plantas</h3>
-                <p className="text-green-700">
+                <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">Mi Colección de Plantas</h3>
+                <p className="text-green-700 dark:text-green-300">
                   {ownedPlants?.length || 0} plantas en tu colección
                   {alivePlantsCount > 0 && ` • ${alivePlantsCount} vivas`}
                 </p>
               </div>
             </div>
             <Link to="/collection">
-              <Button className="bg-green-600 hover:bg-green-700">
+              <Button className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600">
                 Ir a mi colección
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Wishlist Card */}
+      <Card className="bg-gradient-to-br from-rose-50 to-pink-50 border-rose-200 dark:from-rose-950/20 dark:to-pink-950/20 dark:border-rose-800">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="bg-rose-100 dark:bg-rose-900/50 p-3 rounded-full">
+                <Heart className="h-8 w-8 text-rose-600 dark:text-rose-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-rose-900 dark:text-rose-100">Mi Lista de Deseos</h3>
+                <p className="text-rose-700 dark:text-rose-300">
+                  {totalWishlistItems} plantas en tu wishlist
+                  {(wishlistStats?.looking || 0) > 0 && ` • ${wishlistStats?.looking} buscando`}
+                </p>
+              </div>
+            </div>
+            <Link to="/account/wishlist">
+              <Button className="bg-rose-600 hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-600">
+                Ver lista de deseos
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </Link>

@@ -152,6 +152,25 @@ serve(async (req) => {
         } catch (plantsErr) {
           console.error("Error creating owned plants:", plantsErr);
         }
+
+        // Match wishlist items to this order (auto-mark as acquired)
+        try {
+          const { data: wishlistMatched, error: wishlistError } = await supabaseAdmin.rpc(
+            "match_wishlist_to_order",
+            {
+              p_order_id: order.id,
+              p_user_id: userId,
+            }
+          );
+
+          if (wishlistError) {
+            console.error("Failed to match wishlist items:", wishlistError);
+          } else if (wishlistMatched && wishlistMatched > 0) {
+            console.log(`Matched ${wishlistMatched} wishlist items for user ${userId}`);
+          }
+        } catch (wishlistErr) {
+          console.error("Error matching wishlist items:", wishlistErr);
+        }
       } else {
         // Guest order - log for manual processing
         console.log("Guest order completed:", {
