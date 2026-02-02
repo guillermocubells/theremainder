@@ -5,7 +5,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   LayoutDashboard, 
   Package, 
@@ -13,24 +12,24 @@ import {
   User, 
   Shield, 
   Search,
-  LogOut,
-  Menu,
-  X
+  LogOut
 } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 import AccountDashboard from '@/components/account/AccountDashboard';
 import AccountOrders from '@/components/account/AccountOrders';
 import AccountAddresses from '@/components/account/AccountAddresses';
 import AccountProfile from '@/components/account/AccountProfile';
 import AccountSecurity from '@/components/account/AccountSecurity';
 import AccountSavedSearches from '@/components/account/AccountSavedSearches';
+import MobileAccountHub from '@/components/account/MobileAccountHub';
+import MobileAccountSection from '@/components/account/MobileAccountSection';
 
 const Account = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { signOut } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
   const menuItems = [
     { id: 'dashboard', label: t('account.dashboard'), icon: LayoutDashboard },
@@ -46,10 +45,34 @@ const Account = () => {
     navigate('/');
   };
 
-  const renderContent = () => {
-    switch (activeTab) {
+  const handleLanguageChange = () => {
+    const newLang = i18n.language === 'es' ? 'en' : 'es';
+    i18n.changeLanguage(newLang);
+  };
+
+  const handleMobileNavigate = (tab: string) => {
+    setActiveTab(tab);
+  };
+
+  const handleMobileBack = () => {
+    setActiveTab(null);
+  };
+
+  const getSectionTitle = (tab: string) => {
+    switch (tab) {
+      case 'orders': return t('account.orders');
+      case 'addresses': return t('account.addresses');
+      case 'profile': return t('account.profile');
+      case 'security': return t('account.security');
+      case 'searches': return t('account.savedSearches');
+      default: return '';
+    }
+  };
+
+  const renderContent = (tab: string) => {
+    switch (tab) {
       case 'dashboard':
-        return <AccountDashboard onNavigate={setActiveTab} />;
+        return <AccountDashboard onNavigate={isMobile ? handleMobileNavigate : setActiveTab} />;
       case 'orders':
         return <AccountOrders />;
       case 'addresses':
@@ -61,7 +84,7 @@ const Account = () => {
       case 'searches':
         return <AccountSavedSearches />;
       default:
-        return <AccountDashboard onNavigate={setActiveTab} />;
+        return <AccountDashboard onNavigate={isMobile ? handleMobileNavigate : setActiveTab} />;
     }
   };
 
@@ -72,10 +95,7 @@ const Account = () => {
         return (
           <button
             key={item.id}
-            onClick={() => {
-              setActiveTab(item.id);
-              setMobileMenuOpen(false);
-            }}
+            onClick={() => setActiveTab(item.id)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
               activeTab === item.id
                 ? 'bg-secondary text-foreground font-medium'
@@ -98,6 +118,45 @@ const Account = () => {
     </div>
   );
 
+  // Mobile view
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        
+        <main className="flex-1 container mx-auto px-4 py-6">
+          {/* Back to catalog link - only show on hub */}
+          {!activeTab && (
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+            >
+              <span className="text-lg">←</span>
+              {t('navigation.backToCatalog')}
+            </Link>
+          )}
+
+          {activeTab ? (
+            <MobileAccountSection 
+              title={getSectionTitle(activeTab)} 
+              onBack={handleMobileBack}
+            >
+              {renderContent(activeTab)}
+            </MobileAccountSection>
+          ) : (
+            <MobileAccountHub 
+              onNavigate={handleMobileNavigate}
+              onLanguageChange={handleLanguageChange}
+            />
+          )}
+        </main>
+
+        <Footer />
+      </div>
+    );
+  }
+
+  // Desktop view
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -114,34 +173,17 @@ const Account = () => {
 
         <div className="flex gap-8">
           {/* Desktop sidebar */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
+          <aside className="w-64 flex-shrink-0">
             <div className="bg-card rounded-xl shadow-sm p-4 sticky top-24">
               <h2 className="text-lg font-semibold text-foreground mb-4 px-4">{t('account.title')}</h2>
               <SidebarContent />
             </div>
           </aside>
 
-          {/* Mobile menu trigger */}
-          <div className="lg:hidden fixed bottom-4 right-4 z-50">
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button size="lg" className="rounded-full shadow-lg">
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-80">
-                <div className="py-4">
-                  <h2 className="text-lg font-semibold text-foreground mb-4 px-4">{t('account.title')}</h2>
-                  <SidebarContent />
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-
           {/* Content area */}
           <div className="flex-1 min-w-0">
             <div className="bg-card rounded-xl shadow-sm p-6">
-              {renderContent()}
+              {renderContent(activeTab || 'dashboard')}
             </div>
           </div>
         </div>
