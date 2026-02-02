@@ -266,21 +266,21 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
               )}
             </div>
 
-            {/* Action Buttons - Etiquetas cortas siempre visibles */}
-            <div className="flex items-center justify-between sm:justify-start gap-2">
+          {/* Action Buttons - Diseño limpio para móvil */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 -mb-1 sm:pb-0 sm:mb-0">
               {/* Filtros */}
               <Button
                 variant={isFiltersVisible ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsFiltersVisible(!isFiltersVisible)}
-                className={`flex-1 sm:flex-none h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm ${isFiltersVisible 
+                className={`shrink-0 h-8 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm gap-1.5 ${isFiltersVisible 
                   ? "bg-moss hover:bg-moss/90 text-moss-foreground" 
-                  : "border-border hover:bg-muted"}`}
+                  : "border-border bg-background hover:bg-muted"}`}
               >
-                <Filter className="h-4 w-4 mr-1.5" />
+                <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>{t('filters.title')}</span>
                 {hasActiveFilters && (
-                  <span className="ml-1 w-1.5 h-1.5 bg-primary rounded-full" />
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full" />
                 )}
               </Button>
               
@@ -289,11 +289,11 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
                 variant={isAIMode ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsAIMode(!isAIMode)}
-                className={`flex-1 sm:flex-none h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm ${isAIMode 
+                className={`shrink-0 h-8 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm gap-1.5 ${isAIMode 
                   ? "bg-moss hover:bg-moss/90 text-moss-foreground" 
-                  : "border-border hover:bg-muted"}`}
+                  : "border-border bg-background hover:bg-muted"}`}
               >
-                <Sparkles className="h-4 w-4 mr-1.5" />
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>IA</span>
               </Button>
 
@@ -302,13 +302,12 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
                 variant={isAIPanelOpen ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsAIPanelOpen(!isAIPanelOpen)}
-                className={`flex-1 sm:flex-none h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm ${isAIPanelOpen 
+                className={`shrink-0 h-8 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm gap-1.5 ${isAIPanelOpen 
                   ? "bg-primary hover:bg-primary/90" 
-                  : "border-border hover:bg-muted"}`}
+                  : "border-border bg-background hover:bg-muted"}`}
               >
-                <Bot className="h-4 w-4 mr-1.5" />
-                <span className="sm:hidden">Rec.</span>
-                <span className="hidden sm:inline">Recomendador</span>
+                <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span>Rec.</span>
               </Button>
             </div>
           </div>
