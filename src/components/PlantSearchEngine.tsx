@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Search, Sparkles, Droplets, Sun, Filter, MapPin, X } from "lucide-react";
+import { Search, Sparkles, Droplets, Sun, Filter, MapPin, X, Bot } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,8 @@ import { Plant } from "@/data/plants";
 import { calculateViability, analyzePlantCare, analyzePostalCodeClimate } from "@/utils/viabilityCalculator";
 import ViabilityScale from "./ViabilityScale";
 import PlantFilters from "./PlantFilters";
+import { AIRecommendPanel } from "./AIRecommend";
+import { CatalogPlant } from "@/hooks/useRecommendPlants";
 
 interface PlantSearchEngineProps {
   plants: Plant[];
@@ -32,6 +34,7 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
   const [searchQuery, setSearchQuery] = useState("");
   const [isAIMode, setIsAIMode] = useState(false);
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
+  const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
   const [showViabilityAnalysis, setShowViabilityAnalysis] = useState(false);
   const [showCareAnalysis, setShowCareAnalysis] = useState(false);
   const [viabilityResultsToShow, setViabilityResultsToShow] = useState(RESULTS_INCREMENT);
@@ -269,13 +272,13 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
                 size="sm"
                 onClick={() => setIsFiltersVisible(!isFiltersVisible)}
                 className={`h-10 ${isFiltersVisible 
-                  ? "bg-green-600 hover:bg-green-700 text-white" 
-                  : "border-gray-200 hover:bg-gray-50"}`}
+                  ? "bg-moss hover:bg-moss/90 text-moss-foreground" 
+                  : "border-border hover:bg-muted"}`}
               >
                 <Filter className="h-4 w-4 mr-2" />
                 {t('filters.title')}
                 {hasActiveFilters && (
-                  <span className="ml-2 bg-white/20 text-xs px-1.5 py-0.5 rounded-full">•</span>
+                  <span className="ml-2 bg-background/20 text-xs px-1.5 py-0.5 rounded-full">•</span>
                 )}
               </Button>
               
@@ -284,11 +287,24 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
                 size="sm"
                 onClick={() => setIsAIMode(!isAIMode)}
                 className={`h-10 ${isAIMode 
-                  ? "bg-green-600 hover:bg-green-700 text-white" 
-                  : "border-gray-200 hover:bg-gray-50"}`}
+                  ? "bg-moss hover:bg-moss/90 text-moss-foreground" 
+                  : "border-border hover:bg-muted"}`}
               >
                 <Sparkles className="h-4 w-4 mr-2" />
                 IA
+              </Button>
+
+              {/* AI Recommender Button */}
+              <Button
+                variant={isAIPanelOpen ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsAIPanelOpen(!isAIPanelOpen)}
+                className={`h-10 ${isAIPanelOpen 
+                  ? "bg-primary hover:bg-primary/90" 
+                  : "border-border hover:bg-muted"}`}
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                Recomendador
               </Button>
             </div>
           </div>
@@ -349,6 +365,31 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
         plants={plants} 
         onFilterChange={setFilteredByFilters}
         isVisible={isFiltersVisible}
+      />
+
+      {/* AI Recommend Panel */}
+      <AIRecommendPanel
+        isOpen={isAIPanelOpen}
+        onClose={() => setIsAIPanelOpen(false)}
+        catalog={plants.map(p => ({
+          id: p.id,
+          name: p.name,
+          scientific_name: p.commonName || null,
+          plant_type: null,
+          exposure: p.light ? [p.light] : null,
+          growth_rate: p.growthRate || null,
+          climate_zones: p.hardinessZones || null,
+          min_temp_c: null,
+          water: p.waterNeeds?.toLowerCase() === 'alta' ? 'high' : 
+                 p.waterNeeds?.toLowerCase() === 'baja' ? 'low' : 'medium',
+          humidity: null,
+          plant_use: p.location ? [p.location] : null,
+          rarity: null,
+          difficulty: null,
+          is_in_stock: (p.quantity || 0) > 0,
+          price: p.price,
+          thumbnail_url: p.images?.[0] || null,
+        } as CatalogPlant))}
       />
 
       {/* Viability Analysis */}
