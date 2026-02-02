@@ -113,9 +113,9 @@ const WhatsAppButton = ({
           <WhatsAppIcon className="w-7 h-7" />
         )}
         
-        {/* Pulse animation */}
+        {/* Subtle ring instead of distracting ping */}
         {!isOpen && (
-          <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-30" />
+          <span className="absolute inset-0 rounded-full ring-2 ring-[#25D366]/40 ring-offset-2 ring-offset-background" />
         )}
       </button>
 
