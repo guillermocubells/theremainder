@@ -448,109 +448,145 @@ export type Database = {
         Row: {
           care_instructions: Json | null
           category_id: string | null
+          climate_zones: string[] | null
+          common_name: string | null
           container_size: string | null
           created_at: string
           curious_facts: Json | null
           description: string | null
+          difficulty: Database["public"]["Enums"]["difficulty_level"] | null
           display_order: number
+          exposure: string[] | null
           germination_date: string | null
           growth_rate: string | null
           hardiness_zone: string | null
+          humidity: Database["public"]["Enums"]["humidity_level"] | null
           id: string
           images: string[] | null
           is_active: boolean
           is_featured: boolean
+          is_in_stock: boolean | null
           mature_height: string | null
           mature_width: string | null
           meta_description: string | null
           meta_title: string | null
+          min_temp_c: number | null
           name: string
           native_habitat: string | null
+          notes: string | null
           origin_country: string | null
           origin_region: string | null
+          plant_type: Database["public"]["Enums"]["plant_type"] | null
+          plant_use: string[] | null
           price: number
+          rarity: Database["public"]["Enums"]["rarity_level"] | null
           sale_price: number | null
           scientific_name: string | null
           short_description: string | null
           slug: string
           specifications: Json | null
-          stock: number
+          stock_qty: number
           sun_requirement: string | null
           temperature_range: string | null
           thumbnail_url: string | null
           updated_at: string
+          water: Database["public"]["Enums"]["water_level"] | null
           water_requirement: string | null
         }
         Insert: {
           care_instructions?: Json | null
           category_id?: string | null
+          climate_zones?: string[] | null
+          common_name?: string | null
           container_size?: string | null
           created_at?: string
           curious_facts?: Json | null
           description?: string | null
+          difficulty?: Database["public"]["Enums"]["difficulty_level"] | null
           display_order?: number
+          exposure?: string[] | null
           germination_date?: string | null
           growth_rate?: string | null
           hardiness_zone?: string | null
+          humidity?: Database["public"]["Enums"]["humidity_level"] | null
           id?: string
           images?: string[] | null
           is_active?: boolean
           is_featured?: boolean
+          is_in_stock?: boolean | null
           mature_height?: string | null
           mature_width?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          min_temp_c?: number | null
           name: string
           native_habitat?: string | null
+          notes?: string | null
           origin_country?: string | null
           origin_region?: string | null
+          plant_type?: Database["public"]["Enums"]["plant_type"] | null
+          plant_use?: string[] | null
           price?: number
+          rarity?: Database["public"]["Enums"]["rarity_level"] | null
           sale_price?: number | null
           scientific_name?: string | null
           short_description?: string | null
           slug: string
           specifications?: Json | null
-          stock?: number
+          stock_qty?: number
           sun_requirement?: string | null
           temperature_range?: string | null
           thumbnail_url?: string | null
           updated_at?: string
+          water?: Database["public"]["Enums"]["water_level"] | null
           water_requirement?: string | null
         }
         Update: {
           care_instructions?: Json | null
           category_id?: string | null
+          climate_zones?: string[] | null
+          common_name?: string | null
           container_size?: string | null
           created_at?: string
           curious_facts?: Json | null
           description?: string | null
+          difficulty?: Database["public"]["Enums"]["difficulty_level"] | null
           display_order?: number
+          exposure?: string[] | null
           germination_date?: string | null
           growth_rate?: string | null
           hardiness_zone?: string | null
+          humidity?: Database["public"]["Enums"]["humidity_level"] | null
           id?: string
           images?: string[] | null
           is_active?: boolean
           is_featured?: boolean
+          is_in_stock?: boolean | null
           mature_height?: string | null
           mature_width?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          min_temp_c?: number | null
           name?: string
           native_habitat?: string | null
+          notes?: string | null
           origin_country?: string | null
           origin_region?: string | null
+          plant_type?: Database["public"]["Enums"]["plant_type"] | null
+          plant_use?: string[] | null
           price?: number
+          rarity?: Database["public"]["Enums"]["rarity_level"] | null
           sale_price?: number | null
           scientific_name?: string | null
           short_description?: string | null
           slug?: string
           specifications?: Json | null
-          stock?: number
+          stock_qty?: number
           sun_requirement?: string | null
           temperature_range?: string | null
           thumbnail_url?: string | null
           updated_at?: string
+          water?: Database["public"]["Enums"]["water_level"] | null
           water_requirement?: string | null
         }
         Relationships: [
@@ -871,11 +907,17 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      difficulty_level: "easy" | "intermediate" | "advanced"
       email_frequency: "instant" | "daily" | "weekly"
+      growth_speed: "slow" | "medium" | "fast"
+      humidity_level: "low" | "medium" | "high"
       notification_type: "available" | "price_drop" | "similar"
       observation_condition: "healthy" | "okay" | "concern" | "critical"
       order_status: "pending" | "paid" | "shipped" | "delivered" | "cancelled"
       plant_status: "alive" | "dormant" | "sick" | "removed"
+      plant_type: "palm" | "fern" | "tree" | "cycad" | "shrub" | "other"
+      rarity_level: "low" | "medium" | "high"
+      water_level: "low" | "medium" | "high"
       wishlist_priority: "low" | "medium" | "high" | "urgent"
       wishlist_source: "frondaprima" | "any" | "specific"
       wishlist_status: "wishlist" | "looking" | "acquired"
@@ -1007,11 +1049,17 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      difficulty_level: ["easy", "intermediate", "advanced"],
       email_frequency: ["instant", "daily", "weekly"],
+      growth_speed: ["slow", "medium", "fast"],
+      humidity_level: ["low", "medium", "high"],
       notification_type: ["available", "price_drop", "similar"],
       observation_condition: ["healthy", "okay", "concern", "critical"],
       order_status: ["pending", "paid", "shipped", "delivered", "cancelled"],
       plant_status: ["alive", "dormant", "sick", "removed"],
+      plant_type: ["palm", "fern", "tree", "cycad", "shrub", "other"],
+      rarity_level: ["low", "medium", "high"],
+      water_level: ["low", "medium", "high"],
       wishlist_priority: ["low", "medium", "high", "urgent"],
       wishlist_source: ["frondaprima", "any", "specific"],
       wishlist_status: ["wishlist", "looking", "acquired"],

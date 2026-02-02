@@ -34,7 +34,7 @@ export interface WishlistItem {
     scientific_name: string | null;
     thumbnail_url: string | null;
     price: number;
-    stock: number;
+    stock_qty: number;
   } | null;
 }
 
@@ -59,7 +59,7 @@ export const useWishlistItems = (filters?: WishlistFilters) => {
         .from('wishlist_items')
         .select(`
           *,
-          plants (id, name, scientific_name, thumbnail_url, price, stock)
+          plants (id, name, scientific_name, thumbnail_url, price, stock_qty)
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -98,7 +98,7 @@ export const useWishlistItem = (itemId: string | undefined) => {
         .from('wishlist_items')
         .select(`
           *,
-          plants (id, name, scientific_name, thumbnail_url, price, stock)
+          plants (id, name, scientific_name, thumbnail_url, price, stock_qty)
         `)
         .eq('id', itemId)
         .single();

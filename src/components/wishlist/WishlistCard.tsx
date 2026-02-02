@@ -75,7 +75,7 @@ export const WishlistCard = ({ item }: WishlistCardProps) => {
 
   const imageUrl = item.image_url || item.plants?.thumbnail_url || '/placeholder.svg';
   const isFromCatalog = !!item.catalog_product_id;
-  const isInStock = item.plants?.stock && item.plants.stock > 0;
+  const isInStock = item.plants?.stock_qty && item.plants.stock_qty > 0;
 
   return (
     <>
