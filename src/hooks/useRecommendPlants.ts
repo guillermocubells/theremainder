@@ -1,19 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface PlantRecommendation {
-  plant_id: string;
-  name: string;
-  scientific_name: string | null;
-  rank: number;
-  score: number;
-  fit_reasons: string[];
-  compromises: string[];
-  thumbnail_url: string | null;
-  price: number;
-}
-
-export interface RecommendationFilters {
+// ============ INPUT TYPES ============
+export interface RecommendFilters {
   exposure?: string[];
   water?: 'low' | 'medium' | 'high';
   humidity?: 'low' | 'medium' | 'high';
@@ -28,34 +17,57 @@ export interface RecommendationFilters {
   is_in_stock?: boolean;
 }
 
-export interface RecommendationRequest {
-  query?: string;
-  filters?: RecommendationFilters;
-  limit?: number;
+export interface CatalogPlant {
+  id: string;
+  name: string;
+  scientific_name?: string | null;
+  plant_type?: string | null;
+  exposure?: string[] | null;
+  growth_rate?: string | null;
+  climate_zones?: string[] | null;
+  min_temp_c?: number | null;
+  water?: string | null;
+  humidity?: string | null;
+  plant_use?: string[] | null;
+  rarity?: string | null;
+  difficulty?: string | null;
+  is_in_stock?: boolean | null;
+  price?: number;
+  thumbnail_url?: string | null;
 }
 
-export interface RecommendationResponse {
-  success: boolean;
+export interface RecommendInput {
+  user_prompt?: string;
+  filters?: RecommendFilters;
+  catalog_subset?: CatalogPlant[];
+}
+
+// ============ OUTPUT TYPES ============
+export interface PlantRecommendation {
+  plant_id: string;
+  fit_score: number;
+  reasoning: string;
+  tradeoffs: string;
+}
+
+export interface RecommendOutput {
   recommendations: PlantRecommendation[];
-  ranking_logic: string;
-  filters_applied: Record<string, unknown>;
-  total_candidates: number;
-  no_good_fit: boolean;
-  no_good_fit_reason?: string;
+  confidence: 'low' | 'medium' | 'high';
+  no_good_match: boolean;
 }
 
 export const useRecommendPlants = () => {
   return useMutation({
-    mutationFn: async (request: RecommendationRequest): Promise<RecommendationResponse> => {
+    mutationFn: async (input: RecommendInput): Promise<RecommendOutput> => {
       const { data, error } = await supabase.functions.invoke('recommend-plants', {
-        body: request,
+        body: input,
       });
 
       if (error) {
         throw new Error(error.message || 'Failed to get recommendations');
       }
 
-      return data as RecommendationResponse;
+      return data as RecommendOutput;
     },
   });
 };
