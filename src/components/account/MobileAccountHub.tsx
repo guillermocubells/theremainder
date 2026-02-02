@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useOrders } from '@/hooks/useOrders';
-import { useOwnedPlants } from '@/hooks/collection/useOwnedPlants';
-import { useWishlistStats } from '@/hooks/wishlist';
+import { useGardenStats } from '@/hooks/garden';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -14,7 +13,6 @@ import {
   Shield, 
   Search, 
   Leaf, 
-  Heart,
   Bell,
   Globe,
   LogOut,
@@ -43,12 +41,10 @@ const MobileAccountHub = ({ onNavigate, onLanguageChange }: MobileAccountHubProp
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
   const { data: orders } = useOrders();
-  const { data: ownedPlants } = useOwnedPlants();
-  const { data: wishlistStats } = useWishlistStats();
+  const { data: gardenStats } = useGardenStats();
 
   const pendingOrders = orders?.filter(o => o.status === 'pending' || o.status === 'shipped').length || 0;
-  const plantsCount = ownedPlants?.length || 0;
-  const wishlistCount = (wishlistStats?.wishlist || 0) + (wishlistStats?.looking || 0);
+  const totalPlants = gardenStats?.total || 0;
   const currentLanguage = i18n.language === 'es' ? 'Español' : 'English';
 
   const handleSignOut = async () => {
@@ -58,23 +54,14 @@ const MobileAccountHub = ({ onNavigate, onLanguageChange }: MobileAccountHubProp
 
   const menuSections: { title?: string; items: MenuItem[] }[] = [
     {
-      title: t('account.mobileHub.myGarden', 'Mi Jardín'),
       items: [
         {
-          id: 'collection',
-          label: t('account.mobileHub.myCollection', 'Mi Colección'),
+          id: 'garden',
+          label: t('account.mobileHub.myGarden', 'Mi Jardín'),
           icon: Leaf,
-          badge: plantsCount > 0 ? plantsCount : undefined,
-          href: '/collection',
-          description: t('account.mobileHub.collectionDesc', 'Plantas y seguimiento')
-        },
-        {
-          id: 'wishlist',
-          label: t('account.mobileHub.wishlist', 'Lista de Deseos'),
-          icon: Heart,
-          badge: wishlistCount > 0 ? wishlistCount : undefined,
-          href: '/account/wishlist',
-          description: t('account.mobileHub.wishlistDesc', 'Plantas que quieres')
+          badge: totalPlants > 0 ? totalPlants : undefined,
+          href: '/garden',
+          description: t('account.mobileHub.gardenDesc', 'Todas tus plantas en un solo lugar')
         },
       ]
     },
