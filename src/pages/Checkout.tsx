@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ShoppingBag, AlertCircle } from "lucide-react";
@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CountrySelector } from "@/components/checkout/CountrySelector";
 import { ShippingPreview } from "@/components/checkout/ShippingPreview";
 import { StripeEmbeddedCheckout } from "@/components/checkout/StripeEmbeddedCheckout";
+import { CheckoutOrderSummary } from "@/components/checkout/CheckoutOrderSummary";
 import { useShippingQuote } from "@/hooks/useShippingQuote";
 import { COUNTRY_NAMES } from "@/utils/shippingCalculator";
 import {
@@ -212,7 +213,7 @@ const Checkout = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
         {/* Back link */}
         <Link
           to="/"
@@ -226,7 +227,9 @@ const Checkout = () => {
           {t("checkout.title")}
         </h1>
 
-        <div className="space-y-4">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Main checkout flow */}
+          <div className="flex-1 space-y-4">
           {/* Step 1: Shipping Destination */}
           <CheckoutAccordionItem
             step={{ ...stepConfigs[0], summary: getSummary("shipping") }}
@@ -443,7 +446,19 @@ const Checkout = () => {
               shippingCountry={shippingCountry}
               shippingForm={form}
             />
-          </CheckoutAccordionItem>
+            </CheckoutAccordionItem>
+          </div>
+
+          {/* Order Summary Sidebar */}
+          <div className="lg:w-[380px] lg:flex-shrink-0">
+            <div className="lg:sticky lg:top-24">
+              <CheckoutOrderSummary
+                items={items}
+                quote={quote}
+                isQuoteLoading={isQuoteLoading}
+              />
+            </div>
+          </div>
         </div>
       </main>
 
