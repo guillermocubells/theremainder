@@ -265,19 +265,18 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
               )}
             </div>
 
-            {/* Action Buttons - Horizontal scroll en mobile */}
-            <div className="flex gap-2 overflow-x-auto pb-1 -mb-1 scrollbar-hide flex-shrink-0">
+            {/* Action Buttons - Stack en mobile, row en desktop */}
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 variant={isFiltersVisible ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsFiltersVisible(!isFiltersVisible)}
-                className={`h-10 flex-shrink-0 ${isFiltersVisible 
+                className={`flex-1 sm:flex-initial h-11 sm:h-10 text-sm ${isFiltersVisible 
                   ? "bg-moss hover:bg-moss/90 text-moss-foreground" 
                   : "border-border hover:bg-muted"}`}
               >
-                <Filter className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{t('filters.title')}</span>
-                <span className="sm:hidden">Filtros</span>
+                <Filter className="h-4 w-4 mr-2" />
+                <span>{t('filters.title')}</span>
                 {hasActiveFilters && (
                   <span className="ml-1.5 bg-background/20 text-xs px-1.5 py-0.5 rounded-full">•</span>
                 )}
@@ -287,13 +286,12 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
                 variant={isAIMode ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsAIMode(!isAIMode)}
-                className={`h-10 flex-shrink-0 ${isAIMode 
+                className={`h-11 sm:h-10 px-4 ${isAIMode 
                   ? "bg-moss hover:bg-moss/90 text-moss-foreground" 
                   : "border-border hover:bg-muted"}`}
               >
-                <Sparkles className="h-4 w-4 sm:mr-2" />
-                <span className="sm:hidden ml-1.5">IA</span>
-                <span className="hidden sm:inline">IA</span>
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                <span>IA</span>
               </Button>
 
               {/* AI Recommender Button */}
@@ -301,13 +299,13 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
                 variant={isAIPanelOpen ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsAIPanelOpen(!isAIPanelOpen)}
-                className={`h-10 flex-shrink-0 whitespace-nowrap ${isAIPanelOpen 
+                className={`flex-1 sm:flex-initial h-11 sm:h-10 text-sm whitespace-nowrap ${isAIPanelOpen 
                   ? "bg-primary hover:bg-primary/90" 
                   : "border-border hover:bg-muted"}`}
               >
-                <Bot className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Recomendador</span>
-                <span className="sm:hidden ml-1.5">Rec.</span>
+                <Bot className="h-4 w-4 mr-2" />
+                <span className="hidden xs:inline">Recomendador</span>
+                <span className="xs:hidden">Rec. IA</span>
               </Button>
             </div>
           </div>
