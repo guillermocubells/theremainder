@@ -190,9 +190,12 @@ export type Database = {
           location_text: string | null
           next_checkin_date: string | null
           nickname: string
+          order_id: string | null
+          order_item_id: string | null
           photos: string[] | null
           purchase_date: string | null
           scientific_name: string | null
+          serial_code: string | null
           source_plant_id: string | null
           status: Database["public"]["Enums"]["plant_status"]
           tags: string[] | null
@@ -207,9 +210,12 @@ export type Database = {
           location_text?: string | null
           next_checkin_date?: string | null
           nickname: string
+          order_id?: string | null
+          order_item_id?: string | null
           photos?: string[] | null
           purchase_date?: string | null
           scientific_name?: string | null
+          serial_code?: string | null
           source_plant_id?: string | null
           status?: Database["public"]["Enums"]["plant_status"]
           tags?: string[] | null
@@ -224,9 +230,12 @@ export type Database = {
           location_text?: string | null
           next_checkin_date?: string | null
           nickname?: string
+          order_id?: string | null
+          order_item_id?: string | null
           photos?: string[] | null
           purchase_date?: string | null
           scientific_name?: string | null
+          serial_code?: string | null
           source_plant_id?: string | null
           status?: Database["public"]["Enums"]["plant_status"]
           tags?: string[] | null
@@ -239,6 +248,20 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "plant_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owned_plants_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owned_plants_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
             referencedColumns: ["id"]
           },
           {
@@ -659,7 +682,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_owned_plants_from_order: {
+        Args: { p_order_id: string; p_user_id: string }
+        Returns: number
+      }
       generate_order_number: { Args: never; Returns: string }
+      generate_plant_serial_code: { Args: never; Returns: string }
       generate_plant_slug: { Args: never; Returns: string }
       has_role: {
         Args: {

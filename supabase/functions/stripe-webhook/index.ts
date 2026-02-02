@@ -87,6 +87,9 @@ serve(async (req) => {
       const { data: orderNumberData } = await supabaseAdmin.rpc("generate_order_number");
       const orderNumber = orderNumberData || `FP-${Date.now()}`;
 
+      let orderId: string | null = null;
+      let plantsCreated = 0;
+
       // Only create order if we have a valid user (not guest)
       if (userId && userId !== "guest") {
         // Create order
@@ -109,6 +112,7 @@ serve(async (req) => {
         }
 
         console.log("Order created:", order.id);
+        orderId = order.id;
 
         // Create order items
         for (const item of items) {
@@ -128,6 +132,26 @@ serve(async (req) => {
         }
 
         console.log("Order items created for order:", order.id);
+
+        // Create owned plants from the order
+        try {
+          const { data: plantsCount, error: plantsError } = await supabaseAdmin.rpc(
+            "create_owned_plants_from_order",
+            {
+              p_order_id: order.id,
+              p_user_id: userId,
+            }
+          );
+
+          if (plantsError) {
+            console.error("Failed to create owned plants:", plantsError);
+          } else {
+            plantsCreated = plantsCount || 0;
+            console.log(`Created ${plantsCreated} owned plants for user ${userId}`);
+          }
+        } catch (plantsErr) {
+          console.error("Error creating owned plants:", plantsErr);
+        }
       } else {
         // Guest order - log for manual processing
         console.log("Guest order completed:", {
@@ -143,6 +167,18 @@ serve(async (req) => {
         // 2. Store in a separate guest_orders table
         // 3. Create a temporary user and order
       }
+
+      // Return info about what was created
+      return new Response(
+        JSON.stringify({ 
+          received: true,
+          orderId,
+          orderNumber,
+          plantsCreated,
+          isGuest: !userId || userId === "guest",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
     }
 
     return new Response(
