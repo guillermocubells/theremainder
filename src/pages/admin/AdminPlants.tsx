@@ -30,7 +30,7 @@ interface Plant {
   name: string;
   scientific_name: string | null;
   price: number;
-  stock: number;
+  stock_qty: number;
   is_active: boolean;
   is_featured: boolean;
   thumbnail_url: string | null;
@@ -185,7 +185,7 @@ export default function AdminPlants() {
                     )}
                   </TableCell>
                   <TableCell>{formatCurrency(plant.price)}</TableCell>
-                  <TableCell>{plant.stock}</TableCell>
+                  <TableCell>{plant.stock_qty}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
                       {plant.is_active ? (
