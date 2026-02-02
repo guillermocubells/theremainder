@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Plant } from "@/data/plants";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PlantCardProps {
   plant: Plant;
@@ -12,6 +13,7 @@ interface PlantCardProps {
 
 const PlantCard = ({ plant }: PlantCardProps) => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const lightInfo = getLightInfo(plant.light);
   const growthInfo = getGrowthInfo(plant.growthRate);
   const LightIcon = lightInfo.icon;
@@ -55,6 +57,69 @@ const PlantCard = ({ plant }: PlantCardProps) => {
     return plant.images && plant.images[1] ? plant.images[1] : plant.images?.[0];
   };
 
+  // En mobile, mostrar siempre la imagen; en desktop, mostrar en hover
+  if (isMobile) {
+    return (
+      <Link to={`/plant/${plant.id}`} className="flex">
+        <Card className="w-full h-full flex flex-col bg-card/80 backdrop-blur-sm border-border relative overflow-hidden">
+          {/* Imagen siempre visible en mobile */}
+          <div className="relative aspect-[4/3] overflow-hidden">
+            {getHoverImage() && (
+              <img 
+                src={getHoverImage()} 
+                alt={plant.name}
+                className="w-full h-full object-cover"
+              />
+            )}
+            {/* Nombre en la parte superior */}
+            <div className="absolute top-2 left-2 right-2">
+              <span className="bg-secondary/95 text-secondary-foreground text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm inline-block">
+                {plant.name}
+              </span>
+            </div>
+            {/* Precio en la parte inferior */}
+            {plant.price !== undefined && (
+              <div className="absolute bottom-2 left-2">
+                <span className="bg-card/95 text-foreground text-sm font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                  {plant.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                </span>
+              </div>
+            )}
+            {/* Cantidad disponible */}
+            {plant.quantity && (
+              <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                {plant.quantity === 1 && <span className="text-sm">🍂</span>}
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full shadow-sm ${
+                  plant.quantity < 2 
+                    ? 'bg-amber-50/95 text-amber-700 border border-amber-200' 
+                    : 'bg-secondary/95 text-secondary-foreground'
+                }`}>
+                  {plant.quantity}x
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {/* Info mínima debajo de la imagen */}
+          <CardContent className="p-3 flex-1 flex flex-col">
+            <p className="text-muted-foreground text-xs italic mb-2">{plant.commonName}</p>
+            
+            {/* Tags de luz y crecimiento */}
+            <div className="flex gap-1.5 mt-auto">
+              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${lightInfo.color}`}>
+                <LightIcon className="h-2.5 w-2.5" />
+              </div>
+              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${growthInfo.color}`}>
+                <GrowthIcon className="h-2.5 w-2.5" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
+    );
+  }
+
+  // Desktop: comportamiento original con hover
   return (
     <Link to={`/plant/${plant.id}`} className="group flex">
       <Card className="w-full h-full flex flex-col transition-all duration-300 hover:shadow-xl hover:scale-105 bg-card/80 backdrop-blur-sm border-border relative overflow-hidden">
