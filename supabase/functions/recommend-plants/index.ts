@@ -10,9 +10,10 @@ interface PlantRecommendation {
   plant_id: string;
   name: string;
   scientific_name: string | null;
+  rank: number;
   score: number;
-  reasons: string[];
-  trade_offs: string[];
+  fit_reasons: string[];
+  compromises: string[];
   thumbnail_url: string | null;
   price: number;
 }
@@ -20,7 +21,7 @@ interface PlantRecommendation {
 interface RecommendationResponse {
   success: boolean;
   recommendations: PlantRecommendation[];
-  summary: string;
+  ranking_logic: string;
   filters_applied: Record<string, unknown>;
   total_candidates: number;
   no_good_fit: boolean;
@@ -49,7 +50,7 @@ interface UserQuery {
   limit?: number;
 }
 
-const SYSTEM_PROMPT = `You are an AI assistant embedded in a real plant e-commerce catalog.
+const SYSTEM_PROMPT = `You are an AI horticultural advisor embedded in a real plant e-commerce catalog.
 
 STRICT RULES:
 - You do NOT invent plant attributes
@@ -59,40 +60,44 @@ STRICT RULES:
 - If no plant is a good fit, say so clearly
 - NEVER hallucinate species or properties
 
-Your role:
-1. Interpret user intent from their query
-2. Weigh existing attributes realistically against user needs
-3. Rank plants by suitability (0-100 score)
-4. Explain trade-offs honestly
-
-Attribute meanings:
+ATTRIBUTE REFERENCE:
 - exposure: ["sun", "semi-shade", "shade"] - light requirements
-- water: "low" | "medium" | "high" - watering frequency
-- humidity: "low" | "medium" | "high" - ambient humidity needs
-- climate_zones: USDA hardiness zones (e.g., "8A", "9B")
-- min_temp_c: minimum temperature the plant tolerates in Celsius
+- water: "low" | "medium" | "high" - watering frequency needs
+- humidity: "low" | "medium" | "high" - ambient humidity preference
+- climate_zones: USDA hardiness zones (e.g., "8A", "9B", "10A")
+- min_temp_c: minimum temperature tolerance in Celsius
 - plant_type: "palm" | "fern" | "tree" | "cycad" | "shrub" | "other"
-- difficulty: "easy" | "intermediate" | "advanced"
+- difficulty: "easy" | "intermediate" | "advanced" - care complexity
 - growth_rate: "slow" | "medium" | "fast"
-- plant_use: ["interior", "exterior"] - where it can be placed
-- rarity: "low" | "medium" | "high"
+- plant_use: ["interior", "exterior"] - suitable placement
+- rarity: "low" | "medium" | "high" - availability/uniqueness
 
-RESPONSE FORMAT (strict JSON):
+YOUR TASK:
+1. Rank items from BEST to WEAKEST match based on user intent and filters
+2. Select UP TO 3 items maximum
+3. For each item explain:
+   - fit_reasons: Why it matches the user's intent (use realistic horticultural reasoning)
+   - compromises: What trade-offs or limitations exist
+4. If none are a strong match (all scores < 50), state it clearly with no_good_fit: true
+5. Use realistic horticultural reasoning - consider climate compatibility, care requirements, and practical growing conditions
+
+RESPONSE FORMAT (STRICT JSON only):
 {
   "recommendations": [
     {
       "plant_id": "uuid",
+      "rank": 1,
       "score": 85,
-      "reasons": ["Tolerates shade well", "Low water needs match your preference"],
-      "trade_offs": ["Slow growth rate may require patience"]
+      "fit_reasons": ["Tolerates shade conditions matching interior placement", "Low water needs ideal for beginners"],
+      "compromises": ["Slow growth rate requires patience", "May need supplemental humidity in dry climates"]
     }
   ],
-  "summary": "Brief explanation of the ranking logic",
+  "ranking_logic": "Brief explanation of the ranking criteria used",
   "no_good_fit": false,
   "no_good_fit_reason": null
 }
 
-If no plants match well (all scores < 50), set no_good_fit: true and explain why.`;
+If no plants match well (all scores < 50), set no_good_fit: true and explain why in no_good_fit_reason.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -159,7 +164,7 @@ serve(async (req) => {
         JSON.stringify({
           success: true,
           recommendations: [],
-          summary: "No hay plantas disponibles en el catálogo actualmente.",
+          ranking_logic: "No hay plantas disponibles en el catálogo actualmente.",
           filters_applied: filters || {},
           total_candidates: 0,
           no_good_fit: true,
@@ -244,22 +249,23 @@ serve(async (req) => {
           plant_id: plant.id,
           name: plant.name,
           scientific_name: plant.scientific_name,
+          rank: rec.rank || enrichedRecommendations.length + 1,
           score: rec.score,
-          reasons: rec.reasons || [],
-          trade_offs: rec.trade_offs || [],
+          fit_reasons: rec.fit_reasons || [],
+          compromises: rec.compromises || [],
           thumbnail_url: plant.thumbnail_url,
           price: plant.price,
         });
       }
     }
 
-    // Sort by score descending
-    enrichedRecommendations.sort((a, b) => b.score - a.score);
+    // Sort by rank ascending (best first)
+    enrichedRecommendations.sort((a, b) => a.rank - b.rank);
 
     const response: RecommendationResponse = {
       success: true,
       recommendations: enrichedRecommendations,
-      summary: aiResult.summary || "Recomendaciones basadas en tus preferencias.",
+      ranking_logic: aiResult.ranking_logic || "Recomendaciones basadas en tus preferencias.",
       filters_applied: filters || {},
       total_candidates: plants.length,
       no_good_fit: aiResult.no_good_fit || false,
@@ -295,32 +301,47 @@ function buildUserMessage(
   filters: UserQuery["filters"],
   catalog: Record<string, unknown>[]
 ): string {
-  let message = "";
+  const sections: string[] = [];
 
+  // Section 1: User Intent
   if (query) {
-    message += `USER QUERY: "${query}"\n\n`;
+    sections.push(`USER INTENT:\n"${query}"`);
   }
 
-  if (filters && Object.keys(filters).length > 0) {
-    message += `USER PREFERENCES:\n`;
-    if (filters.exposure?.length) message += `- Light: ${filters.exposure.join(", ")}\n`;
-    if (filters.water) message += `- Watering: ${filters.water}\n`;
-    if (filters.humidity) message += `- Humidity: ${filters.humidity}\n`;
-    if (filters.climate_zones?.length) message += `- Climate zones: ${filters.climate_zones.join(", ")}\n`;
-    if (filters.min_temp_c !== undefined) message += `- Min temperature: ${filters.min_temp_c}°C\n`;
-    if (filters.plant_type?.length) message += `- Plant types: ${filters.plant_type.join(", ")}\n`;
-    if (filters.difficulty) message += `- Difficulty level: ${filters.difficulty}\n`;
-    if (filters.growth_rate) message += `- Growth rate: ${filters.growth_rate}\n`;
-    if (filters.plant_use?.length) message += `- Use: ${filters.plant_use.join(", ")}\n`;
-    if (filters.rarity) message += `- Rarity: ${filters.rarity}\n`;
-    if (filters.price_max) message += `- Max price: ${filters.price_max}€\n`;
-    message += "\n";
+  // Section 2: Filters Already Applied
+  const appliedFilters: string[] = [];
+  if (filters) {
+    if (filters.exposure?.length) appliedFilters.push(`- Exposure: ${filters.exposure.join(", ")}`);
+    if (filters.growth_rate) appliedFilters.push(`- Growth rate: ${filters.growth_rate}`);
+    if (filters.climate_zones?.length) appliedFilters.push(`- Climate zone: ${filters.climate_zones.join(", ")}`);
+    if (filters.plant_use?.length) appliedFilters.push(`- Intended use: ${filters.plant_use.join(", ")}`);
+    if (filters.water) appliedFilters.push(`- Water needs: ${filters.water}`);
+    if (filters.humidity) appliedFilters.push(`- Humidity: ${filters.humidity}`);
+    if (filters.min_temp_c !== undefined) appliedFilters.push(`- Minimum temperature: ${filters.min_temp_c}°C`);
+    if (filters.plant_type?.length) appliedFilters.push(`- Plant type: ${filters.plant_type.join(", ")}`);
+    if (filters.difficulty) appliedFilters.push(`- Difficulty: ${filters.difficulty}`);
+    if (filters.rarity) appliedFilters.push(`- Rarity: ${filters.rarity}`);
+    if (filters.price_max) appliedFilters.push(`- Max price: ${filters.price_max}€`);
+  }
+  
+  if (appliedFilters.length > 0) {
+    sections.push(`USER FILTERS ALREADY APPLIED:\n${appliedFilters.join("\n")}`);
   }
 
-  message += `CATALOG (${catalog.length} plants):\n`;
-  message += JSON.stringify(catalog, null, 2);
+  // Section 3: Available Catalog
+  sections.push(`AVAILABLE CATALOG ITEMS (${catalog.length} plants):\n${JSON.stringify(catalog, null, 2)}`);
 
-  message += `\n\nAnalyze the catalog and rank the TOP 5 most suitable plants based on the user's query and preferences. Return STRICT JSON only.`;
+  // Section 4: Task Instructions
+  sections.push(`TASK:
+1. Rank the items from best to weakest match
+2. Select up to 3 items maximum
+3. For each item, explain:
+   - Why it fits the intent (fit_reasons)
+   - What compromises exist (compromises)
+4. If none are a strong match, state it clearly
+5. Use realistic horticultural reasoning
 
-  return message;
+Return STRICT JSON only.`);
+
+  return sections.join("\n\n---\n\n");
 }

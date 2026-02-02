@@ -5,9 +5,10 @@ export interface PlantRecommendation {
   plant_id: string;
   name: string;
   scientific_name: string | null;
+  rank: number;
   score: number;
-  reasons: string[];
-  trade_offs: string[];
+  fit_reasons: string[];
+  compromises: string[];
   thumbnail_url: string | null;
   price: number;
 }
@@ -36,7 +37,7 @@ export interface RecommendationRequest {
 export interface RecommendationResponse {
   success: boolean;
   recommendations: PlantRecommendation[];
-  summary: string;
+  ranking_logic: string;
   filters_applied: Record<string, unknown>;
   total_candidates: number;
   no_good_fit: boolean;
