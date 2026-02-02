@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +35,15 @@ const WishlistDashboard = () => {
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-8">
+        {/* Back link */}
+        <Link
+          to="/account"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <span className="text-lg">←</span>
+          Volver a Mi Cuenta
+        </Link>
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
