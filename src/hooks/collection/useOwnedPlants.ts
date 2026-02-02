@@ -18,6 +18,9 @@ export interface OwnedPlant {
   tags: string[];
   next_checkin_date: string | null;
   source_plant_id: string | null;
+  order_id: string | null;
+  order_item_id: string | null;
+  serial_code: string | null;
   created_at: string;
   updated_at: string;
   plant_locations?: {
@@ -26,7 +29,7 @@ export interface OwnedPlant {
   } | null;
 }
 
-export type OwnedPlantInput = Omit<OwnedPlant, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'plant_locations'>;
+export type OwnedPlantInput = Omit<OwnedPlant, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'plant_locations' | 'order_id' | 'order_item_id' | 'serial_code'>;
 
 export interface OwnedPlantsFilters {
   status?: PlantStatus | null;
