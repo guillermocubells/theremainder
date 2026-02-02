@@ -6,32 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface PlantRecommendation {
-  plant_id: string;
-  name: string;
-  scientific_name: string | null;
-  rank: number;
-  score: number;
-  fit_reasons: string[];
-  compromises: string[];
-  thumbnail_url: string | null;
-  price: number;
-}
-
-interface RecommendationResponse {
-  success: boolean;
-  recommendations: PlantRecommendation[];
-  ranking_logic: string;
-  filters_applied: Record<string, unknown>;
-  total_candidates: number;
-  no_good_fit: boolean;
-  no_good_fit_reason?: string;
-}
-
-interface UserQuery {
-  // Natural language query
-  query?: string;
-  // Structured filters
+// ============ INPUT TYPES ============
+interface RecommendInput {
+  user_prompt?: string;
   filters?: {
     exposure?: string[];
     water?: string;
@@ -46,58 +23,69 @@ interface UserQuery {
     price_max?: number;
     is_in_stock?: boolean;
   };
-  // Limit results
-  limit?: number;
+  catalog_subset?: CatalogPlant[];
 }
 
-const SYSTEM_PROMPT = `You are an AI horticultural advisor embedded in a real plant e-commerce catalog.
+interface CatalogPlant {
+  id: string;
+  name: string;
+  scientific_name?: string | null;
+  plant_type?: string | null;
+  exposure?: string[] | null;
+  growth_rate?: string | null;
+  climate_zones?: string[] | null;
+  min_temp_c?: number | null;
+  water?: string | null;
+  humidity?: string | null;
+  plant_use?: string[] | null;
+  rarity?: string | null;
+  difficulty?: string | null;
+  is_in_stock?: boolean | null;
+  price?: number;
+  thumbnail_url?: string | null;
+}
 
-STRICT RULES:
-- You do NOT invent plant attributes
-- You do NOT modify plant data
-- You do NOT recommend plants outside the provided catalog
-- All plants have validated botanical attributes - you reason over them
-- If no plant is a good fit, say so clearly
-- NEVER hallucinate species or properties
+// ============ OUTPUT TYPES ============
+interface RecommendOutput {
+  recommendations: PlantRecommendation[];
+  confidence: "low" | "medium" | "high";
+  no_good_match: boolean;
+}
 
-ATTRIBUTE REFERENCE:
-- exposure: ["sun", "semi-shade", "shade"] - light requirements
-- water: "low" | "medium" | "high" - watering frequency needs
-- humidity: "low" | "medium" | "high" - ambient humidity preference
-- climate_zones: USDA hardiness zones (e.g., "8A", "9B", "10A")
-- min_temp_c: minimum temperature tolerance in Celsius
-- plant_type: "palm" | "fern" | "tree" | "cycad" | "shrub" | "other"
-- difficulty: "easy" | "intermediate" | "advanced" - care complexity
-- growth_rate: "slow" | "medium" | "fast"
-- plant_use: ["interior", "exterior"] - suitable placement
-- rarity: "low" | "medium" | "high" - availability/uniqueness
+interface PlantRecommendation {
+  plant_id: string;
+  fit_score: number;
+  reasoning: string;
+  tradeoffs: string;
+}
 
-YOUR TASK:
-1. Rank items from BEST to WEAKEST match based on user intent and filters
-2. Select UP TO 3 items maximum
-3. For each item explain:
-   - fit_reasons: Why it matches the user's intent (use realistic horticultural reasoning)
-   - compromises: What trade-offs or limitations exist
-4. If none are a strong match (all scores < 50), state it clearly with no_good_fit: true
-5. Use realistic horticultural reasoning - consider climate compatibility, care requirements, and practical growing conditions
+const SYSTEM_PROMPT = `You are an AI horticultural advisor for a plant e-commerce catalog.
 
-RESPONSE FORMAT (STRICT JSON only):
+RULES:
+- Only recommend plants from the provided catalog
+- Never invent plant attributes or species
+- Use realistic horticultural reasoning
+- If no plant fits well, say so clearly
+
+RESPONSE FORMAT (STRICT JSON):
 {
   "recommendations": [
     {
       "plant_id": "uuid",
-      "rank": 1,
-      "score": 85,
-      "fit_reasons": ["Tolerates shade conditions matching interior placement", "Low water needs ideal for beginners"],
-      "compromises": ["Slow growth rate requires patience", "May need supplemental humidity in dry climates"]
+      "fit_score": 0.85,
+      "reasoning": "Why this plant matches the user's needs",
+      "tradeoffs": "Limitations or compromises to consider"
     }
   ],
-  "ranking_logic": "Brief explanation of the ranking criteria used",
-  "no_good_fit": false,
-  "no_good_fit_reason": null
+  "confidence": "low" | "medium" | "high",
+  "no_good_match": false
 }
 
-If no plants match well (all scores < 50), set no_good_fit: true and explain why in no_good_fit_reason.`;
+SCORING:
+- fit_score: 0.0 to 1.0 (0.7+ = good match, 0.5-0.7 = acceptable, <0.5 = poor)
+- confidence: based on how well filters match available catalog
+- Return max 3 recommendations, ordered by fit_score descending
+- If all scores < 0.5, set no_good_match: true`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -114,90 +102,59 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
+    const body: RecommendInput = await req.json();
+    const { user_prompt, filters, catalog_subset } = body;
 
-    const body: UserQuery = await req.json();
-    const { query, filters, limit = 5 } = body;
+    console.log("[recommend-plants] Request:", { user_prompt, filters, hasCatalogSubset: !!catalog_subset });
 
-    console.log("[recommend-plants] Received request:", { query, filters, limit });
+    // Use provided catalog or fetch from database
+    let catalog: CatalogPlant[];
+    
+    if (catalog_subset && catalog_subset.length > 0) {
+      catalog = catalog_subset;
+      console.log(`[recommend-plants] Using provided catalog subset: ${catalog.length} plants`);
+    } else {
+      // Fetch from database
+      let dbQuery = supabase
+        .from("plants")
+        .select(`
+          id, name, scientific_name, plant_type, exposure, growth_rate,
+          climate_zones, min_temp_c, water, humidity, plant_use,
+          rarity, difficulty, is_in_stock, price, thumbnail_url
+        `)
+        .eq("is_active", true);
 
-    // Fetch real catalog data from database
-    let dbQuery = supabase
-      .from("plants")
-      .select(`
-        id,
-        name,
-        common_name,
-        scientific_name,
-        plant_type,
-        exposure,
-        growth_rate,
-        climate_zones,
-        min_temp_c,
-        water,
-        humidity,
-        plant_use,
-        rarity,
-        difficulty,
-        is_in_stock,
-        stock_qty,
-        price,
-        thumbnail_url,
-        notes,
-        description
-      `)
-      .eq("is_active", true);
+      if (filters?.is_in_stock !== false) {
+        dbQuery = dbQuery.eq("is_in_stock", true);
+      }
 
-    // Apply stock filter (default: only in-stock)
-    if (filters?.is_in_stock !== false) {
-      dbQuery = dbQuery.eq("is_in_stock", true);
+      const { data: plants, error: dbError } = await dbQuery;
+
+      if (dbError) {
+        console.error("[recommend-plants] Database error:", dbError);
+        throw new Error("Failed to fetch catalog");
+      }
+
+      catalog = (plants || []) as CatalogPlant[];
+      console.log(`[recommend-plants] Fetched ${catalog.length} plants from database`);
     }
 
-    const { data: plants, error: dbError } = await dbQuery;
-
-    if (dbError) {
-      console.error("[recommend-plants] Database error:", dbError);
-      throw new Error("Failed to fetch catalog");
+    // Handle empty catalog
+    if (catalog.length === 0) {
+      const emptyResponse: RecommendOutput = {
+        recommendations: [],
+        confidence: "low",
+        no_good_match: true,
+      };
+      return new Response(JSON.stringify(emptyResponse), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    if (!plants || plants.length === 0) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          recommendations: [],
-          ranking_logic: "No hay plantas disponibles en el catálogo actualmente.",
-          filters_applied: filters || {},
-          total_candidates: 0,
-          no_good_fit: true,
-          no_good_fit_reason: "El catálogo está vacío o todas las plantas están fuera de stock.",
-        } as RecommendationResponse),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Build AI prompt
+    const userMessage = buildUserMessage(user_prompt, filters, catalog);
 
-    console.log(`[recommend-plants] Found ${plants.length} active plants in catalog`);
-
-    // Build the AI prompt with real catalog data
-    const catalogContext = plants.map(p => ({
-      id: p.id,
-      name: p.name,
-      scientific_name: p.scientific_name,
-      plant_type: p.plant_type,
-      exposure: p.exposure,
-      growth_rate: p.growth_rate,
-      climate_zones: p.climate_zones,
-      min_temp_c: p.min_temp_c,
-      water: p.water,
-      humidity: p.humidity,
-      plant_use: p.plant_use,
-      rarity: p.rarity,
-      difficulty: p.difficulty,
-      is_in_stock: p.is_in_stock,
-      price: p.price,
-    }));
-
-    const userMessage = buildUserMessage(query, filters, catalogContext);
-
-    // Call Lovable AI API
+    // Call Lovable AI
     const aiResponse = await fetch("https://ai.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -230,116 +187,103 @@ serve(async (req) => {
 
     console.log("[recommend-plants] AI response received");
 
-    // Parse AI response
-    let aiResult;
+    // Parse and validate AI response
+    let aiResult: RecommendOutput;
     try {
       aiResult = JSON.parse(aiContent);
-    } catch (parseError) {
+    } catch {
       console.error("[recommend-plants] Failed to parse AI response:", aiContent);
       throw new Error("Invalid AI response format");
     }
 
-    // Enrich recommendations with full plant data
-    const enrichedRecommendations: PlantRecommendation[] = [];
-    
-    for (const rec of aiResult.recommendations || []) {
-      const plant = plants.find(p => p.id === rec.plant_id);
-      if (plant && enrichedRecommendations.length < limit) {
-        enrichedRecommendations.push({
-          plant_id: plant.id,
-          name: plant.name,
-          scientific_name: plant.scientific_name,
-          rank: rec.rank || enrichedRecommendations.length + 1,
-          score: rec.score,
-          fit_reasons: rec.fit_reasons || [],
-          compromises: rec.compromises || [],
-          thumbnail_url: plant.thumbnail_url,
-          price: plant.price,
-        });
-      }
-    }
+    // Validate plant_ids exist in catalog
+    const validRecommendations = (aiResult.recommendations || [])
+      .filter(rec => catalog.some(p => p.id === rec.plant_id))
+      .slice(0, 3);
 
-    // Sort by rank ascending (best first)
-    enrichedRecommendations.sort((a, b) => a.rank - b.rank);
-
-    const response: RecommendationResponse = {
-      success: true,
-      recommendations: enrichedRecommendations,
-      ranking_logic: aiResult.ranking_logic || "Recomendaciones basadas en tus preferencias.",
-      filters_applied: filters || {},
-      total_candidates: plants.length,
-      no_good_fit: aiResult.no_good_fit || false,
-      no_good_fit_reason: aiResult.no_good_fit_reason,
+    const response: RecommendOutput = {
+      recommendations: validRecommendations,
+      confidence: aiResult.confidence || "medium",
+      no_good_match: aiResult.no_good_match || validRecommendations.length === 0,
     };
 
-    console.log(`[recommend-plants] Returning ${enrichedRecommendations.length} recommendations`);
+    console.log(`[recommend-plants] Returning ${response.recommendations.length} recommendations`);
 
-    return new Response(
-      JSON.stringify(response),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify(response), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
 
   } catch (error) {
     console.error("[recommend-plants] Error:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        recommendations: [],
-        summary: "Error al procesar la solicitud",
-        filters_applied: {},
-        total_candidates: 0,
-        no_good_fit: true,
-        no_good_fit_reason: error instanceof Error ? error.message : "Unknown error",
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-    );
+    const errorResponse: RecommendOutput = {
+      recommendations: [],
+      confidence: "low",
+      no_good_match: true,
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
 
 function buildUserMessage(
-  query: string | undefined,
-  filters: UserQuery["filters"],
-  catalog: Record<string, unknown>[]
+  user_prompt: string | undefined,
+  filters: RecommendInput["filters"],
+  catalog: CatalogPlant[]
 ): string {
   const sections: string[] = [];
 
-  // Section 1: User Intent
-  if (query) {
-    sections.push(`USER INTENT:\n"${query}"`);
+  // User intent
+  if (user_prompt) {
+    sections.push(`USER PROMPT:\n"${user_prompt}"`);
   }
 
-  // Section 2: Filters Already Applied
-  const appliedFilters: string[] = [];
+  // Applied filters
+  const filterLines: string[] = [];
   if (filters) {
-    if (filters.exposure?.length) appliedFilters.push(`- Exposure: ${filters.exposure.join(", ")}`);
-    if (filters.growth_rate) appliedFilters.push(`- Growth rate: ${filters.growth_rate}`);
-    if (filters.climate_zones?.length) appliedFilters.push(`- Climate zone: ${filters.climate_zones.join(", ")}`);
-    if (filters.plant_use?.length) appliedFilters.push(`- Intended use: ${filters.plant_use.join(", ")}`);
-    if (filters.water) appliedFilters.push(`- Water needs: ${filters.water}`);
-    if (filters.humidity) appliedFilters.push(`- Humidity: ${filters.humidity}`);
-    if (filters.min_temp_c !== undefined) appliedFilters.push(`- Minimum temperature: ${filters.min_temp_c}°C`);
-    if (filters.plant_type?.length) appliedFilters.push(`- Plant type: ${filters.plant_type.join(", ")}`);
-    if (filters.difficulty) appliedFilters.push(`- Difficulty: ${filters.difficulty}`);
-    if (filters.rarity) appliedFilters.push(`- Rarity: ${filters.rarity}`);
-    if (filters.price_max) appliedFilters.push(`- Max price: ${filters.price_max}€`);
+    if (filters.exposure?.length) filterLines.push(`- Exposure: ${filters.exposure.join(", ")}`);
+    if (filters.growth_rate) filterLines.push(`- Growth rate: ${filters.growth_rate}`);
+    if (filters.climate_zones?.length) filterLines.push(`- Climate zones: ${filters.climate_zones.join(", ")}`);
+    if (filters.plant_use?.length) filterLines.push(`- Intended use: ${filters.plant_use.join(", ")}`);
+    if (filters.water) filterLines.push(`- Water needs: ${filters.water}`);
+    if (filters.humidity) filterLines.push(`- Humidity: ${filters.humidity}`);
+    if (filters.min_temp_c !== undefined) filterLines.push(`- Min temperature: ${filters.min_temp_c}°C`);
+    if (filters.plant_type?.length) filterLines.push(`- Plant type: ${filters.plant_type.join(", ")}`);
+    if (filters.difficulty) filterLines.push(`- Difficulty: ${filters.difficulty}`);
+    if (filters.rarity) filterLines.push(`- Rarity: ${filters.rarity}`);
+    if (filters.price_max) filterLines.push(`- Max price: ${filters.price_max}€`);
   }
-  
-  if (appliedFilters.length > 0) {
-    sections.push(`USER FILTERS ALREADY APPLIED:\n${appliedFilters.join("\n")}`);
+  if (filterLines.length > 0) {
+    sections.push(`FILTERS:\n${filterLines.join("\n")}`);
   }
 
-  // Section 3: Available Catalog
-  sections.push(`AVAILABLE CATALOG ITEMS (${catalog.length} plants):\n${JSON.stringify(catalog, null, 2)}`);
+  // Catalog
+  const catalogData = catalog.map(p => ({
+    id: p.id,
+    name: p.name,
+    scientific_name: p.scientific_name,
+    plant_type: p.plant_type,
+    exposure: p.exposure,
+    growth_rate: p.growth_rate,
+    climate_zones: p.climate_zones,
+    min_temp_c: p.min_temp_c,
+    water: p.water,
+    humidity: p.humidity,
+    plant_use: p.plant_use,
+    rarity: p.rarity,
+    difficulty: p.difficulty,
+    price: p.price,
+  }));
+  sections.push(`CATALOG (${catalog.length} plants):\n${JSON.stringify(catalogData, null, 2)}`);
 
-  // Section 4: Task Instructions
+  // Task
   sections.push(`TASK:
-1. Rank the items from best to weakest match
-2. Select up to 3 items maximum
-3. For each item, explain:
-   - Why it fits the intent (fit_reasons)
-   - What compromises exist (compromises)
-4. If none are a strong match, state it clearly
-5. Use realistic horticultural reasoning
+1. Rank plants from best to weakest match
+2. Select up to 3 items
+3. For each: fit_score (0-1), reasoning, tradeoffs
+4. Set no_good_match: true if all scores < 0.5
+5. Set confidence based on filter match quality
 
 Return STRICT JSON only.`);
 
