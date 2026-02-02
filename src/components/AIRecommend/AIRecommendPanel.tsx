@@ -120,16 +120,16 @@ const AIRecommendPanel = ({
 
   return (
     <Card className="bg-gradient-to-br from-card via-card to-moss/5 border-moss/20 shadow-lg">
-      <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg sm:text-base font-semibold flex items-center gap-2">
-            <div className="p-2 sm:p-1.5 bg-moss/10 rounded-lg">
-              <Sparkles className="h-5 w-5 sm:h-4 sm:w-4 text-moss" />
+      <CardHeader className="pb-3 px-4">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <div className="p-1.5 bg-moss/10 rounded-lg shrink-0">
+              <Sparkles className="h-4 w-4 text-moss" />
             </div>
-            Recomendador IA
+            <span>Recomendador IA</span>
           </CardTitle>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-10 w-10 sm:h-8 sm:w-8 -mr-2">
-            <X className="h-5 w-5 sm:h-4 sm:w-4" />
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 shrink-0">
+            <X className="h-4 w-4" />
           </Button>
         </div>
         
@@ -149,36 +149,36 @@ const AIRecommendPanel = ({
           </div>
         )}
         
-        <p className="text-sm sm:text-xs text-muted-foreground mt-2">
+        <p className="text-xs text-muted-foreground mt-1">
           De {preFilteredCatalog.length} plantas disponibles
         </p>
       </CardHeader>
       
-      <CardContent className="space-y-4 px-4 sm:px-6">
+      <CardContent className="space-y-3 px-4 pt-0">
         {/* Prompt Input */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Describe lo que buscas... Ej: 'Busco una palmera resistente al frío para mi jardín en Madrid'"
-            className="min-h-[100px] sm:min-h-[80px] text-base sm:text-sm resize-none border-border/50 focus:border-moss focus:ring-moss/20"
+            className="min-h-[80px] text-sm resize-none border-border/50 focus:border-moss focus:ring-moss/20"
           />
           
           <div className="flex gap-2">
             <Button
               onClick={handleRecommend}
               disabled={isPending || (!prompt.trim() && !activeFilters)}
-              className="flex-1 h-12 sm:h-10 text-base sm:text-sm bg-moss hover:bg-moss/90 text-moss-foreground"
+              className="flex-1 h-10 text-sm bg-moss hover:bg-moss/90 text-moss-foreground gap-2"
             >
               {isPending ? (
                 <>
-                  <Loader2 className="h-5 w-5 sm:h-4 sm:w-4 mr-2 animate-spin" />
-                  Analizando...
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Analizando...</span>
                 </>
               ) : (
                 <>
-                  <Send className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
-                  Recomendar
+                  <Send className="h-4 w-4" />
+                  <span>Recomendar</span>
                 </>
               )}
             </Button>
@@ -187,7 +187,7 @@ const AIRecommendPanel = ({
               <Button 
                 variant="outline" 
                 onClick={handleClear} 
-                className="h-12 sm:h-10 px-4 sm:px-3 text-base sm:text-sm border-border"
+                className="h-10 px-4 text-sm border-border shrink-0"
               >
                 Limpiar
               </Button>
