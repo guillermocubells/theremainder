@@ -146,13 +146,13 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
               onClick={handleAddToCart}
               onTouchEnd={handleAddToCart}
               disabled={!canAddToCart}
-              className="h-7 px-2.5 text-xs gap-1 shrink-0"
+              className="h-7 px-2 text-xs gap-1 shrink-0"
             >
-              <ShoppingCart className="h-3.5 w-3.5" />
+              <ShoppingCart className="h-3 w-3" />
               {currentQuantityInCart > 0 ? (
-                <span>{currentQuantityInCart}</span>
+                <span>×{currentQuantityInCart}</span>
               ) : (
-                <span>{t('cart.add')}</span>
+                <span>Comprar</span>
               )}
             </Button>
           </div>
