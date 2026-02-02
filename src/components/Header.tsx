@@ -26,50 +26,51 @@ const Header = () => {
 
   return (
     <>
-      <header className={`bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-        <div className="container mx-auto px-4 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
+      <header className={`bg-card/95 backdrop-blur-md border-b border-border sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            {/* Logo & Brand */}
             <button 
               onClick={() => navigate('/')}
-              className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity"
             >
-              <div className="bg-primary p-1.5 sm:p-2 rounded-full flex-shrink-0">
+              <div className="bg-primary p-1.5 sm:p-2 rounded-xl flex-shrink-0">
                 <TreePalm className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
               </div>
-              <div className="min-w-0 flex-1 text-left">
-                <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">{t('header.title')}</h1>
-                <p className="text-xs sm:text-sm text-primary hidden sm:block">{t('header.subtitle')}</p>
-                <p className="text-xs text-primary sm:hidden">{t('header.subtitleMobile')}</p>
+              <div className="min-w-0 text-left">
+                <h1 className="text-base sm:text-2xl font-bold text-foreground leading-tight">{t('header.title')}</h1>
+                <p className="text-[10px] sm:text-sm text-primary leading-tight">{t('header.subtitleMobile')}</p>
               </div>
             </button>
-            <div className="flex items-center space-x-1 sm:space-x-2 text-primary flex-shrink-0">
+
+            {/* Actions - optimized for mobile */}
+            <div className="flex items-center gap-0.5 sm:gap-2 flex-shrink-0">
               {/* Plant Finder CTA */}
               <Button 
                 onClick={() => setIsPlantFinderOpen(true)}
                 variant="default"
-                size="sm"
-                className="text-xs sm:text-sm px-2 sm:px-4"
+                size="icon"
+                className="h-9 w-9 sm:h-10 sm:w-auto sm:px-4 rounded-xl"
               >
-                <Search className="h-4 w-4 sm:mr-1" />
-                <span className="hidden sm:inline">{t('header.findPlant')}</span>
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline sm:ml-2">{t('header.findPlant')}</span>
               </Button>
 
-              {/* Language switcher */}
-              <LanguageSwitcher />
+              {/* Language switcher - hidden on mobile, shown in footer */}
+              <div className="hidden sm:block">
+                <LanguageSwitcher />
+              </div>
 
               {/* Account button */}
               <Button 
                 onClick={handleAccountClick}
                 variant="ghost" 
-                size={user ? "sm" : "icon"}
-                className={`hover:bg-secondary text-primary relative ${user ? '' : 'h-9 w-9'}`}
+                size="icon"
+                className="h-9 w-9 hover:bg-secondary text-primary relative rounded-xl"
               >
-                <User className={`h-5 w-5 ${user ? 'sm:mr-1' : ''}`} />
+                <User className="h-5 w-5" />
                 {user && (
-                  <>
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-moss rounded-full border border-card" />
-                    <span className="hidden sm:inline">{t('header.myAccount')}</span>
-                  </>
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-moss rounded-full border-2 border-card" />
                 )}
               </Button>
 
