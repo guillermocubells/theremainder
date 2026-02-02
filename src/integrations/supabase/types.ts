@@ -62,6 +62,42 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -145,6 +181,125 @@ export type Database = {
         }
         Relationships: []
       }
+      plants: {
+        Row: {
+          care_instructions: Json | null
+          category_id: string | null
+          container_size: string | null
+          created_at: string
+          curious_facts: Json | null
+          description: string | null
+          display_order: number
+          germination_date: string | null
+          growth_rate: string | null
+          hardiness_zone: string | null
+          id: string
+          images: string[] | null
+          is_active: boolean
+          is_featured: boolean
+          mature_height: string | null
+          mature_width: string | null
+          meta_description: string | null
+          meta_title: string | null
+          name: string
+          native_habitat: string | null
+          origin_country: string | null
+          origin_region: string | null
+          price: number
+          sale_price: number | null
+          scientific_name: string | null
+          short_description: string | null
+          slug: string
+          specifications: Json | null
+          stock: number
+          sun_requirement: string | null
+          temperature_range: string | null
+          thumbnail_url: string | null
+          updated_at: string
+          water_requirement: string | null
+        }
+        Insert: {
+          care_instructions?: Json | null
+          category_id?: string | null
+          container_size?: string | null
+          created_at?: string
+          curious_facts?: Json | null
+          description?: string | null
+          display_order?: number
+          germination_date?: string | null
+          growth_rate?: string | null
+          hardiness_zone?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean
+          is_featured?: boolean
+          mature_height?: string | null
+          mature_width?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name: string
+          native_habitat?: string | null
+          origin_country?: string | null
+          origin_region?: string | null
+          price?: number
+          sale_price?: number | null
+          scientific_name?: string | null
+          short_description?: string | null
+          slug: string
+          specifications?: Json | null
+          stock?: number
+          sun_requirement?: string | null
+          temperature_range?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          water_requirement?: string | null
+        }
+        Update: {
+          care_instructions?: Json | null
+          category_id?: string | null
+          container_size?: string | null
+          created_at?: string
+          curious_facts?: Json | null
+          description?: string | null
+          display_order?: number
+          germination_date?: string | null
+          growth_rate?: string | null
+          hardiness_zone?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean
+          is_featured?: boolean
+          mature_height?: string | null
+          mature_width?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name?: string
+          native_habitat?: string | null
+          origin_country?: string | null
+          origin_region?: string | null
+          price?: number
+          sale_price?: number | null
+          scientific_name?: string | null
+          short_description?: string | null
+          slug?: string
+          specifications?: Json | null
+          stock?: number
+          sun_requirement?: string | null
+          temperature_range?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          water_requirement?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plants_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -202,12 +357,106 @@ export type Database = {
         }
         Relationships: []
       }
+      shipping_zones: {
+        Row: {
+          base_cost: number
+          country_code: string
+          country_name: string
+          created_at: string
+          delivery_days_max: number
+          delivery_days_min: number
+          free_shipping_threshold: number | null
+          id: string
+          is_active: boolean
+          per_item_cost: number
+          updated_at: string
+        }
+        Insert: {
+          base_cost?: number
+          country_code: string
+          country_name: string
+          created_at?: string
+          delivery_days_max?: number
+          delivery_days_min?: number
+          free_shipping_threshold?: number | null
+          id?: string
+          is_active?: boolean
+          per_item_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          base_cost?: number
+          country_code?: string
+          country_name?: string
+          created_at?: string
+          delivery_days_max?: number
+          delivery_days_min?: number
+          free_shipping_threshold?: number | null
+          id?: string
+          is_active?: boolean
+          per_item_cost?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      store_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       generate_order_number: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_order_item_owner: { Args: { oi_order_id: string }; Returns: boolean }
       is_own_address: { Args: { a_user_id: string }; Returns: boolean }
       is_own_order: { Args: { o_user_id: string }; Returns: boolean }
@@ -215,6 +464,7 @@ export type Database = {
       is_own_saved_search: { Args: { ss_user_id: string }; Returns: boolean }
     }
     Enums: {
+      app_role: "admin" | "user"
       order_status: "pending" | "paid" | "shipped" | "delivered" | "cancelled"
     }
     CompositeTypes: {
@@ -343,6 +593,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       order_status: ["pending", "paid", "shipped", "delivered", "cancelled"],
     },
   },
