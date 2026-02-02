@@ -22,7 +22,7 @@ const Footer = () => {
   };
 
   const navigationLinks = [
-    { key: 'contact', href: '#' },
+    { key: 'contact', href: '/contact' },
     { key: 'visit', href: '#' },
     { key: 'delivery', href: '#' },
     { key: 'loyalty', href: '#' },
