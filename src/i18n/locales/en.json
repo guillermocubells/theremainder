@@ -253,7 +253,25 @@
     "orders": "Orders",
     "addresses": "Addresses",
     "savedSearches": "Searches",
-    "security": "Security"
+    "security": "Security",
+    "mobileHub": {
+      "myGarden": "My Garden",
+      "myCollection": "My Collection",
+      "collectionDesc": "Plants and tracking",
+      "wishlist": "Wishlist",
+      "wishlistDesc": "Plants you want",
+      "shopping": "Shopping",
+      "ordersDesc": "History and tracking",
+      "addressesDesc": "Shipping addresses",
+      "searchesDesc": "Alerts and filters",
+      "settings": "Settings",
+      "profileDesc": "Name, email, phone",
+      "securityDesc": "Password and access",
+      "notifications": "Notifications",
+      "notificationsDesc": "Availability alerts",
+      "language": "Language",
+      "languageDesc": "Change language"
+    }
   },
   "plantFinder": {
     "title": "Find Your Ideal Plant",

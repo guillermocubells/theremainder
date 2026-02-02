@@ -303,7 +303,25 @@
     "orders": "Pedidos",
     "addresses": "Direcciones",
     "savedSearches": "Búsquedas",
-    "security": "Seguridad"
+    "security": "Seguridad",
+    "mobileHub": {
+      "myGarden": "Mi Jardín",
+      "myCollection": "Mi Colección",
+      "collectionDesc": "Plantas y seguimiento",
+      "wishlist": "Lista de Deseos",
+      "wishlistDesc": "Plantas que quieres",
+      "shopping": "Compras",
+      "ordersDesc": "Historial y seguimiento",
+      "addressesDesc": "Direcciones de envío",
+      "searchesDesc": "Alertas y filtros",
+      "settings": "Configuración",
+      "profileDesc": "Nombre, email, teléfono",
+      "securityDesc": "Contraseña y acceso",
+      "notifications": "Notificaciones",
+      "notificationsDesc": "Alertas de disponibilidad",
+      "language": "Idioma",
+      "languageDesc": "Cambiar idioma"
+    }
   },
   "admin": {
     "dashboard": "Dashboard",
