@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Search, Sparkles, Droplets, Sun, Filter, MapPin, X, Bot } from "lucide-react";
+import { Search, Sparkles, Droplets, Sun, Filter, MapPin, X } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,9 +32,9 @@ const SEARCH_SUGGESTIONS = [
 const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngineProps) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAIMode, setIsAIMode] = useState(false);
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
   const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
+  const isAIMode = isAIPanelOpen; // Unified: IA mode = panel open
   const [showViabilityAnalysis, setShowViabilityAnalysis] = useState(false);
   const [showCareAnalysis, setShowCareAnalysis] = useState(false);
   const [viabilityResultsToShow, setViabilityResultsToShow] = useState(RESULTS_INCREMENT);
@@ -284,30 +284,17 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
                 )}
               </Button>
               
-              {/* IA Search */}
-              <Button
-                variant={isAIMode ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsAIMode(!isAIMode)}
-                className={`shrink-0 h-8 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm gap-1.5 ${isAIMode 
-                  ? "bg-moss hover:bg-moss/90 text-moss-foreground" 
-                  : "border-border bg-background hover:bg-muted"}`}
-              >
-                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span>IA</span>
-              </Button>
-
-              {/* AI Recommender Button */}
+              {/* IA - Abre panel de recomendaciones */}
               <Button
                 variant={isAIPanelOpen ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsAIPanelOpen(!isAIPanelOpen)}
                 className={`shrink-0 h-8 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm gap-1.5 ${isAIPanelOpen 
-                  ? "bg-primary hover:bg-primary/90" 
+                  ? "bg-moss hover:bg-moss/90 text-moss-foreground" 
                   : "border-border bg-background hover:bg-muted"}`}
               >
-                <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span>Rec.</span>
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span>IA</span>
               </Button>
             </div>
           </div>
