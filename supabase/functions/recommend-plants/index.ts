@@ -45,6 +45,22 @@ interface CatalogPlant {
   thumbnail_url?: string | null;
 }
 
+// ============ VIABILITY TYPES ============
+interface ViabilityFactors {
+  globalViability: number;
+  coldResistance: number;
+  humidityTolerance: number;
+  clayAdaptation: number;
+  sunExposure: number;
+  pestResistance: number;
+}
+
+interface ViabilityResult {
+  totalScore: number;
+  factors: ViabilityFactors;
+  recommendation: string;
+}
+
 // ============ OUTPUT TYPES ============
 interface RecommendOutput {
   recommendations: PlantRecommendation[];
@@ -57,6 +73,190 @@ interface PlantRecommendation {
   fit_score: number;
   reasoning: string;
   tradeoffs: string;
+  viability: ViabilityResult;
+}
+
+// ============ VIABILITY CALCULATOR ============
+function calculateViability(plant: CatalogPlant, userPrompt?: string): ViabilityResult {
+  const lowerPrompt = (userPrompt || '').toLowerCase();
+  
+  // Analyze location from prompt for climate context
+  let locationClimate = { coldTolerance: 7, humidity: 5, sunIntensity: 8, region: 'mediterraneo' };
+  
+  // Spanish locations
+  if (lowerPrompt.includes('cantabria') || lowerPrompt.includes('santander') || lowerPrompt.includes('asturias')) {
+    locationClimate = { coldTolerance: 5, humidity: 9, sunIntensity: 5, region: 'atlantico_humedo' };
+  } else if (lowerPrompt.includes('galicia') || lowerPrompt.includes('coruña')) {
+    locationClimate = { coldTolerance: 5, humidity: 8, sunIntensity: 5, region: 'atlantico_humedo' };
+  } else if (lowerPrompt.includes('madrid')) {
+    locationClimate = { coldTolerance: 6, humidity: 4, sunIntensity: 8, region: 'continental_seco' };
+  } else if (lowerPrompt.includes('barcelona') || lowerPrompt.includes('cataluña')) {
+    locationClimate = { coldTolerance: 7, humidity: 6, sunIntensity: 8, region: 'mediterraneo' };
+  } else if (lowerPrompt.includes('valencia') || lowerPrompt.includes('murcia') || lowerPrompt.includes('alicante')) {
+    locationClimate = { coldTolerance: 8, humidity: 5, sunIntensity: 9, region: 'mediterraneo_calido' };
+  } else if (lowerPrompt.includes('sevilla') || lowerPrompt.includes('andalucía') || lowerPrompt.includes('málaga')) {
+    locationClimate = { coldTolerance: 8, humidity: 3, sunIntensity: 10, region: 'mediterraneo_calido' };
+  } else if (lowerPrompt.includes('canarias') || lowerPrompt.includes('tenerife') || lowerPrompt.includes('gran canaria')) {
+    locationClimate = { coldTolerance: 9, humidity: 7, sunIntensity: 8, region: 'subtropical' };
+  } else if (lowerPrompt.includes('país vasco') || lowerPrompt.includes('bilbao') || lowerPrompt.includes('san sebastián')) {
+    locationClimate = { coldTolerance: 5, humidity: 8, sunIntensity: 5, region: 'atlantico_humedo' };
+  }
+  
+  // Base factors - derived from plant attributes
+  let globalViability = 5;
+  let coldResistance = 5;
+  let humidityTolerance = 5;
+  let clayAdaptation = 5;
+  let sunExposure = 5;
+  let pestResistance = 6;
+  
+  // Plant type analysis
+  const plantType = plant.plant_type?.toLowerCase() || '';
+  const plantName = plant.name.toLowerCase();
+  
+  if (plantType === 'palm' || plantName.includes('palm')) {
+    pestResistance = 7;
+    if (plantName.includes('rhopalostylis') || plantName.includes('nikau')) {
+      coldResistance = 8;
+      humidityTolerance = 9;
+      clayAdaptation = 8;
+    } else if (plantName.includes('brahea')) {
+      coldResistance = 7;
+      humidityTolerance = 3;
+      sunExposure = 9;
+      clayAdaptation = 6;
+    } else if (plantName.includes('chamaedorea')) {
+      coldResistance = 9;
+      humidityTolerance = 7;
+      sunExposure = 4;
+    } else if (plantName.includes('phoenix')) {
+      coldResistance = 6;
+      sunExposure = 9;
+      humidityTolerance = 4;
+    } else if (plantName.includes('trachycarpus') || plantName.includes('fortunei')) {
+      coldResistance = 9;
+      humidityTolerance = 6;
+      clayAdaptation = 7;
+    } else if (plantName.includes('washingtonia')) {
+      coldResistance = 7;
+      sunExposure = 9;
+      humidityTolerance = 4;
+    } else if (plantName.includes('butia')) {
+      coldResistance = 8;
+      sunExposure = 8;
+      humidityTolerance = 5;
+    }
+  } else if (plantType === 'fern' || plantName.includes('helecho') || plantName.includes('fern')) {
+    humidityTolerance = 9;
+    sunExposure = 3;
+    coldResistance = 6;
+    clayAdaptation = 7;
+  } else if (plantType === 'cycad' || plantName.includes('cyca') || plantName.includes('zamia')) {
+    coldResistance = 6;
+    sunExposure = 8;
+    pestResistance = 8;
+    humidityTolerance = 5;
+  } else if (plantType === 'tree') {
+    coldResistance = 7;
+    humidityTolerance = 6;
+    clayAdaptation = 6;
+    if (plantName.includes('magnolia')) {
+      coldResistance = 7;
+      humidityTolerance = 6;
+      sunExposure = 7;
+    }
+  }
+  
+  // Adjust based on plant's water needs
+  if (plant.water === 'high') {
+    humidityTolerance = Math.max(humidityTolerance, 7);
+  } else if (plant.water === 'low') {
+    humidityTolerance = Math.min(humidityTolerance, 4);
+  }
+  
+  // Adjust based on plant's min temperature tolerance
+  if (plant.min_temp_c !== null && plant.min_temp_c !== undefined) {
+    if (plant.min_temp_c <= -10) coldResistance = 10;
+    else if (plant.min_temp_c <= -5) coldResistance = Math.max(coldResistance, 8);
+    else if (plant.min_temp_c <= 0) coldResistance = Math.max(coldResistance, 6);
+    else if (plant.min_temp_c >= 5) coldResistance = Math.min(coldResistance, 4);
+    else if (plant.min_temp_c >= 10) coldResistance = Math.min(coldResistance, 2);
+  }
+  
+  // Adjust based on exposure
+  if (plant.exposure) {
+    const exposures = plant.exposure.map(e => e.toLowerCase());
+    if (exposures.includes('full sun') || exposures.includes('pleno sol') || exposures.includes('soleada')) {
+      sunExposure = Math.max(sunExposure, 8);
+    } else if (exposures.includes('shade') || exposures.includes('sombra')) {
+      sunExposure = Math.min(sunExposure, 4);
+    }
+  }
+  
+  // Climate compatibility analysis
+  const climateDiff = Math.abs(locationClimate.coldTolerance - coldResistance) + 
+                     Math.abs(locationClimate.humidity - humidityTolerance);
+  
+  if (climateDiff <= 2) {
+    globalViability = 8;
+  } else if (climateDiff <= 4) {
+    globalViability = 6;
+  } else if (climateDiff >= 6) {
+    globalViability = 4;
+  } else {
+    globalViability = 5;
+  }
+  
+  // Regional bonuses
+  if (locationClimate.region === 'subtropical' && plantType === 'palm') {
+    globalViability += 2;
+  }
+  if (locationClimate.region === 'atlantico_humedo' && (plantType === 'fern' || humidityTolerance >= 7)) {
+    globalViability += 1;
+  }
+  if (locationClimate.region === 'mediterraneo_calido' && sunExposure >= 8) {
+    globalViability += 1;
+  }
+  
+  // Ensure values are within 1-10 range
+  globalViability = Math.max(1, Math.min(10, globalViability));
+  coldResistance = Math.max(1, Math.min(10, coldResistance));
+  humidityTolerance = Math.max(1, Math.min(10, humidityTolerance));
+  clayAdaptation = Math.max(1, Math.min(10, clayAdaptation));
+  sunExposure = Math.max(1, Math.min(10, sunExposure));
+  pestResistance = Math.max(1, Math.min(10, pestResistance));
+  
+  const totalScore = Math.round(
+    (globalViability + coldResistance + humidityTolerance + clayAdaptation + sunExposure + pestResistance) / 6
+  );
+  
+  // Generate recommendation text
+  let recommendation = '';
+  const regionText = locationClimate.region === 'continental_seco' ? ' para clima continental' : 
+                    locationClimate.region === 'atlantico_humedo' ? ' para clima atlántico' :
+                    locationClimate.region === 'mediterraneo' ? ' para clima mediterráneo' :
+                    locationClimate.region === 'mediterraneo_calido' ? ' para clima mediterráneo cálido' :
+                    locationClimate.region === 'subtropical' ? ' para clima subtropical' : '';
+  
+  if (totalScore >= 8) recommendation = `Excelente opción${regionText} - muy recomendada`;
+  else if (totalScore >= 7) recommendation = `Buena opción${regionText} - recomendada`;
+  else if (totalScore >= 6) recommendation = `Opción viable${regionText} - con cuidados`;
+  else if (totalScore >= 5) recommendation = `Opción moderada${regionText} - requiere atención`;
+  else if (totalScore >= 4) recommendation = `Opción desafiante${regionText} - para expertos`;
+  else recommendation = `Opción muy desafiante${regionText} - no recomendada`;
+  
+  return {
+    totalScore,
+    factors: {
+      globalViability,
+      coldResistance,
+      humidityTolerance,
+      clayAdaptation,
+      sunExposure,
+      pestResistance
+    },
+    recommendation
+  };
 }
 
 const SYSTEM_PROMPT = `You are an AI horticultural advisor for a plant e-commerce catalog.
@@ -188,7 +388,20 @@ serve(async (req) => {
     console.log("[recommend-plants] AI response received");
 
     // Parse and validate AI response
-    let aiResult: RecommendOutput;
+    interface AIRecommendation {
+      plant_id: string;
+      fit_score: number;
+      reasoning: string;
+      tradeoffs: string;
+    }
+    
+    interface AIResult {
+      recommendations?: AIRecommendation[];
+      confidence?: "low" | "medium" | "high";
+      no_good_match?: boolean;
+    }
+    
+    let aiResult: AIResult;
     try {
       aiResult = JSON.parse(aiContent);
     } catch {
@@ -196,10 +409,18 @@ serve(async (req) => {
       throw new Error("Invalid AI response format");
     }
 
-    // Validate plant_ids exist in catalog
-    const validRecommendations = (aiResult.recommendations || [])
-      .filter(rec => catalog.some(p => p.id === rec.plant_id))
-      .slice(0, 3);
+    // Validate plant_ids exist in catalog and add viability calculations
+    const validRecommendations: PlantRecommendation[] = (aiResult.recommendations || [])
+      .filter((rec: AIRecommendation) => catalog.some(p => p.id === rec.plant_id))
+      .slice(0, 3)
+      .map((rec: AIRecommendation) => {
+        const plant = catalog.find(p => p.id === rec.plant_id)!;
+        const viability = calculateViability(plant, user_prompt);
+        return {
+          ...rec,
+          viability
+        };
+      });
 
     const response: RecommendOutput = {
       recommendations: validRecommendations,
@@ -207,7 +428,7 @@ serve(async (req) => {
       no_good_match: aiResult.no_good_match || validRecommendations.length === 0,
     };
 
-    console.log(`[recommend-plants] Returning ${response.recommendations.length} recommendations`);
+    console.log(`[recommend-plants] Returning ${response.recommendations.length} recommendations with viability`);
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

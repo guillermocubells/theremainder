@@ -42,12 +42,29 @@ export interface RecommendInput {
   catalog_subset?: CatalogPlant[];
 }
 
+// ============ VIABILITY TYPES ============
+export interface ViabilityFactors {
+  globalViability: number;
+  coldResistance: number;
+  humidityTolerance: number;
+  clayAdaptation: number;
+  sunExposure: number;
+  pestResistance: number;
+}
+
+export interface ViabilityResult {
+  totalScore: number;
+  factors: ViabilityFactors;
+  recommendation: string;
+}
+
 // ============ OUTPUT TYPES ============
 export interface PlantRecommendation {
   plant_id: string;
   fit_score: number;
   reasoning: string;
   tradeoffs: string;
+  viability: ViabilityResult;
 }
 
 export interface RecommendOutput {

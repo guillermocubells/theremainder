@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Heart, ExternalLink, TrendingUp, AlertTriangle } from "lucide-react";
+import { Heart, ExternalLink, TrendingUp, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { PlantRecommendation, CatalogPlant } from "@/hooks/useRecommendPlants";
+import ViabilityFactorsTable from "./ViabilityFactorsTable";
 
 interface RecommendationCardProps {
   recommendation: PlantRecommendation;
@@ -14,6 +17,15 @@ interface RecommendationCardProps {
   rank: number;
 }
 
+const getViabilityScoreColor = (score: number) => {
+  if (score >= 8) return "text-green-700 bg-green-100";
+  if (score >= 7) return "text-green-600 bg-green-50";
+  if (score >= 6) return "text-yellow-600 bg-yellow-50";
+  if (score >= 5) return "text-orange-600 bg-orange-50";
+  if (score >= 4) return "text-red-600 bg-red-50";
+  return "text-red-700 bg-red-100";
+};
+
 const RecommendationCard = ({ 
   recommendation, 
   plant, 
@@ -21,10 +33,12 @@ const RecommendationCard = ({
   rank 
 }: RecommendationCardProps) => {
   const { t } = useTranslation();
+  const [isViabilityOpen, setIsViabilityOpen] = useState(false);
   
   if (!plant) return null;
 
   const scorePercentage = Math.round(recommendation.fit_score * 100);
+  const viability = recommendation.viability;
   
   const getScoreColor = (score: number) => {
     if (score >= 0.7) return "text-moss bg-moss/10";
@@ -109,6 +123,35 @@ const RecommendationCard = ({
                 className="h-1.5"
               />
             </div>
+
+            {/* Viability Score Badge */}
+            {viability && (
+              <Collapsible open={isViabilityOpen} onOpenChange={setIsViabilityOpen}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge className={`${getViabilityScoreColor(viability.totalScore)} font-semibold text-xs`}>
+                      Viabilidad: {viability.totalScore}/10
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">{viability.recommendation}</span>
+                  </div>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                      {isViabilityOpen ? (
+                        <ChevronUp className="h-3 w-3" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+                
+                <CollapsibleContent className="mt-2">
+                  <div className="bg-muted/30 rounded-lg p-2">
+                    <ViabilityFactorsTable factors={viability.factors} />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
 
             {/* Reasoning */}
             <div className="space-y-2">
