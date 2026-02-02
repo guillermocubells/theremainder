@@ -1,4 +1,11 @@
 {
+  "whatsapp": {
+    "tooltip": "Need help?",
+    "greeting": "Hi! 👋 How can we help you? Ask us about plants, orders, or shipping.",
+    "placeholder": "Type your message...",
+    "defaultMessage": "Hi, I have a question about the plants",
+    "online": "Usually replies in minutes"
+  },
   "header": {
     "title": "Frondaprima",
     "subtitle": "Plants selected at altitude",

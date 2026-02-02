@@ -48,6 +48,13 @@
       "sendAnother": "Enviar otro mensaje"
     }
   },
+  "whatsapp": {
+    "tooltip": "¿Necesitas ayuda?",
+    "greeting": "¡Hola! 👋 ¿En qué podemos ayudarte? Pregúntanos sobre plantas, pedidos o envíos.",
+    "placeholder": "Escribe tu mensaje...",
+    "defaultMessage": "Hola, tengo una consulta sobre las plantas",
+    "online": "Normalmente responde en minutos"
+  },
   "header": {
     "title": "Frondaprima",
     "subtitle": "Plantas seleccionadas en altura",
