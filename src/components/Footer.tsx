@@ -145,6 +145,8 @@ const Footer = () => {
                   <a
                     key={social.label}
                     href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     aria-label={social.label}
                     className="w-10 h-10 rounded-full bg-primary-foreground/[0.05] hover:bg-primary-foreground/[0.1] border border-primary-foreground/[0.08] flex items-center justify-center transition-all duration-300 group"
                   >
@@ -170,10 +172,12 @@ const Footer = () => {
                 </p>
               </div>
               <div className="flex items-center gap-2.5 mt-6">
-                {socialLinks.map((social) => (
+              {socialLinks.map((social) => (
                   <a
                     key={social.label}
                     href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     aria-label={social.label}
                     className="w-8 h-8 rounded-full bg-primary-foreground/[0.03] hover:bg-primary-foreground/[0.08] border border-primary-foreground/[0.06] hover:border-primary-foreground/[0.12] flex items-center justify-center transition-all duration-300 ease-out group"
                   >
