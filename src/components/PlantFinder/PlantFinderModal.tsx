@@ -29,9 +29,21 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
     }
   }, [open]);
 
-  const handleAnswer = (questionId: keyof PlantFinderAnswers, value: string) => {
+  const handleAnswer = (questionId: keyof PlantFinderAnswers, value: string, autoAdvance: boolean = false) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
     trackPlantFinderEvent('question_answered', { questionId, value, step: currentStep + 1 });
+    
+    // Auto-advance to next step for single-choice questions
+    if (autoAdvance) {
+      setTimeout(() => {
+        if (currentStep < totalSteps - 1) {
+          setCurrentStep(prev => prev + 1);
+        } else {
+          trackPlantFinderEvent('questionnaire_completed', { ...answers, [questionId]: value });
+          setShowResults(true);
+        }
+      }, 200); // Small delay for visual feedback
+    }
   };
 
   const handleNext = () => {
@@ -90,13 +102,13 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
             {currentQuestion.id === 'hardinessZone' ? (
               <HardinessZoneStep
                 selectedValue={currentAnswer}
-                onSelect={(value) => handleAnswer('hardinessZone', value)}
+                onSelect={(value) => handleAnswer('hardinessZone', value, true)}
               />
             ) : (
               <QuestionStep
                 question={currentQuestion}
                 selectedValue={currentAnswer}
-                onSelect={(value) => handleAnswer(currentQuestion.id, value)}
+                onSelect={(value) => handleAnswer(currentQuestion.id, value, true)}
               />
             )}
 
