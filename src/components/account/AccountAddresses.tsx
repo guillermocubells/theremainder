@@ -50,7 +50,9 @@ const AccountAddresses = () => {
       });
     } else {
       setEditingAddress(null);
-      setFormData(emptyAddress);
+      // Si no hay direcciones, marcar automáticamente como principal
+      const shouldBeDefault = !addresses || addresses.length === 0;
+      setFormData({ ...emptyAddress, is_default: shouldBeDefault });
     }
     setIsModalOpen(true);
   };
