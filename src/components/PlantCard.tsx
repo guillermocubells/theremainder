@@ -2,11 +2,14 @@
 import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { ShoppingCart } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import { Plant } from "@/data/plants";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCart } from "@/contexts/CartContext";
 
 interface PlantCardProps {
   plant: Plant;
@@ -15,10 +18,32 @@ interface PlantCardProps {
 const PlantCard = ({ plant }: PlantCardProps) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const { addToCart, getItemQuantity } = useCart();
   const lightInfo = getLightInfo(plant.light);
   const growthInfo = getGrowthInfo(plant.growthRate);
   const LightIcon = lightInfo.icon;
   const GrowthIcon = growthInfo.icon;
+  
+  const currentQuantityInCart = getItemQuantity(plant.id);
+  const availableStock = (plant.quantity || 0) - currentQuantityInCart;
+  const canAddToCart = availableStock > 0;
+
+  const handleAddToCart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!canAddToCart) return;
+    
+    addToCart({
+      plantId: plant.id,
+      name: plant.name,
+      quantity: 1,
+      maxQuantity: plant.quantity || 1,
+      price: plant.price || 0,
+      image: plant.images?.[0],
+      containerSize: plant.containerSize
+    });
+  };
   
   // State for mobile image carousel
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -198,14 +223,34 @@ const PlantCard = ({ plant }: PlantCardProps) => {
           <CardContent className="p-3 flex-1 flex flex-col">
             <p className="text-muted-foreground text-xs italic mb-2">{plant.commonName}</p>
             
-            {/* Tags de luz y crecimiento */}
-            <div className="flex gap-1.5 mt-auto">
-              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${lightInfo.color}`}>
-                <LightIcon className="h-2.5 w-2.5" />
+            {/* Row con tags y botón de añadir */}
+            <div className="flex items-center justify-between mt-auto gap-2">
+              {/* Tags de luz y crecimiento */}
+              <div className="flex gap-1.5">
+                <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${lightInfo.color}`}>
+                  <LightIcon className="h-2.5 w-2.5" />
+                </div>
+                <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${growthInfo.color}`}>
+                  <GrowthIcon className="h-2.5 w-2.5" />
+                </div>
               </div>
-              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${growthInfo.color}`}>
-                <GrowthIcon className="h-2.5 w-2.5" />
-              </div>
+              
+              {/* Botón añadir al carrito */}
+              <Button
+                size="sm"
+                variant={canAddToCart ? "default" : "secondary"}
+                onClick={handleAddToCart}
+                onTouchEnd={handleAddToCart}
+                disabled={!canAddToCart}
+                className="h-7 px-2.5 text-xs gap-1 shrink-0"
+              >
+                <ShoppingCart className="h-3.5 w-3.5" />
+                {currentQuantityInCart > 0 ? (
+                  <span>{currentQuantityInCart}</span>
+                ) : (
+                  <span>{t('cart.add')}</span>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>
