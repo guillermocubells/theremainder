@@ -23,6 +23,14 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminShipping from "./pages/admin/AdminShipping";
 import AdminSettings from "./pages/admin/AdminSettings";
 
+// Collection module pages
+import { 
+  CollectionDashboard, 
+  PlantDetailPage, 
+  LocationsPage, 
+  PublicPlantPage 
+} from "./pages/collection";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -44,6 +52,26 @@ const App = () => (
               <Route path="/plant/:plantId" element={<PlantDetail />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/checkout/success" element={<CheckoutSuccess />} />
+              
+              {/* Collection module routes */}
+              <Route path="/collection" element={
+                <ProtectedRoute>
+                  <CollectionDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/collection/plant/:id" element={
+                <ProtectedRoute>
+                  <PlantDetailPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/collection/locations" element={
+                <ProtectedRoute>
+                  <LocationsPage />
+                </ProtectedRoute>
+              } />
+              
+              {/* Public plant page (no auth required) */}
+              <Route path="/p/:slug" element={<PublicPlantPage />} />
               
               {/* Admin routes */}
               <Route path="/admin" element={<AdminLayout />}>
