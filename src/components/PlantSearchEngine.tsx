@@ -284,7 +284,7 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
                 )}
               </Button>
               
-              {/* IA - Abre panel de recomendaciones */}
+              {/* Recomendador IA - Abre panel de recomendaciones */}
               <Button
                 variant={isAIPanelOpen ? "default" : "outline"}
                 size="sm"
@@ -294,7 +294,8 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
                   : "border-border bg-background hover:bg-muted"}`}
               >
                 <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span>IA</span>
+                <span className="hidden sm:inline">Recomendador IA</span>
+                <span className="sm:hidden">Rec. IA</span>
               </Button>
             </div>
           </div>
