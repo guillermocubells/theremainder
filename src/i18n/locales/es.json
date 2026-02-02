@@ -1,4 +1,53 @@
 {
+  "contact": {
+    "title": "Contacta con nosotros",
+    "subtitle": "¿Tienes preguntas sobre tu pedido, nuestras plantas o necesitas asesoramiento? Estamos aquí para ayudarte.",
+    "info": {
+      "title": "Información de contacto",
+      "address": "Dirección",
+      "phone": "Teléfono",
+      "email": "Email",
+      "hours": "Horario de atención",
+      "hoursDetail": "Lunes - Viernes: 10:00 - 18:00 (CET)"
+    },
+    "faqHint": {
+      "title": "Antes de contactar:",
+      "description": "Consulta el estado de tu pedido en tu cuenta. Muchas preguntas sobre disponibilidad y envíos se responden en nuestras FAQ."
+    },
+    "form": {
+      "title": "Formulario de contacto",
+      "name": "Nombre",
+      "namePlaceholder": "Tu nombre",
+      "email": "Email",
+      "emailPlaceholder": "tu@email.com",
+      "orderNumber": "Número de pedido (opcional)",
+      "orderNumberPlaceholder": "Ej: FP-20260001",
+      "subject": "Asunto",
+      "subjectPlaceholder": "¿Sobre qué es tu consulta?",
+      "message": "Mensaje",
+      "messagePlaceholder": "Describe tu pregunta o solicitud con detalle...",
+      "acceptPrivacy": "He leído y acepto la",
+      "privacyLink": "política de privacidad",
+      "submit": "Enviar mensaje",
+      "sending": "Enviando..."
+    },
+    "gdpr": {
+      "responsible": "Responsable",
+      "purpose": "Finalidad",
+      "purposeText": "Responder a tu consulta",
+      "legitimation": "Legitimación",
+      "legitimationText": "Consentimiento y ejecución del contrato",
+      "recipients": "Destinatarios",
+      "recipientsText": "No se ceden los datos a terceros",
+      "rights": "Derechos",
+      "rightsText": "Acceder, rectificar y suprimir los datos"
+    },
+    "success": {
+      "title": "¡Mensaje enviado!",
+      "message": "Hemos recibido tu mensaje y te responderemos en 24-48 horas laborables.",
+      "sendAnother": "Enviar otro mensaje"
+    }
+  },
   "header": {
     "title": "Frondaprima",
     "subtitle": "Plantas seleccionadas en altura",
