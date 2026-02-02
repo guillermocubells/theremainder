@@ -240,10 +240,11 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
     <div className="mb-6 sm:mb-8 space-y-4">
       {/* Search Card */}
       <Card className="bg-white/90 backdrop-blur-sm border-gray-200 shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Search Input */}
-            <div className="relative flex-1">
+        <CardContent className="p-3 sm:p-4">
+          {/* Mobile: Input arriba, botones abajo como iconos */}
+          <div className="flex flex-col gap-3">
+            {/* Search Input - Siempre ancho completo */}
+            <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 type="text"
@@ -265,33 +266,38 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
               )}
             </div>
 
-            {/* Action Buttons - Stack en mobile, row en desktop */}
-            <div className="flex gap-2 w-full sm:w-auto">
+            {/* Action Buttons - Compactos en mobile, expandidos en desktop */}
+            <div className="flex items-center justify-center gap-2 sm:gap-2 sm:justify-start">
+              {/* Filtros */}
               <Button
                 variant={isFiltersVisible ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsFiltersVisible(!isFiltersVisible)}
-                className={`flex-1 sm:flex-initial h-11 sm:h-10 text-sm ${isFiltersVisible 
+                className={`h-9 sm:h-10 px-3 sm:px-4 text-sm ${isFiltersVisible 
                   ? "bg-moss hover:bg-moss/90 text-moss-foreground" 
                   : "border-border hover:bg-muted"}`}
               >
-                <Filter className="h-4 w-4 mr-2" />
-                <span>{t('filters.title')}</span>
+                <Filter className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{t('filters.title')}</span>
                 {hasActiveFilters && (
-                  <span className="ml-1.5 bg-background/20 text-xs px-1.5 py-0.5 rounded-full">•</span>
+                  <span className="ml-1 bg-background/20 text-xs w-2 h-2 rounded-full inline-block sm:hidden" />
+                )}
+                {hasActiveFilters && (
+                  <span className="hidden sm:inline ml-1.5 bg-background/20 text-xs px-1.5 py-0.5 rounded-full">•</span>
                 )}
               </Button>
               
+              {/* IA Search */}
               <Button
                 variant={isAIMode ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsAIMode(!isAIMode)}
-                className={`h-11 sm:h-10 px-4 ${isAIMode 
+                className={`h-9 sm:h-10 px-3 sm:px-4 ${isAIMode 
                   ? "bg-moss hover:bg-moss/90 text-moss-foreground" 
                   : "border-border hover:bg-muted"}`}
               >
-                <Sparkles className="h-4 w-4 mr-1.5" />
-                <span>IA</span>
+                <Sparkles className="h-4 w-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">IA</span>
               </Button>
 
               {/* AI Recommender Button */}
@@ -299,13 +305,12 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
                 variant={isAIPanelOpen ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsAIPanelOpen(!isAIPanelOpen)}
-                className={`flex-1 sm:flex-initial h-11 sm:h-10 text-sm whitespace-nowrap ${isAIPanelOpen 
+                className={`h-9 sm:h-10 px-3 sm:px-4 text-sm ${isAIPanelOpen 
                   ? "bg-primary hover:bg-primary/90" 
                   : "border-border hover:bg-muted"}`}
               >
-                <Bot className="h-4 w-4 mr-2" />
-                <span className="hidden xs:inline">Recomendador</span>
-                <span className="xs:hidden">Rec. IA</span>
+                <Bot className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Recomendador</span>
               </Button>
             </div>
           </div>
