@@ -1,4 +1,5 @@
 
+import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,72 @@ const PlantCard = ({ plant }: PlantCardProps) => {
   const growthInfo = getGrowthInfo(plant.growthRate);
   const LightIcon = lightInfo.icon;
   const GrowthIcon = growthInfo.icon;
+  
+  // State for mobile image carousel
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const isSwipingRef = useRef(false);
+
+  // Get all available images for this plant
+  const allImages = plant.images && plant.images.length > 0 ? plant.images : [];
+  const hasMultipleImages = allImages.length > 1;
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isSwipingRef.current = false;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const diffX = Math.abs(currentX - touchStartX.current);
+    const diffY = Math.abs(currentY - touchStartY.current);
+    
+    // If horizontal swipe is more prominent than vertical, prevent link navigation
+    if (diffX > diffY && diffX > 10) {
+      isSwipingRef.current = true;
+      e.preventDefault();
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null || !hasMultipleImages) {
+      touchStartX.current = null;
+      touchStartY.current = null;
+      return;
+    }
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX;
+    const swipeThreshold = 50;
+    
+    if (Math.abs(diff) > swipeThreshold) {
+      if (diff > 0) {
+        // Swipe left - next image
+        setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+      } else {
+        // Swipe right - previous image
+        setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length);
+      }
+      isSwipingRef.current = true;
+    }
+    
+    touchStartX.current = null;
+    touchStartY.current = null;
+  }, [allImages.length, hasMultipleImages]);
+
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    // Prevent navigation if we were swiping
+    if (isSwipingRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      isSwipingRef.current = false;
+    }
+  }, []);
 
   const getLightTooltip = (light: string) => {
     switch (light.toLowerCase()) {
@@ -57,18 +124,30 @@ const PlantCard = ({ plant }: PlantCardProps) => {
     return plant.images && plant.images[1] ? plant.images[1] : plant.images?.[0];
   };
 
-  // En mobile, mostrar siempre la imagen; en desktop, mostrar en hover
+  // En mobile, mostrar siempre la imagen con swipe carousel
   if (isMobile) {
+    const currentImage = allImages[currentImageIndex] || getHoverImage();
+    
     return (
-      <Link to={`/plant/${plant.id}`} className="flex">
+      <Link 
+        to={`/plant/${plant.id}`} 
+        className="flex"
+        onClick={handleClick}
+      >
         <Card className="w-full h-full flex flex-col bg-card/80 backdrop-blur-sm border-border relative overflow-hidden">
-          {/* Imagen siempre visible en mobile */}
-          <div className="relative aspect-[4/3] overflow-hidden">
-            {getHoverImage() && (
+          {/* Imagen con swipe carousel */}
+          <div 
+            className="relative aspect-[4/3] overflow-hidden touch-pan-y"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {currentImage && (
               <img 
-                src={getHoverImage()} 
-                alt={plant.name}
-                className="w-full h-full object-cover"
+                src={currentImage} 
+                alt={`${plant.name} - ${currentImageIndex + 1}/${allImages.length}`}
+                className="w-full h-full object-cover transition-opacity duration-200"
+                draggable={false}
               />
             )}
             {/* Nombre en la parte superior */}
@@ -77,6 +156,21 @@ const PlantCard = ({ plant }: PlantCardProps) => {
                 {plant.name}
               </span>
             </div>
+            {/* Indicadores de imagen (dots) */}
+            {hasMultipleImages && (
+              <div className="absolute top-2 right-2 flex gap-1">
+                {allImages.map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+                      idx === currentImageIndex 
+                        ? 'bg-white shadow-md scale-110' 
+                        : 'bg-white/50'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
             {/* Precio en la parte inferior */}
             {plant.price !== undefined && (
               <div className="absolute bottom-2 left-2">
