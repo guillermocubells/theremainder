@@ -36,6 +36,9 @@ import {
 // Wishlist module pages
 import { WishlistDashboard } from "./pages/wishlist";
 
+// Unified Garden module
+import { MyGarden } from "./pages/garden";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -59,7 +62,14 @@ const App = () => (
               <Route path="/checkout/success" element={<CheckoutSuccess />} />
               <Route path="/contact" element={<Contact />} />
               
-              {/* Collection module routes */}
+              {/* Mi Jardín - Unified Garden module */}
+              <Route path="/garden" element={
+                <ProtectedRoute>
+                  <MyGarden />
+                </ProtectedRoute>
+              } />
+              
+              {/* Collection module routes (legacy, redirect to garden) */}
               <Route path="/collection" element={
                 <ProtectedRoute>
                   <CollectionDashboard />
