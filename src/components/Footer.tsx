@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Leaf, Instagram, Facebook, Mail } from "lucide-react";
+import { Instagram, Facebook, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -137,18 +138,22 @@ const Footer = () => {
               </div>
             </div>
 
-            {/* Social - centered on mobile */}
-            <div className="flex items-center justify-center gap-3 mb-8">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  className="w-10 h-10 rounded-full bg-primary-foreground/[0.05] hover:bg-primary-foreground/[0.1] border border-primary-foreground/[0.08] flex items-center justify-center transition-all duration-300 group"
-                >
-                  <social.icon className="h-4 w-4 text-primary-foreground/50 group-hover:text-primary-foreground/70 transition-colors duration-300" />
-                </a>
-              ))}
+            {/* Social & Language - centered on mobile */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="flex items-center gap-3">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    aria-label={social.label}
+                    className="w-10 h-10 rounded-full bg-primary-foreground/[0.05] hover:bg-primary-foreground/[0.1] border border-primary-foreground/[0.08] flex items-center justify-center transition-all duration-300 group"
+                  >
+                    <social.icon className="h-4 w-4 text-primary-foreground/50 group-hover:text-primary-foreground/70 transition-colors duration-300" />
+                  </a>
+                ))}
+              </div>
+              <div className="h-6 w-px bg-primary-foreground/10" />
+              <LanguageSwitcher variant="footer" />
             </div>
           </div>
 
@@ -258,11 +263,17 @@ const Footer = () => {
 
           {/* Final divider */}
           <div className="border-t border-primary-foreground/[0.06] pt-6 sm:pt-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] tracking-wide text-primary-foreground/30">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] tracking-wide text-primary-foreground/30">
               <div className="flex items-center gap-2">
                 <span className="font-medium">© {new Date().getFullYear()} Frondaprima</span>
               </div>
-              <span className="text-primary-foreground/25">
+              <div className="hidden lg:flex items-center gap-4">
+                <LanguageSwitcher variant="footer" />
+                <span className="text-primary-foreground/25">
+                  {t('footer.rights')}
+                </span>
+              </div>
+              <span className="lg:hidden text-primary-foreground/25">
                 {t('footer.rights')}
               </span>
             </div>
