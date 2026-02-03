@@ -179,12 +179,14 @@ export type Database = {
           issued_at: string
           items: Json
           order_id: string
+          refund_amount: number | null
           seller_address: string | null
           seller_email: string | null
           seller_name: string
           seller_tax_id: string | null
           shipping_cost: number
           status: Database["public"]["Enums"]["invoice_status"]
+          stripe_payment_intent_id: string | null
           subtotal: number
           total_amount: number
           updated_at: string
@@ -202,12 +204,14 @@ export type Database = {
           issued_at?: string
           items?: Json
           order_id: string
+          refund_amount?: number | null
           seller_address?: string | null
           seller_email?: string | null
           seller_name: string
           seller_tax_id?: string | null
           shipping_cost?: number
           status?: Database["public"]["Enums"]["invoice_status"]
+          stripe_payment_intent_id?: string | null
           subtotal?: number
           total_amount?: number
           updated_at?: string
@@ -225,12 +229,14 @@ export type Database = {
           issued_at?: string
           items?: Json
           order_id?: string
+          refund_amount?: number | null
           seller_address?: string | null
           seller_email?: string | null
           seller_name?: string
           seller_tax_id?: string | null
           shipping_cost?: number
           status?: Database["public"]["Enums"]["invoice_status"]
+          stripe_payment_intent_id?: string | null
           subtotal?: number
           total_amount?: number
           updated_at?: string
@@ -324,8 +330,14 @@ export type Database = {
           invoice_id: string | null
           notes: string | null
           order_number: string
+          refund_amount: number | null
+          refund_id: string | null
           shipping_address: Json
           status: Database["public"]["Enums"]["order_status"]
+          stripe_charge_id: string | null
+          stripe_checkout_session_id: string | null
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
           total_amount: number
           tracking_number: string | null
           tracking_url: string | null
@@ -338,8 +350,14 @@ export type Database = {
           invoice_id?: string | null
           notes?: string | null
           order_number: string
+          refund_amount?: number | null
+          refund_id?: string | null
           shipping_address: Json
           status?: Database["public"]["Enums"]["order_status"]
+          stripe_charge_id?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
           total_amount: number
           tracking_number?: string | null
           tracking_url?: string | null
@@ -352,8 +370,14 @@ export type Database = {
           invoice_id?: string | null
           notes?: string | null
           order_number?: string
+          refund_amount?: number | null
+          refund_id?: string | null
           shipping_address?: Json
           status?: Database["public"]["Enums"]["order_status"]
+          stripe_charge_id?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
           total_amount?: number
           tracking_number?: string | null
           tracking_url?: string | null
@@ -1194,10 +1218,23 @@ export type Database = {
       email_frequency: "instant" | "daily" | "weekly"
       growth_speed: "slow" | "medium" | "fast"
       humidity_level: "low" | "medium" | "high"
-      invoice_status: "issued" | "cancelled" | "refunded"
+      invoice_status:
+        | "issued"
+        | "cancelled"
+        | "refunded"
+        | "partially_refunded"
+        | "void"
       notification_type: "available" | "price_drop" | "similar"
       observation_condition: "healthy" | "okay" | "concern" | "critical"
-      order_status: "pending" | "paid" | "shipped" | "delivered" | "cancelled"
+      order_status:
+        | "pending"
+        | "paid"
+        | "shipped"
+        | "delivered"
+        | "cancelled"
+        | "partially_refunded"
+        | "failed"
+        | "refunded"
       plant_status: "alive" | "dormant" | "sick" | "removed"
       plant_type: "palm" | "fern" | "tree" | "cycad" | "shrub" | "other"
       rarity_level: "low" | "medium" | "high"
@@ -1337,10 +1374,25 @@ export const Constants = {
       email_frequency: ["instant", "daily", "weekly"],
       growth_speed: ["slow", "medium", "fast"],
       humidity_level: ["low", "medium", "high"],
-      invoice_status: ["issued", "cancelled", "refunded"],
+      invoice_status: [
+        "issued",
+        "cancelled",
+        "refunded",
+        "partially_refunded",
+        "void",
+      ],
       notification_type: ["available", "price_drop", "similar"],
       observation_condition: ["healthy", "okay", "concern", "critical"],
-      order_status: ["pending", "paid", "shipped", "delivered", "cancelled"],
+      order_status: [
+        "pending",
+        "paid",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "partially_refunded",
+        "failed",
+        "refunded",
+      ],
       plant_status: ["alive", "dormant", "sick", "removed"],
       plant_type: ["palm", "fern", "tree", "cycad", "shrub", "other"],
       rarity_level: ["low", "medium", "high"],
