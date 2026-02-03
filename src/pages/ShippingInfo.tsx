@@ -59,8 +59,16 @@ const ShippingInfo = () => {
             <p className="text-muted-foreground leading-relaxed">
               Enviamos principalmente dentro de la Unión Europea, con distintos proveedores según destino.
             </p>
+            
+            <Alert className="not-prose border-destructive/30 bg-destructive/5">
+              <Info className="h-4 w-4 text-destructive" />
+              <AlertDescription className="text-foreground">
+                <strong>No realizamos envíos a:</strong> Islas Canarias, Islas Baleares, Ceuta y Melilla.
+              </AlertDescription>
+            </Alert>
+            
             <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
-              <li><strong className="text-foreground">España (Península):</strong> excepto Islas Canarias, Ceuta, Melilla y Baleares.</li>
+              <li><strong className="text-foreground">España (Península):</strong> envíos disponibles en toda la península.</li>
             </ul>
           </section>
 
