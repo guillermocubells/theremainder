@@ -8,6 +8,7 @@ import { plants } from "@/data/plants";
 import { plantDetails } from "@/data/plantDetailData";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
+import { ProductStructuredData } from "@/components/seo";
 import PlantDetailHeader from "./PlantDetailHeader";
 import PlantPhotoCarousel from "./PlantPhotoCarousel";
 import PlantImageGallery from "./PlantImageGallery";
@@ -52,6 +53,9 @@ const PlantDetail = () => {
 
   return (
     <TooltipProvider>
+      {/* SEO: Structured Data + Meta Tags */}
+      <ProductStructuredData plant={plant} />
+      
       <div className="min-h-screen bg-background">
         {/* Header - matching main header styling */}
         <header className={`bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
