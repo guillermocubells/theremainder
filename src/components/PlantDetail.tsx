@@ -166,14 +166,14 @@ const PlantDetail = () => {
               </div>
             )}
 
-            {/* Reviews Section */}
+            {/* Related Plants Section */}
             <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '350ms' }}>
-              <PlantReviews plantId={plant.id} plantName={plant.name} />
+              <RelatedPlants currentPlant={plant} />
             </div>
 
-            {/* Related Plants Section */}
+            {/* Reviews Section */}
             <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
-              <RelatedPlants currentPlant={plant} />
+              <PlantReviews plantId={plant.id} plantName={plant.name} />
             </div>
 
             {/* Recently Viewed Section */}
