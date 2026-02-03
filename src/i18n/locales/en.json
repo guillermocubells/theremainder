@@ -186,6 +186,10 @@
     "climateType": "Climate Type",
     "bestLocation": "Best Location"
   },
+  "notes": {
+    "title": "Special Notes",
+    "subtitle": "Observations and specific tips for this plant"
+  },
   "cart": {
     "title": "Shopping Cart",
     "empty": "Your cart is empty",
@@ -331,6 +335,13 @@
     "confirm": "Confirm",
     "yes": "Yes",
     "no": "No"
+  },
+  "lightbox": {
+    "noImages": "No images",
+    "enlargedImage": "enlarged image",
+    "thumbnail": "thumbnail",
+    "tapOutsideHint": "Tap outside the image to close",
+    "swipeHint": "Swipe to navigate"
   },
   "specifications": {
     "title": "Specifications",

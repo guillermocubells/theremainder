@@ -146,7 +146,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
               className="absolute top-2 right-2 z-50 flex items-center gap-2 bg-white/90 hover:bg-white text-foreground px-3 py-1.5 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
             >
               <X className="h-4 w-4" />
-              <span className="text-sm font-medium">Cerrar</span>
+              <span className="text-sm font-medium">{t('common.close', 'Cerrar')}</span>
             </button>
 
             {/* Image container with swipe support */}
@@ -190,7 +190,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
 
             {/* Hint text for mobile */}
             <p className="text-center text-white/60 text-xs pb-3 sm:hidden">
-              Desliza para navegar
+              {t('lightbox.swipeHint', 'Desliza para navegar')}
             </p>
           </div>
         </DialogContent>

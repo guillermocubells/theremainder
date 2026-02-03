@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -9,6 +10,7 @@ interface PlantImageGalleryProps {
 }
 
 const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
+  const { t } = useTranslation();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -19,7 +21,7 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
           <div className="w-16 h-16 mx-auto mb-2 bg-muted rounded-lg flex items-center justify-center">
             <Search className="w-8 h-8" />
           </div>
-          <p className="text-sm">Sin imágenes</p>
+          <p className="text-sm">{t('lightbox.noImages', 'Sin imágenes')}</p>
         </div>
       </div>
     );
@@ -106,14 +108,14 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
                 className="absolute -top-12 right-0 sm:top-2 sm:right-2 z-50 flex items-center gap-2 bg-white/90 hover:bg-white text-foreground px-4 py-2 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
               >
                 <X className="h-5 w-5" />
-                <span className="text-sm font-medium">Cerrar</span>
+                <span className="text-sm font-medium">{t('common.close', 'Cerrar')}</span>
               </button>
 
               {/* Image container */}
               <div className="bg-black/95 rounded-xl overflow-hidden p-2">
                 <img
                   src={displayImages[selectedIndex]}
-                  alt={`${plantName} - imagen ampliada`}
+                  alt={`${plantName} - ${t('lightbox.enlargedImage', 'imagen ampliada')}`}
                   className="w-full h-auto max-h-[75vh] object-contain rounded-lg animate-scale-in"
                 />
                 
@@ -132,7 +134,7 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
                       >
                         <img
                           src={image}
-                          alt={`${plantName} - miniatura ${index + 1}`}
+                          alt={`${plantName} - ${t('lightbox.thumbnail', 'miniatura')} ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
                       </button>
@@ -143,7 +145,7 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
 
               {/* Hint text */}
               <p className="text-center text-white/60 text-xs mt-3">
-                Toca fuera de la imagen para cerrar
+                {t('lightbox.tapOutsideHint', 'Toca fuera de la imagen para cerrar')}
               </p>
             </div>
           </div>
