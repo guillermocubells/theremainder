@@ -99,15 +99,6 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
             )}
           </div>
         </div>
-        
-        {!showForm && (
-          <Button
-            onClick={() => setShowForm(true)}
-            className="bg-primary hover:bg-primary/90"
-          >
-            {t('reviews.writeReview')}
-          </Button>
-        )}
       </div>
 
       {/* Review Form */}
@@ -170,15 +161,21 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
       )}
 
       {/* Reviews List */}
-      {reviews.length === 0 ? (
+      {reviews.length === 0 && !showForm ? (
         <div className="text-center py-6 sm:py-8">
           <div className="p-3 bg-muted rounded-full inline-block mb-3">
             <MessageSquare className="h-6 w-6 text-muted-foreground" />
           </div>
           <p className="text-muted-foreground text-sm sm:text-base mb-1">{t('reviews.noReviews')}</p>
-          <p className="text-xs sm:text-sm text-muted-foreground/70">
+          <p className="text-xs sm:text-sm text-muted-foreground/70 mb-4">
             {t('reviews.beFirst')}
           </p>
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-primary hover:bg-primary/90"
+          >
+            {t('reviews.writeReview')}
+          </Button>
         </div>
       ) : (
         <div className="space-y-3 sm:space-y-4">
