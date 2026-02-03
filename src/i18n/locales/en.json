@@ -105,6 +105,12 @@
     "reviews": "Reviews",
     "relatedPlants": "Related plants",
     "recentlyViewed": "Recently viewed",
+  "share": {
+    "share": "Share",
+    "linkCopied": "Link copied to clipboard",
+    "copyError": "Error copying link",
+    "copyLink": "Copy link"
+  },
     "notFound": "Plant not found",
     "height": "Height",
     "spread": "Spread",
