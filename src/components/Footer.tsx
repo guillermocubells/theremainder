@@ -25,7 +25,6 @@ const Footer = () => {
   const navigationLinks = [
     { key: 'contact', href: '/contact' },
     { key: 'delivery', href: '#' },
-    { key: 'loyalty', href: '#' },
     { key: 'faq', href: '#' },
   ];
 
@@ -33,7 +32,6 @@ const Footer = () => {
     { key: 'notice', href: '#' },
     { key: 'termsOfSale', href: '#' },
     { key: 'privacyPolicy', href: '#' },
-    { key: 'sitemap', href: '#' },
   ];
 
   const socialLinks = [
