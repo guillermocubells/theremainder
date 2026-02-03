@@ -156,14 +156,9 @@ export const KanbanPlantCard = ({ item }: KanbanPlantCardProps) => {
       onClick={handleCardClick}
     >
       <CardContent className="p-3">
-        <div className="flex gap-3">
-          {/* Drag Handle - visible on hover */}
-          <div className="hidden md:flex items-center opacity-0 group-hover:opacity-100 transition-opacity -ml-1">
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-          </div>
-          
-          {/* Image */}
-          <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+        <div className="flex items-start gap-3">
+          {/* Image with drag handle overlay */}
+          <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
             {item.imageUrl ? (
               <img
                 src={item.imageUrl}
@@ -175,6 +170,10 @@ export const KanbanPlantCard = ({ item }: KanbanPlantCardProps) => {
                 <Leaf className="h-6 w-6 text-muted-foreground" />
               </div>
             )}
+            {/* Drag indicator on hover */}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <GripVertical className="h-5 w-5 text-white" />
+            </div>
           </div>
 
           {/* Content */}
