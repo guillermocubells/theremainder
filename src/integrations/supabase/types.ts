@@ -431,6 +431,13 @@ export type Database = {
             referencedRelation: "owned_plants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "plant_notes_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       plant_observations: {
@@ -475,6 +482,13 @@ export type Database = {
             referencedRelation: "owned_plants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "plant_observations_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       plant_public_slugs: {
@@ -508,6 +522,13 @@ export type Database = {
             columns: ["owned_plant_id"]
             isOneToOne: true
             referencedRelation: "owned_plants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plant_public_slugs_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: true
+            referencedRelation: "owned_plants_public"
             referencedColumns: ["id"]
           },
         ]
@@ -953,6 +974,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "wishlist_items_acquired_owned_plant_id_fkey"
+            columns: ["acquired_owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "wishlist_items_catalog_product_id_fkey"
             columns: ["catalog_product_id"]
             isOneToOne: false
@@ -1004,7 +1032,31 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      owned_plants_public: {
+        Row: {
+          common_name: string | null
+          created_at: string | null
+          id: string | null
+          nickname: string | null
+          photos: string[] | null
+          purchase_date: string | null
+          scientific_name: string | null
+          serial_code: string | null
+          source_plant_id: string | null
+          status: Database["public"]["Enums"]["plant_status"] | null
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owned_plants_source_plant_id_fkey"
+            columns: ["source_plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       create_owned_plants_from_order: {
