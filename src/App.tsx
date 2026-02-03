@@ -113,8 +113,8 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             
-            {/* WhatsApp floating button - change phoneNumber to your actual number */}
-            <WhatsAppButton phoneNumber="34912345678" />
+            {/* WhatsApp floating button */}
+            <WhatsAppButton phoneNumber="34655699978" />
           </BrowserRouter>
         </TooltipProvider>
       </CartProvider>
