@@ -483,5 +483,39 @@
     "unsubscribed": "Notification cancelled",
     "loginRequired": "You must be logged in to receive notifications",
     "error": "An error occurred. Please try again."
+  },
+  "cookies": {
+    "banner": {
+      "title": "We use cookies",
+      "description": "We use cookies to improve your experience, analyze traffic, and personalize content. You can configure your preferences or accept all cookies.",
+      "customize": "Customize",
+      "essentialOnly": "Essential only",
+      "acceptAll": "Accept all"
+    },
+    "preferences": {
+      "title": "Cookie preferences",
+      "description": "Configure which types of cookies you want to allow. Essential cookies are required for the website to function.",
+      "saveSelection": "Save selection",
+      "acceptAll": "Accept all"
+    },
+    "required": "Required",
+    "categories": {
+      "essential": {
+        "title": "Essential cookies",
+        "description": "Required for basic website functionality. Cannot be disabled."
+      },
+      "functional": {
+        "title": "Functional cookies",
+        "description": "Enable enhanced features like remembering your language preferences and settings."
+      },
+      "analytics": {
+        "title": "Analytics cookies",
+        "description": "Help us understand how you use the site to improve your experience."
+      },
+      "marketing": {
+        "title": "Marketing cookies",
+        "description": "Used to show you relevant ads and measure campaign effectiveness."
+      }
+    }
   }
 }

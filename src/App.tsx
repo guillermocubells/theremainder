@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { CookieConsentBanner } from "@/components/cookies";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -117,6 +118,9 @@ const App = () => (
             
             {/* WhatsApp floating button */}
             <WhatsAppButton phoneNumber="34655699978" />
+            
+            {/* Cookie consent banner */}
+            <CookieConsentBanner />
           </BrowserRouter>
         </TooltipProvider>
       </CartProvider>
