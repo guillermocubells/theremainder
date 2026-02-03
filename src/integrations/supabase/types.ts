@@ -824,15 +824,7 @@ export type Database = {
           plant_id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "stock_notifications_plant_id_fkey"
-            columns: ["plant_id"]
-            isOneToOne: false
-            referencedRelation: "plants"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       store_settings: {
         Row: {

@@ -214,7 +214,7 @@ export const useGardenStats = () => {
         i => i.status !== 'acquired' && i.plants?.stock_qty > 0
       ).length || 0;
       const stockAvailable = stockNotifications?.filter(
-        n => !wishlistCatalogIds.has(n.plant_id) && n.plants?.stock_qty > 0
+        n => !wishlistCatalogIds.has(n.plant_id) && n.plantData?.stockQty && n.plantData.stockQty > 0
       ).length || 0;
       const available = wishlistAvailable + stockAvailable;
       
