@@ -25,7 +25,8 @@ const usePlantUUID = (slugOrId: string) => {
       return data?.id || null;
     },
     enabled: !!slugOrId,
-    staleTime: 1000 * 60 * 60, // Cache for 1 hour
+    // Don't cache null results for long; catalog can be populated after first load
+    staleTime: 0,
   });
 };
 
@@ -116,6 +117,12 @@ export const useCatalogFavorite = (catalogProductSlugOrId: string) => {
   });
 
   const toggleFavorite = (plantData: { name: string; scientificName?: string; imageUrl?: string; price?: number }) => {
+    if (!catalogProductId) {
+      // Force a re-fetch in case the plant was added to the catalog after the first lookup
+      queryClient.invalidateQueries({ queryKey: ['plant-uuid', catalogProductSlugOrId] });
+      toast.error('No se pudo localizar la planta en el catálogo todavía. Reintenta en unos segundos.');
+      return;
+    }
     if (isFavorite) {
       removeFromFavorites.mutate();
     } else {
