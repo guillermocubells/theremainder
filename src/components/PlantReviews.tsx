@@ -80,7 +80,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
   return (
     <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-border">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <h2 className="text-sm sm:text-base font-semibold text-foreground">
             {t('reviews.title')}

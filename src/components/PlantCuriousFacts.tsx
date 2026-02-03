@@ -9,8 +9,8 @@ const PlantCuriousFacts = ({ curiousFacts }: PlantCuriousFactsProps) => {
   const { t } = useTranslation();
   
   return (
-    <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-border transition-all duration-300 hover:shadow-lg">
-      <h2 className="text-lg sm:text-xl font-semibold leading-none tracking-tight text-foreground mb-4 sm:mb-6">
+    <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-border transition-all duration-300 hover:shadow-lg">
+      <h2 className="text-sm sm:text-base font-semibold text-foreground mb-4">
         {t('curiousFacts.title')}
       </h2>
       <ul className="space-y-2 sm:space-y-3">
