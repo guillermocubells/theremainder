@@ -97,32 +97,36 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
     <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-border h-full w-full flex flex-col">
       <div className="flex flex-col space-y-4 flex-1">
         {/* Title row with favorite button */}
-        <div className="flex items-start sm:items-center justify-between gap-4">
-          <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-                {plant.name}
-              </h1>
-              {/* Mobile favorite button - aligned with title */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleFavoriteClick}
-                disabled={isToggling}
-                className={cn(
-                  "h-9 w-9 rounded-full transition-colors sm:hidden flex-shrink-0",
-                  isFavorite 
-                    ? "text-destructive hover:text-destructive/80" 
-                    : "text-muted-foreground hover:text-destructive"
-                )}
-              >
-                <Heart 
-                  className={cn("h-5 w-5", isFavorite && "fill-current")} 
-                />
-              </Button>
-            </div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 flex flex-col gap-1">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
+              {plant.name}
+            </h1>
             {/* Common name - shown below title on mobile */}
             <p className="text-base sm:hidden text-muted-foreground font-medium">{plant.commonName}</p>
+          </div>
+          
+          {/* Right side actions */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Mobile favorite button - right aligned */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleFavoriteClick}
+              disabled={isToggling}
+              className={cn(
+                "h-9 w-9 rounded-full transition-colors sm:hidden",
+                isFavorite 
+                  ? "text-destructive hover:text-destructive/80" 
+                  : "text-muted-foreground hover:text-destructive"
+              )}
+            >
+              <Heart 
+                className={cn("h-5 w-5", isFavorite && "fill-current")} 
+              />
+            </Button>
+            
+            {/* Desktop favorite button with tooltip */}
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <Button
@@ -146,24 +150,25 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
                 {isFavorite ? 'Quitar de favoritos' : 'Añadir a Mi Jardín'}
               </TooltipContent>
             </Tooltip>
-          </div>
-          {/* External link button - desktop only */}
-          <Button 
-            asChild
-            variant="outline" 
-            size="sm"
-            className="hidden sm:flex flex-shrink-0 text-primary border-border hover:bg-secondary hover:border-primary/30 text-xs sm:text-sm"
-          >
-            <a 
-              href={plant.link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
+            
+            {/* External link button - desktop only */}
+            <Button 
+              asChild
+              variant="outline" 
+              size="sm"
+              className="hidden sm:flex text-primary border-border hover:bg-secondary hover:border-primary/30 text-xs sm:text-sm"
             >
-              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span>{t('plant.viewMoreInfo')}</span>
-            </a>
-          </Button>
+              <a 
+                href={plant.link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span>{t('plant.viewMoreInfo')}</span>
+              </a>
+            </Button>
+          </div>
         </div>
 
         {/* Variety and common name - desktop only (mobile shown inline above) */}
