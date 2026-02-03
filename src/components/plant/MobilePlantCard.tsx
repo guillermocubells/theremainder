@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Share2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plant } from "@/data/plants";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { useCart } from "@/contexts/CartContext";
 import { useImageCarousel } from "@/hooks/useImageCarousel";
+import { toast } from "sonner";
 
 interface MobilePlantCardProps {
   plant: Plant;
@@ -52,6 +53,32 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
     });
   };
 
+  const handleShare = async (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const shareUrl = `${window.location.origin}/plant/${plant.id}`;
+    const shareData = {
+      title: plant.name,
+      text: plant.commonName || plant.name,
+      url: shareUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success(t('share.linkCopied', 'Enlace copiado'));
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success(t('share.linkCopied', 'Enlace copiado'));
+      }
+    }
+  };
+
   const currentImage = allImages[currentImageIndex] || plant.images?.[0];
 
   return (
@@ -78,15 +105,25 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
           )}
           
           {/* Name badge */}
-          <div className="absolute top-2 left-2 right-2">
+          <div className="absolute top-2 left-2">
             <span className="bg-secondary/95 text-secondary-foreground text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm inline-block">
               {plant.name}
             </span>
           </div>
           
-          {/* Image indicators */}
+          {/* Share button - always visible on mobile */}
+          <button
+            onClick={handleShare}
+            onTouchEnd={handleShare}
+            aria-label={t('share.shareProduct', 'Compartir producto')}
+            className="absolute top-2 right-2 w-10 h-10 flex items-center justify-center rounded-full bg-card/90 text-muted-foreground active:bg-card shadow-sm"
+          >
+            <Share2 className="h-4 w-4" />
+          </button>
+          
+          {/* Image indicators - positioned below share button */}
           {hasMultipleImages && (
-            <div className="absolute top-2 right-2 flex gap-1">
+            <div className="absolute top-14 right-2 flex gap-1">
               {allImages.map((_, idx) => (
                 <div 
                   key={idx} 
