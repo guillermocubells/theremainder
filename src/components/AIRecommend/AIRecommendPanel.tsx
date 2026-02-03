@@ -15,7 +15,6 @@ interface AIRecommendPanelProps {
   onClose: () => void;
   catalog: CatalogPlant[];
   activeFilters?: CatalogFilters;
-  onAddToWishlist?: (plantId: string) => void;
 }
 
 // Helper to normalize filter values
@@ -29,7 +28,6 @@ const AIRecommendPanel = ({
   onClose,
   catalog,
   activeFilters,
-  onAddToWishlist,
 }: AIRecommendPanelProps) => {
   const { t } = useTranslation();
   const [prompt, setPrompt] = useState("");
@@ -228,7 +226,6 @@ const AIRecommendPanel = ({
                     key={rec.plant_id}
                     recommendation={rec}
                     plant={getPlantById(rec.plant_id)}
-                    onAddToWishlist={onAddToWishlist}
                     rank={index + 1}
                   />
                 ))}
