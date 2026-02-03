@@ -77,7 +77,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
     <>
       <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-border mb-6 sm:mb-8 transition-all duration-300 hover:shadow-lg">
         <h2 className="text-lg sm:text-xl font-semibold leading-none tracking-tight text-foreground mb-4 sm:mb-6">
-          {t('plant.visualReferences', 'Referencias visuales futuras')}
+          {t('plant.productForSale', 'Producto en venta')}
         </h2>
         
         {/* Main image with zoom button */}
