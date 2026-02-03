@@ -1,10 +1,9 @@
 import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, CardContent } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface PlantPhotoCarouselProps {
   images: string[];
@@ -13,6 +12,7 @@ interface PlantPhotoCarouselProps {
 
 const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
   const { t } = useTranslation();
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   
@@ -69,38 +69,65 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
     setLightboxOpen(true);
   };
 
+  const handleThumbnailClick = (index: number) => {
+    setSelectedIndex(index);
+  };
+
   return (
     <>
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200 mb-6 sm:mb-8 transition-all duration-300 hover:shadow-lg">
-        <h2 className="text-2xl font-semibold leading-none tracking-tight text-green-800 mb-4 sm:mb-6">
+      <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-border mb-6 sm:mb-8 transition-all duration-300 hover:shadow-lg">
+        <h2 className="text-lg sm:text-xl font-semibold leading-none tracking-tight text-foreground mb-4 sm:mb-6">
           {t('plant.visualReferences', 'Referencias visuales futuras')}
         </h2>
-        <Carousel className="w-full max-w-4xl mx-auto">
-          <CarouselContent className="-ml-2 md:-ml-4">
+        
+        {/* Main image with zoom button */}
+        <div className="relative mb-4">
+          <div 
+            className="relative aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-xl cursor-pointer group"
+            onClick={() => openLightbox(selectedIndex)}
+          >
+            <img 
+              src={images[selectedIndex]} 
+              alt={`${plantName} - imagen ${selectedIndex + 1}`}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            {/* Zoom button */}
+            <button
+              className="absolute bottom-3 right-3 p-2.5 rounded-full bg-foreground/80 hover:bg-foreground text-background transition-all duration-200 hover:scale-110 shadow-lg"
+              onClick={(e) => {
+                e.stopPropagation();
+                openLightbox(selectedIndex);
+              }}
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Thumbnails */}
+        {images.length > 1 && (
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {images.map((image, index) => (
-              <CarouselItem key={index} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
-                <div className="p-1">
-                  <Card 
-                    className="cursor-pointer overflow-hidden group transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
-                    onClick={() => openLightbox(index)}
-                  >
-                    <CardContent className="flex aspect-square items-center justify-center p-0 relative">
-                      <img 
-                        src={image} 
-                        alt={`${plantName} - imagen ${index + 1}`}
-                        className="w-full h-full object-cover rounded-lg transition-transform duration-500 group-hover:scale-110"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 rounded-lg" />
-                    </CardContent>
-                  </Card>
-                </div>
-              </CarouselItem>
+              <button
+                key={index}
+                onClick={() => handleThumbnailClick(index)}
+                className={cn(
+                  "flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200",
+                  selectedIndex === index 
+                    ? "border-primary ring-2 ring-primary/30" 
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <img 
+                  src={image} 
+                  alt={`${plantName} - thumbnail ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </button>
             ))}
-          </CarouselContent>
-          <CarouselPrevious className="hidden sm:flex transition-all duration-200 hover:scale-110 hover:bg-green-100" />
-          <CarouselNext className="hidden sm:flex transition-all duration-200 hover:scale-110 hover:bg-green-100" />
-        </Carousel>
+          </div>
+        )}
       </div>
 
       {/* Lightbox Modal */}
