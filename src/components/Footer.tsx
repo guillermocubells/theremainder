@@ -36,7 +36,7 @@ const Footer = () => {
 
   const socialLinks = [
     { icon: Instagram, href: 'https://www.instagram.com/frondaprima/', label: 'Instagram' },
-    { icon: Mail, href: '#', label: 'Email' },
+    { icon: Mail, href: 'mailto:guillermocubells@gmail.com', label: 'Email' },
   ];
 
   return (
