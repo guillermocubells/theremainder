@@ -25,26 +25,34 @@ serve(async (req) => {
   try {
     const signature = req.headers.get("stripe-signature");
     const body = await req.text();
-    
-    // For now, we'll process without signature verification
-    // In production, you should set up STRIPE_WEBHOOK_SECRET and verify
-    let event: Stripe.Event;
-    
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-    if (webhookSecret && signature) {
-      try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      } catch (err) {
-        console.error("Webhook signature verification failed:", err);
-        return new Response(
-          JSON.stringify({ error: "Webhook signature verification failed" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-        );
-      }
-    } else {
-      // Parse without signature verification (development mode)
-      event = JSON.parse(body);
-      console.warn("Webhook signature not verified - development mode");
+    
+    // SECURITY: Require webhook signature verification
+    if (!webhookSecret) {
+      console.error("STRIPE_WEBHOOK_SECRET not configured - rejecting webhook");
+      return new Response(
+        JSON.stringify({ error: "Webhook secret not configured" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+    
+    if (!signature) {
+      console.error("Missing stripe-signature header");
+      return new Response(
+        JSON.stringify({ error: "Missing signature" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+    
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    } catch (err) {
+      console.error("Webhook signature verification failed:", err);
+      return new Response(
+        JSON.stringify({ error: "Webhook signature verification failed" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
     }
 
     console.log("Webhook event received:", event.type);
