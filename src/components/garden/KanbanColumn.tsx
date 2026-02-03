@@ -54,9 +54,8 @@ export const KanbanColumn = ({
   return (
     <div 
       className={cn(
-        "flex flex-col rounded-xl border bg-card transition-all min-w-[280px] md:min-w-0",
-        isDragOver && "ring-2 ring-primary ring-offset-2",
-        isCollapsedMobile && "md:flex-shrink-0"
+        "flex flex-col rounded-xl border bg-card transition-all h-full",
+        isDragOver && "ring-2 ring-primary ring-offset-2"
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
