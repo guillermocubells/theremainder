@@ -69,10 +69,10 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
-              {/* Collection module routes (legacy, redirect to garden) */}
+              {/* Legacy routes - redirect to unified garden */}
               <Route path="/collection" element={
                 <ProtectedRoute>
-                  <CollectionDashboard />
+                  <MyGarden />
                 </ProtectedRoute>
               } />
               <Route path="/collection/plant/:id" element={
@@ -86,10 +86,10 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
-              {/* Wishlist module routes */}
+              {/* Wishlist route - redirect to unified garden */}
               <Route path="/account/wishlist" element={
                 <ProtectedRoute>
-                  <WishlistDashboard />
+                  <MyGarden />
                 </ProtectedRoute>
               } />
               

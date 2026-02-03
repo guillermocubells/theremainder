@@ -12,9 +12,11 @@ import {
   User, 
   Shield, 
   Search,
+  Leaf,
   LogOut
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useGardenStats } from '@/hooks/garden';
 import AccountDashboard from '@/components/account/AccountDashboard';
 import AccountOrders from '@/components/account/AccountOrders';
 import AccountAddresses from '@/components/account/AccountAddresses';
@@ -30,9 +32,11 @@ const Account = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<string | null>(null);
+  const { data: gardenStats } = useGardenStats();
 
   const menuItems = [
     { id: 'dashboard', label: t('account.dashboard'), icon: LayoutDashboard },
+    { id: 'garden', label: 'Mi Jardín', icon: Leaf, badge: gardenStats?.total, href: '/garden' },
     { id: 'orders', label: t('account.orders'), icon: Package },
     { id: 'addresses', label: t('account.addresses'), icon: MapPin },
     { id: 'profile', label: t('account.profile'), icon: User },
@@ -88,22 +92,39 @@ const Account = () => {
     }
   };
 
+  const handleMenuClick = (item: typeof menuItems[0]) => {
+    if (item.href) {
+      navigate(item.href);
+    } else {
+      setActiveTab(item.id);
+    }
+  };
+
   const SidebarContent = () => (
     <div className="space-y-2">
       {menuItems.map((item) => {
         const Icon = item.icon;
+        const isActive = activeTab === item.id;
+        
         return (
           <button
             key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-              activeTab === item.id
+            onClick={() => handleMenuClick(item)}
+            className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
+              isActive
                 ? 'bg-secondary text-foreground font-medium'
                 : 'text-muted-foreground hover:bg-muted'
             }`}
           >
-            <Icon className="h-5 w-5" />
-            <span>{item.label}</span>
+            <div className="flex items-center gap-3">
+              <Icon className="h-5 w-5" />
+              <span>{item.label}</span>
+            </div>
+            {item.badge && item.badge > 0 && (
+              <span className="bg-primary/10 text-primary text-xs font-medium px-2 py-0.5 rounded-full">
+                {item.badge}
+              </span>
+            )}
           </button>
         );
       })}
