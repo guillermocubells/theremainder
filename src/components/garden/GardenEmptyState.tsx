@@ -23,13 +23,13 @@ const emptyStates: Record<GardenFilter, {
   searching: {
     icon: Search,
     title: 'No tienes plantas en búsqueda',
-    description: 'Explora el catálogo y añade a tu lista las especies que te gustaría conseguir. Te avisaremos cuando estén disponibles.',
+    description: 'Activa alertas en productos agotados del catálogo o añade plantas externas que quieras conseguir. Te avisaremos cuando estén disponibles.',
     action: 'search',
   },
   in_collection: {
     icon: Leaf,
     title: 'Tu colección está vacía',
-    description: 'Añade las plantas que ya tienes en casa para registrar su cuidado y evolución.',
+    description: 'Aquí aparecerán las plantas que compres en FrondaPrima automáticamente, o puedes añadir cualquier planta externa que ya tengas.',
     action: 'add',
   },
   archived: {
