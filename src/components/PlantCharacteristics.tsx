@@ -13,8 +13,8 @@ const PlantCharacteristics = ({ characteristics }: PlantCharacteristicsProps) =>
   return (
     <Card className="bg-card/80 backdrop-blur-sm border-border transition-all duration-300 hover:shadow-lg h-full">
       <CardHeader>
-        <CardTitle className="text-foreground">{t('characteristics.title')}</CardTitle>
-        <CardDescription>{t('characteristics.subtitle')}</CardDescription>
+        <CardTitle className="text-foreground text-lg sm:text-xl">{t('characteristics.title')}</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">{t('characteristics.subtitle')}</CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
         <ul className="space-y-2 sm:space-y-3">
