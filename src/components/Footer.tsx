@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Instagram, Mail, MessageCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -106,12 +107,12 @@ const Footer = () => {
                 <ul className="space-y-2.5">
                   {navigationLinks.map((link) => (
                     <li key={link.key}>
-                      <a
-                        href={link.href}
+                      <Link
+                        to={link.href}
                         className="text-[13px] text-primary-foreground/55 hover:text-primary-foreground/80 transition-colors duration-300"
                       >
                         {t(`footer.navigation.${link.key}`)}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -125,12 +126,12 @@ const Footer = () => {
                 <ul className="space-y-2.5">
                   {legalLinks.map((link) => (
                     <li key={link.key}>
-                      <a
-                        href={link.href}
+                      <Link
+                        to={link.href}
                         className="text-[13px] text-primary-foreground/55 hover:text-primary-foreground/80 transition-colors duration-300"
                       >
                         {t(`footer.legal.${link.key}`)}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -225,12 +226,12 @@ const Footer = () => {
                 <ul className="space-y-2.5">
                   {navigationLinks.map((link) => (
                     <li key={link.key}>
-                      <a
-                        href={link.href}
+                      <Link
+                        to={link.href}
                         className="text-[13px] text-primary-foreground/55 hover:text-primary-foreground/80 transition-colors duration-300 inline-block py-0.5"
                       >
                         {t(`footer.navigation.${link.key}`)}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -244,12 +245,12 @@ const Footer = () => {
                 <ul className="space-y-2.5">
                   {legalLinks.map((link) => (
                     <li key={link.key}>
-                      <a
-                        href={link.href}
+                      <Link
+                        to={link.href}
                         className="text-[13px] text-primary-foreground/55 hover:text-primary-foreground/80 transition-colors duration-300 inline-block py-0.5"
                       >
                         {t(`footer.legal.${link.key}`)}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -298,12 +299,12 @@ const Footer = () => {
               <ul className="space-y-3">
                 {navigationLinks.map((link) => (
                   <li key={link.key}>
-                    <a
-                      href={link.href}
+                    <Link
+                      to={link.href}
                       className="text-[13px] text-primary-foreground/55 hover:text-primary-foreground/80 transition-colors duration-300 leading-relaxed"
                     >
                       {t(`footer.navigation.${link.key}`)}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -317,12 +318,12 @@ const Footer = () => {
               <ul className="space-y-3">
                 {legalLinks.map((link) => (
                   <li key={link.key}>
-                    <a
-                      href={link.href}
+                    <Link
+                      to={link.href}
                       className="text-[13px] text-primary-foreground/55 hover:text-primary-foreground/80 transition-colors duration-300 leading-relaxed"
                     >
                       {t(`footer.legal.${link.key}`)}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
