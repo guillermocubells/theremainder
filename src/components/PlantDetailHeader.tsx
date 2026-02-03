@@ -98,10 +98,12 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
       <div className="flex flex-col space-y-4 flex-1">
         {/* Title row with favorite and external link button */}
         <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 flex items-center gap-3">
+          <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
               {plant.name}
             </h1>
+            {/* Common name - shown below title on mobile */}
+            <p className="text-base sm:hidden text-muted-foreground font-medium">{plant.commonName}</p>
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <Button
@@ -110,7 +112,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
                   onClick={handleFavoriteClick}
                   disabled={isToggling}
                   className={cn(
-                    "h-10 w-10 rounded-full transition-colors",
+                    "h-10 w-10 rounded-full transition-colors hidden sm:flex",
                     isFavorite 
                       ? "text-destructive hover:text-destructive/80" 
                       : "text-muted-foreground hover:text-destructive"
@@ -126,6 +128,23 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               </TooltipContent>
             </Tooltip>
           </div>
+          {/* Mobile favorite button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleFavoriteClick}
+            disabled={isToggling}
+            className={cn(
+              "h-9 w-9 rounded-full transition-colors sm:hidden flex-shrink-0",
+              isFavorite 
+                ? "text-destructive hover:text-destructive/80" 
+                : "text-muted-foreground hover:text-destructive"
+            )}
+          >
+            <Heart 
+              className={cn("h-5 w-5", isFavorite && "fill-current")} 
+            />
+          </Button>
           <Button 
             asChild
             variant="outline" 
@@ -145,13 +164,18 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           </Button>
         </div>
 
-        {/* Variety and common name */}
-        <div>
+        {/* Variety and common name - desktop only (mobile shown inline above) */}
+        <div className="hidden sm:block">
           {plant.variety && (
             <p className="text-base sm:text-lg font-medium text-primary mb-1">{plant.variety}</p>
           )}
           <p className="text-lg sm:text-xl text-muted-foreground font-medium">{plant.commonName}</p>
         </div>
+        
+        {/* Variety - mobile only (common name already shown above) */}
+        {plant.variety && (
+          <p className="text-base font-medium text-primary sm:hidden">{plant.variety}</p>
+        )}
 
         {/* Tags - now responsive */}
         <div className="flex flex-wrap gap-2 sm:gap-3">
