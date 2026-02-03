@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
-import { ExternalLink, Thermometer, ChevronDown } from "lucide-react";
+import { ExternalLink, Thermometer, ChevronDown, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatHardinessZones, getZoneCountLabel } from "@/utils/hardinessZones";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AddToCartButton from "./AddToCartButton";
 import StockNotificationButton from "./StockNotificationButton";
+import { useCatalogFavorite } from "@/hooks/wishlist";
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 interface Plant {
   id: string;
@@ -36,13 +40,30 @@ interface PlantDetailHeaderProps {
 
 const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const lightInfo = getLightInfo(plant.light);
   const growthInfo = getGrowthInfo(plant.growthRate);
   const LightIcon = lightInfo.icon;
   const GrowthIcon = growthInfo.icon;
+  
+  const { isFavorite, isToggling, toggleFavorite } = useCatalogFavorite(plant.id);
 
   const totalPrice = plant.price !== undefined ? plant.price * selectedQuantity : undefined;
+
+  const handleFavoriteClick = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    toggleFavorite({
+      name: plant.name,
+      scientificName: plant.commonName,
+      imageUrl: plant.images?.[0],
+      price: plant.price,
+    });
+  };
 
   const getLightTooltip = (light: string) => {
     switch (light.toLowerCase()) {
@@ -75,12 +96,35 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
   return (
     <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-border h-full w-full flex flex-col">
       <div className="flex flex-col space-y-4 flex-1">
-        {/* Title row with external link button */}
+        {/* Title row with favorite and external link button */}
         <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 flex items-center">
+          <div className="flex-1 flex items-center gap-3">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
               {plant.name}
             </h1>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleFavoriteClick}
+                  disabled={isToggling}
+                  className={cn(
+                    "h-10 w-10 rounded-full transition-colors",
+                    isFavorite 
+                      ? "text-destructive hover:text-destructive/80" 
+                      : "text-muted-foreground hover:text-destructive"
+                  )}
+                >
+                  <Heart 
+                    className={cn("h-6 w-6", isFavorite && "fill-current")} 
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {isFavorite ? 'Quitar de favoritos' : 'Añadir a Mi Jardín'}
+              </TooltipContent>
+            </Tooltip>
           </div>
           <Button 
             asChild
