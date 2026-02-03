@@ -166,78 +166,227 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_records: {
+        Row: {
+          base_imponible: number
+          created_at: string
+          currency: string
+          current_hash: string
+          id: string
+          invoice_id: string
+          invoice_number: string
+          invoice_type: Database["public"]["Enums"]["invoice_type"]
+          issue_date: string
+          issuer_name: string | null
+          issuer_nif: string | null
+          previous_hash: string | null
+          receiver_name: string | null
+          receiver_nif: string | null
+          record_sequence: number
+          tax_amount: number
+          tax_rate: number
+          total_amount: number
+        }
+        Insert: {
+          base_imponible: number
+          created_at?: string
+          currency?: string
+          current_hash: string
+          id?: string
+          invoice_id: string
+          invoice_number: string
+          invoice_type: Database["public"]["Enums"]["invoice_type"]
+          issue_date: string
+          issuer_name?: string | null
+          issuer_nif?: string | null
+          previous_hash?: string | null
+          receiver_name?: string | null
+          receiver_nif?: string | null
+          record_sequence: number
+          tax_amount: number
+          tax_rate: number
+          total_amount: number
+        }
+        Update: {
+          base_imponible?: number
+          created_at?: string
+          currency?: string
+          current_hash?: string
+          id?: string
+          invoice_id?: string
+          invoice_number?: string
+          invoice_type?: Database["public"]["Enums"]["invoice_type"]
+          issue_date?: string
+          issuer_name?: string | null
+          issuer_nif?: string | null
+          previous_hash?: string | null
+          receiver_name?: string | null
+          receiver_nif?: string | null
+          record_sequence?: number
+          tax_amount?: number
+          tax_rate?: number
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_records_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_series: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          next_number: number
+          prefix: string
+          series_type: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          next_number?: number
+          prefix: string
+          series_type: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          next_number?: number
+          prefix?: string
+          series_type?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
+          base_imponible: number | null
           buyer_address: Json | null
           buyer_email: string | null
+          buyer_legal_name: string | null
           buyer_name: string
+          buyer_tax_id: string | null
           cancelled_at: string | null
           created_at: string
           currency: string
+          customer_type: Database["public"]["Enums"]["customer_type"] | null
           id: string
           invoice_number: string
+          invoice_type: Database["public"]["Enums"]["invoice_type"] | null
           issued_at: string
           items: Json
           order_id: string
+          pdf_path: string | null
+          rectification_reason: string | null
+          rectifies_invoice_id: string | null
+          rectifies_invoice_number: string | null
           refund_amount: number | null
           seller_address: string | null
           seller_email: string | null
           seller_name: string
           seller_tax_id: string | null
+          series_id: string | null
           shipping_cost: number
+          snapshot_hash: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           stripe_payment_intent_id: string | null
           subtotal: number
+          tax_amount: number | null
+          tax_rate: number | null
           total_amount: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          base_imponible?: number | null
           buyer_address?: Json | null
           buyer_email?: string | null
+          buyer_legal_name?: string | null
           buyer_name: string
+          buyer_tax_id?: string | null
           cancelled_at?: string | null
           created_at?: string
           currency?: string
+          customer_type?: Database["public"]["Enums"]["customer_type"] | null
           id?: string
           invoice_number: string
+          invoice_type?: Database["public"]["Enums"]["invoice_type"] | null
           issued_at?: string
           items?: Json
           order_id: string
+          pdf_path?: string | null
+          rectification_reason?: string | null
+          rectifies_invoice_id?: string | null
+          rectifies_invoice_number?: string | null
           refund_amount?: number | null
           seller_address?: string | null
           seller_email?: string | null
           seller_name: string
           seller_tax_id?: string | null
+          series_id?: string | null
           shipping_cost?: number
+          snapshot_hash?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           stripe_payment_intent_id?: string | null
           subtotal?: number
+          tax_amount?: number | null
+          tax_rate?: number | null
           total_amount?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          base_imponible?: number | null
           buyer_address?: Json | null
           buyer_email?: string | null
+          buyer_legal_name?: string | null
           buyer_name?: string
+          buyer_tax_id?: string | null
           cancelled_at?: string | null
           created_at?: string
           currency?: string
+          customer_type?: Database["public"]["Enums"]["customer_type"] | null
           id?: string
           invoice_number?: string
+          invoice_type?: Database["public"]["Enums"]["invoice_type"] | null
           issued_at?: string
           items?: Json
           order_id?: string
+          pdf_path?: string | null
+          rectification_reason?: string | null
+          rectifies_invoice_id?: string | null
+          rectifies_invoice_number?: string | null
           refund_amount?: number | null
           seller_address?: string | null
           seller_email?: string | null
           seller_name?: string
           seller_tax_id?: string | null
+          series_id?: string | null
           shipping_cost?: number
+          snapshot_hash?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           stripe_payment_intent_id?: string | null
           subtotal?: number
+          tax_amount?: number | null
+          tax_rate?: number | null
           total_amount?: number
           updated_at?: string
           user_id?: string
@@ -248,6 +397,20 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_rectifies_invoice_id_fkey"
+            columns: ["rectifies_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_series"
             referencedColumns: ["id"]
           },
         ]
@@ -326,6 +489,7 @@ export type Database = {
       orders: {
         Row: {
           created_at: string
+          customer_type: Database["public"]["Enums"]["customer_type"] | null
           id: string
           invoice_id: string | null
           notes: string | null
@@ -346,6 +510,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          customer_type?: Database["public"]["Enums"]["customer_type"] | null
           id?: string
           invoice_id?: string | null
           notes?: string | null
@@ -366,6 +531,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          customer_type?: Database["public"]["Enums"]["customer_type"] | null
           id?: string
           invoice_id?: string | null
           notes?: string | null
@@ -1174,15 +1340,42 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_invoice_hash: {
+        Args: {
+          p_invoice_number: string
+          p_issue_date: string
+          p_issuer_nif: string
+          p_previous_hash: string
+          p_total: number
+        }
+        Returns: string
+      }
       create_invoice_from_order: {
         Args: { p_order_id: string }
         Returns: string
       }
+      create_invoice_record: { Args: { p_invoice_id: string }; Returns: string }
       create_owned_plants_from_order: {
         Args: { p_order_id: string; p_user_id: string }
         Returns: number
       }
+      create_spanish_invoice_from_order: {
+        Args: {
+          p_invoice_type?: Database["public"]["Enums"]["invoice_type"]
+          p_order_id: string
+          p_rectification_reason?: string
+          p_rectifies_invoice_id?: string
+        }
+        Returns: string
+      }
       generate_invoice_number: { Args: never; Returns: string }
+      generate_invoice_number_from_series: {
+        Args: { p_series_type: string }
+        Returns: {
+          invoice_number: string
+          series_id: string
+        }[]
+      }
       generate_order_number: { Args: never; Returns: string }
       generate_plant_serial_code: { Args: never; Returns: string }
       generate_plant_slug: { Args: never; Returns: string }
@@ -1214,6 +1407,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      customer_type: "b2c" | "b2b"
       difficulty_level: "easy" | "intermediate" | "advanced"
       email_frequency: "instant" | "daily" | "weekly"
       growth_speed: "slow" | "medium" | "fast"
@@ -1224,6 +1418,7 @@ export type Database = {
         | "refunded"
         | "partially_refunded"
         | "void"
+      invoice_type: "standard" | "rectificativa"
       notification_type: "available" | "price_drop" | "similar"
       observation_condition: "healthy" | "okay" | "concern" | "critical"
       order_status:
@@ -1370,6 +1565,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      customer_type: ["b2c", "b2b"],
       difficulty_level: ["easy", "intermediate", "advanced"],
       email_frequency: ["instant", "daily", "weekly"],
       growth_speed: ["slow", "medium", "fast"],
@@ -1381,6 +1577,7 @@ export const Constants = {
         "partially_refunded",
         "void",
       ],
+      invoice_type: ["standard", "rectificativa"],
       notification_type: ["available", "price_drop", "similar"],
       observation_condition: ["healthy", "okay", "concern", "critical"],
       order_status: [

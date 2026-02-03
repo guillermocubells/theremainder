@@ -95,6 +95,25 @@ serve(async (req) => {
 });
 
 /**
+ * Detect customer type (B2C/B2B) from metadata and shipping address
+ */
+function detectCustomerType(
+  metadata: Record<string, string>,
+  shippingAddress: Record<string, string>
+): { customerType: "b2c" | "b2b"; buyerTaxId: string | null; buyerLegalName: string | null } {
+  // Check metadata first (preferred)
+  const buyerTaxId = metadata.buyer_tax_id || shippingAddress.tax_id || null;
+  const buyerLegalName = metadata.buyer_legal_name || shippingAddress.legal_name || null;
+  
+  // B2B if both tax_id and legal_name exist
+  const customerType = (buyerTaxId && buyerLegalName) ? "b2b" : "b2c";
+  
+  log("Customer type detected", { customerType, hasTaxId: !!buyerTaxId, hasLegalName: !!buyerLegalName });
+  
+  return { customerType, buyerTaxId, buyerLegalName };
+}
+
+/**
  * Handle checkout.session.completed event
  * This is the primary event for Embedded Checkout flow
  */
@@ -139,17 +158,23 @@ async function handleCheckoutCompleted(
 
   // Get shipping details
   const shippingDetails = session.shipping_details || session.customer_details;
-  const shippingAddress = {
+  const shippingAddress: Record<string, string> = {
     email: session.customer_details?.email || "",
-    fullName: shippingDetails?.name || "",
+    full_name: shippingDetails?.name || "",
     phone: session.customer_details?.phone || "",
     street: shippingDetails?.address?.line1 || "",
     apartment: shippingDetails?.address?.line2 || "",
-    postalCode: shippingDetails?.address?.postal_code || "",
+    postal_code: shippingDetails?.address?.postal_code || "",
     city: shippingDetails?.address?.city || "",
     province: shippingDetails?.address?.state || "",
     country: shippingDetails?.address?.country || "",
+    // B2B fields from metadata
+    tax_id: metadata.buyer_tax_id || "",
+    legal_name: metadata.buyer_legal_name || "",
   };
+
+  // Detect B2C vs B2B
+  const { customerType, buyerTaxId, buyerLegalName } = detectCustomerType(metadata, shippingAddress);
 
   // Generate order number
   const { data: orderNumberData } = await supabase.rpc("generate_order_number");
@@ -157,6 +182,7 @@ async function handleCheckoutCompleted(
 
   let orderId: string | null = null;
   let plantsCreated = 0;
+  let invoiceId: string | null = null;
 
   // Create order for authenticated users
   if (userId && userId !== "guest") {
@@ -172,6 +198,7 @@ async function handleCheckoutCompleted(
         stripe_payment_intent_id: paymentIntentId,
         stripe_customer_id: session.customer as string || null,
         stripe_checkout_session_id: session.id,
+        customer_type: customerType,
       })
       .select()
       .single();
@@ -181,7 +208,7 @@ async function handleCheckoutCompleted(
       throw orderError;
     }
 
-    log("Order created", { orderId: order.id, orderNumber });
+    log("Order created", { orderId: order.id, orderNumber, customerType });
     orderId = order.id;
 
     // Create order items
@@ -194,6 +221,28 @@ async function handleCheckoutCompleted(
         unit_price: item.price / 100,
         product_image: item.image || null,
       });
+    }
+
+    // Create Spanish invoice (B2C or B2B series based on customer_type)
+    try {
+      const { data: invoiceData, error: invoiceError } = await supabase.rpc(
+        "create_spanish_invoice_from_order",
+        {
+          p_order_id: order.id,
+          p_invoice_type: "standard",
+          p_rectifies_invoice_id: null,
+          p_rectification_reason: null,
+        }
+      );
+
+      if (invoiceError) {
+        log("Error creating Spanish invoice", { error: invoiceError.message });
+      } else {
+        invoiceId = invoiceData;
+        log("Spanish invoice created", { invoiceId, customerType });
+      }
+    } catch (err) {
+      log("Error creating Spanish invoice", { error: String(err) });
     }
 
     // Create owned plants from order
@@ -226,6 +275,7 @@ async function handleCheckoutCompleted(
       sessionId: session.id,
       email: shippingAddress.email,
       total: totalCents / 100,
+      customerType,
     });
   }
 
@@ -234,6 +284,8 @@ async function handleCheckoutCompleted(
       received: true,
       orderId,
       orderNumber,
+      invoiceId,
+      customerType,
       plantsCreated,
       isGuest: !userId || userId === "guest",
     }),
@@ -256,7 +308,7 @@ async function handlePaymentIntentSucceeded(
   // Check if order exists and update if needed
   const { data: existingOrder } = await supabase
     .from("orders")
-    .select("id, status, stripe_payment_intent_id")
+    .select("id, status, stripe_payment_intent_id, invoice_id")
     .eq("stripe_payment_intent_id", paymentIntent.id)
     .maybeSingle();
 
@@ -272,6 +324,24 @@ async function handlePaymentIntentSucceeded(
         .eq("id", existingOrder.id);
 
       log("Order updated to paid", { orderId: existingOrder.id });
+
+      // Create invoice if doesn't exist yet
+      if (!existingOrder.invoice_id) {
+        try {
+          const { data: invoiceId } = await supabase.rpc(
+            "create_spanish_invoice_from_order",
+            {
+              p_order_id: existingOrder.id,
+              p_invoice_type: "standard",
+              p_rectifies_invoice_id: null,
+              p_rectification_reason: null,
+            }
+          );
+          log("Spanish invoice created on payment_intent.succeeded", { invoiceId });
+        } catch (err) {
+          log("Error creating invoice", { error: String(err) });
+        }
+      }
     }
 
     return new Response(
@@ -291,7 +361,7 @@ async function handlePaymentIntentSucceeded(
 
 /**
  * Handle payment_intent.payment_failed event
- * Mark order as failed
+ * Mark order as failed - NO invoice is created
  */
 async function handlePaymentIntentFailed(
   event: Stripe.Event,
@@ -330,7 +400,7 @@ async function handlePaymentIntentFailed(
 
 /**
  * Handle charge.refunded event
- * Update order and invoice status based on refund amount
+ * Create RECTIFICATIVA invoice and update order/invoice status
  */
 async function handleChargeRefunded(
   event: Stripe.Event,
@@ -378,7 +448,7 @@ async function handleChargeRefunded(
 
   log("Order refund status updated", { orderId: order.id, status: newStatus, refundAmount: amountRefunded });
 
-  // Update invoice if exists
+  // Update original invoice status
   if (order.invoice_id) {
     const invoiceStatus = isFullRefund ? "refunded" : "partially_refunded";
 
@@ -391,7 +461,36 @@ async function handleChargeRefunded(
       })
       .eq("id", order.invoice_id);
 
-    log("Invoice status updated", { invoiceId: order.invoice_id, status: invoiceStatus });
+    log("Original invoice status updated", { invoiceId: order.invoice_id, status: invoiceStatus });
+
+    // Create RECTIFICATIVA invoice
+    try {
+      const rectificationReason = isFullRefund 
+        ? "Devolución total del pedido" 
+        : `Devolución parcial: ${amountRefunded.toFixed(2)} EUR`;
+
+      const { data: rectificativaId, error: rectError } = await supabase.rpc(
+        "create_spanish_invoice_from_order",
+        {
+          p_order_id: order.id,
+          p_invoice_type: "rectificativa",
+          p_rectifies_invoice_id: order.invoice_id,
+          p_rectification_reason: rectificationReason,
+        }
+      );
+
+      if (rectError) {
+        log("Error creating rectificativa", { error: rectError.message });
+      } else {
+        log("Rectificativa created", { 
+          rectificativaId, 
+          rectifiesInvoice: order.invoice_id,
+          reason: rectificationReason 
+        });
+      }
+    } catch (err) {
+      log("Error creating rectificativa", { error: String(err) });
+    }
   }
 
   return new Response(
@@ -400,6 +499,7 @@ async function handleChargeRefunded(
       orderId: order.id,
       action: newStatus,
       refundAmount: amountRefunded,
+      rectificativaCreated: !!order.invoice_id,
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
   );
