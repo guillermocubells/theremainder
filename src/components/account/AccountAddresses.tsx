@@ -7,8 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { MapPin, Plus, Edit2, Trash2, Loader2, Star } from 'lucide-react';
+import { MapPin, Plus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import AddressCard from './AddressCard';
+import ActiveGardenSelector from './ActiveGardenSelector';
+import GardenProfileForm, { GardenProfileData } from './GardenProfileForm';
 
 const emptyAddress: AddressInput = {
   full_name: '',
@@ -20,6 +23,20 @@ const emptyAddress: AddressInput = {
   country: 'España',
   phone: '',
   is_default: false,
+  // Garden profile fields
+  is_garden_location: false,
+  climate_zone: null,
+  avg_annual_rainfall_mm: null,
+  sun_exposure: null,
+  soil_type: null,
+  drainage: null,
+  wind_exposure: null,
+  altitude_m: null,
+  min_winter_temp_c: null,
+  humidity_level: null,
+  frost_frequency: null,
+  soil_ph: null,
+  garden_notes: null,
 };
 
 const AccountAddresses = () => {
@@ -47,6 +64,20 @@ const AccountAddresses = () => {
         country: address.country,
         phone: address.phone || '',
         is_default: address.is_default,
+        // Garden profile fields
+        is_garden_location: address.is_garden_location,
+        climate_zone: address.climate_zone,
+        avg_annual_rainfall_mm: address.avg_annual_rainfall_mm,
+        sun_exposure: address.sun_exposure,
+        soil_type: address.soil_type,
+        drainage: address.drainage,
+        wind_exposure: address.wind_exposure,
+        altitude_m: address.altitude_m,
+        min_winter_temp_c: address.min_winter_temp_c,
+        humidity_level: address.humidity_level,
+        frost_frequency: address.frost_frequency,
+        soil_ph: address.soil_ph,
+        garden_notes: address.garden_notes,
       });
     } else {
       setEditingAddress(null);
@@ -99,10 +130,17 @@ const AccountAddresses = () => {
     }
   };
 
+  const handleGardenProfileChange = (gardenData: GardenProfileData) => {
+    setFormData(prev => ({
+      ...prev,
+      ...gardenData,
+    }));
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -111,89 +149,42 @@ const AccountAddresses = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Mis direcciones</h1>
-          <p className="text-gray-600 mt-1">Gestiona tus direcciones de envío</p>
+          <h1 className="text-2xl font-bold text-foreground">Mis direcciones</h1>
+          <p className="text-muted-foreground mt-1">Gestiona tus direcciones de envío y jardines</p>
         </div>
-        <Button onClick={() => handleOpenModal()} className="bg-green-600 hover:bg-green-700">
+        <Button onClick={() => handleOpenModal()} className="bg-primary hover:bg-primary/90">
           <Plus className="h-4 w-4 mr-2" />
           Añadir dirección
         </Button>
       </div>
 
+      {/* Active Garden Selector */}
+      <ActiveGardenSelector />
+
       {addresses && addresses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {addresses.map((address) => (
-            <Card key={address.id} className={address.is_default ? 'ring-2 ring-green-500' : ''}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-green-600 mt-1" />
-                    <div>
-                      {address.is_default && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full mb-2">
-                          <Star className="h-3 w-3" />
-                          Principal
-                        </span>
-                      )}
-                      <p className="font-medium text-gray-800">{address.full_name}</p>
-                      <p className="text-sm text-gray-600">{address.street}</p>
-                      {address.apartment && (
-                        <p className="text-sm text-gray-600">{address.apartment}</p>
-                      )}
-                      <p className="text-sm text-gray-600">
-                        {address.postal_code} {address.city}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {address.province}, {address.country}
-                      </p>
-                      {address.phone && (
-                        <p className="text-sm text-gray-500 mt-1">{address.phone}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleOpenModal(address)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        setAddressToDelete(address.id);
-                        setDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                </div>
-                {!address.is_default && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3 w-full"
-                    onClick={() => handleSetDefault(address)}
-                  >
-                    Establecer como principal
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+            <AddressCard
+              key={address.id}
+              address={address}
+              onEdit={handleOpenModal}
+              onDelete={(id) => {
+                setAddressToDelete(id);
+                setDeleteDialogOpen(true);
+              }}
+              onSetDefault={handleSetDefault}
+            />
           ))}
         </div>
       ) : (
         <Card>
           <CardContent className="p-8 text-center">
-            <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-800 mb-2">Sin direcciones</h3>
-            <p className="text-gray-500 mb-4">
-              Añade una dirección para agilizar tus compras
+            <MapPin className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">Sin direcciones</h3>
+            <p className="text-muted-foreground mb-4">
+              Añade una dirección para agilizar tus compras y configurar tu jardín
             </p>
-            <Button onClick={() => handleOpenModal()} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={() => handleOpenModal()} className="bg-primary hover:bg-primary/90">
               <Plus className="h-4 w-4 mr-2" />
               Añadir dirección
             </Button>
@@ -203,7 +194,7 @@ const AccountAddresses = () => {
 
       {/* Address form modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingAddress ? 'Editar dirección' : 'Nueva dirección'}
@@ -302,13 +293,33 @@ const AccountAddresses = () => {
               </Label>
             </div>
 
-            <DialogFooter>
+            {/* Garden Profile Section */}
+            <GardenProfileForm
+              data={{
+                is_garden_location: formData.is_garden_location,
+                climate_zone: formData.climate_zone,
+                avg_annual_rainfall_mm: formData.avg_annual_rainfall_mm,
+                sun_exposure: formData.sun_exposure,
+                soil_type: formData.soil_type,
+                drainage: formData.drainage,
+                wind_exposure: formData.wind_exposure,
+                altitude_m: formData.altitude_m,
+                min_winter_temp_c: formData.min_winter_temp_c,
+                humidity_level: formData.humidity_level,
+                frost_frequency: formData.frost_frequency,
+                soil_ph: formData.soil_ph,
+                garden_notes: formData.garden_notes,
+              }}
+              onChange={handleGardenProfileChange}
+            />
+
+            <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                 Cancelar
               </Button>
               <Button 
                 type="submit" 
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-primary hover:bg-primary/90"
                 disabled={createAddress.isPending || updateAddress.isPending}
               >
                 {(createAddress.isPending || updateAddress.isPending) ? (
@@ -337,7 +348,7 @@ const AccountAddresses = () => {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
             >
               Eliminar
             </AlertDialogAction>

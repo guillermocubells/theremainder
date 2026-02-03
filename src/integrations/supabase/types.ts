@@ -14,51 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
-      addresses: {
+      active_garden_addresses: {
         Row: {
-          apartment: string | null
-          city: string
-          country: string
+          address_id: string
           created_at: string
-          full_name: string
           id: string
-          is_default: boolean
-          phone: string | null
-          postal_code: string
-          province: string
-          street: string
-          updated_at: string
           user_id: string
         }
         Insert: {
-          apartment?: string | null
-          city: string
-          country?: string
+          address_id: string
           created_at?: string
-          full_name: string
           id?: string
-          is_default?: boolean
-          phone?: string | null
-          postal_code: string
-          province: string
-          street: string
-          updated_at?: string
           user_id: string
         }
         Update: {
+          address_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "active_garden_addresses_address_id_fkey"
+            columns: ["address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      addresses: {
+        Row: {
+          altitude_m: number | null
+          apartment: string | null
+          avg_annual_rainfall_mm: number | null
+          city: string
+          climate_zone: string | null
+          country: string
+          created_at: string
+          drainage: string | null
+          frost_frequency: string | null
+          full_name: string
+          garden_notes: string | null
+          humidity_level: string | null
+          id: string
+          is_default: boolean
+          is_garden_location: boolean
+          min_winter_temp_c: number | null
+          phone: string | null
+          postal_code: string
+          province: string
+          soil_ph: string | null
+          soil_type: string | null
+          street: string
+          sun_exposure: string | null
+          updated_at: string
+          user_id: string
+          wind_exposure: string | null
+        }
+        Insert: {
+          altitude_m?: number | null
           apartment?: string | null
-          city?: string
+          avg_annual_rainfall_mm?: number | null
+          city: string
+          climate_zone?: string | null
           country?: string
           created_at?: string
-          full_name?: string
+          drainage?: string | null
+          frost_frequency?: string | null
+          full_name: string
+          garden_notes?: string | null
+          humidity_level?: string | null
           id?: string
           is_default?: boolean
+          is_garden_location?: boolean
+          min_winter_temp_c?: number | null
+          phone?: string | null
+          postal_code: string
+          province: string
+          soil_ph?: string | null
+          soil_type?: string | null
+          street: string
+          sun_exposure?: string | null
+          updated_at?: string
+          user_id: string
+          wind_exposure?: string | null
+        }
+        Update: {
+          altitude_m?: number | null
+          apartment?: string | null
+          avg_annual_rainfall_mm?: number | null
+          city?: string
+          climate_zone?: string | null
+          country?: string
+          created_at?: string
+          drainage?: string | null
+          frost_frequency?: string | null
+          full_name?: string
+          garden_notes?: string | null
+          humidity_level?: string | null
+          id?: string
+          is_default?: boolean
+          is_garden_location?: boolean
+          min_winter_temp_c?: number | null
           phone?: string | null
           postal_code?: string
           province?: string
+          soil_ph?: string | null
+          soil_type?: string | null
           street?: string
+          sun_exposure?: string | null
           updated_at?: string
           user_id?: string
+          wind_exposure?: string | null
         }
         Relationships: []
       }
