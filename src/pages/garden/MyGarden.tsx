@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useMyGarden, useGardenStats, GardenFilter } from '@/hooks/garden';
+import { useMyGarden, useGardenStats } from '@/hooks/garden';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { PlantItemCard, GardenEmptyState, GardenFilters } from '@/components/garden';
+import { GardenKanban, GardenEmptyState } from '@/components/garden';
 import AddPlantDialog from '@/components/collection/AddPlantDialog';
 import { AddWishlistItemDialog } from '@/components/wishlist';
 import { Button } from '@/components/ui/button';
@@ -14,21 +14,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const MyGarden = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [filter, setFilter] = useState<GardenFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [addPlantOpen, setAddPlantOpen] = useState(false);
   const [addWishlistOpen, setAddWishlistOpen] = useState(false);
 
-  const { data: plants, isLoading } = useMyGarden({ filter, search: searchQuery });
+  const { data: plants, isLoading } = useMyGarden({ filter: 'all', search: searchQuery });
   const { data: stats } = useGardenStats();
-
-  const handleAddPlant = () => {
-    if (filter === 'searching') {
-      setAddWishlistOpen(true);
-    } else {
-      setAddPlantOpen(true);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -53,55 +44,48 @@ const MyGarden = () => {
             <div>
               <h1 className="text-xl font-bold text-foreground">Mi Jardín</h1>
               <p className="text-sm text-muted-foreground">
-                {stats?.total || 0} plantas
+                {stats?.total || 0} plantas en total
               </p>
             </div>
           </div>
-          <Button size="icon" onClick={handleAddPlant}>
-            <Plus className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setAddWishlistOpen(true)}
+              className="hidden sm:flex"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Buscar planta
+            </Button>
+            <Button size="icon" onClick={() => setAddPlantOpen(true)}>
+              <Plus className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Search */}
-        <div className="relative mb-4">
+        <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Buscar plantas..."
+            placeholder="Buscar en tu jardín..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
 
-        {/* Filters */}
-        <div className="mb-6">
-          <GardenFilters
-            activeFilter={filter}
-            onChange={setFilter}
-            stats={{
-              searching: stats?.searching || 0,
-              inCollection: stats?.inCollection || 0,
-              archived: stats?.archived || 0,
-              total: stats?.total || 0,
-            }}
-          />
-        </div>
-
-        {/* Content */}
+        {/* Content - Kanban Board */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : plants && plants.length > 0 ? (
-          <div className="space-y-3">
-            {plants.map((plant) => (
-              <PlantItemCard key={plant.id} item={plant} />
-            ))}
-          </div>
+          <GardenKanban items={plants} />
         ) : (
           <GardenEmptyState
-            filter={filter}
+            filter="all"
             onAddPlant={() => setAddPlantOpen(true)}
             onSearchCatalog={() => navigate('/')}
           />
