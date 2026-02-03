@@ -494,6 +494,8 @@ export type Database = {
           invoice_id: string | null
           notes: string | null
           order_number: string
+          referral_code_used: string | null
+          referrer_user_id: string | null
           refund_amount: number | null
           refund_id: string | null
           shipping_address: Json
@@ -507,6 +509,7 @@ export type Database = {
           tracking_url: string | null
           updated_at: string
           user_id: string
+          wallet_amount_used: number | null
         }
         Insert: {
           created_at?: string
@@ -515,6 +518,8 @@ export type Database = {
           invoice_id?: string | null
           notes?: string | null
           order_number: string
+          referral_code_used?: string | null
+          referrer_user_id?: string | null
           refund_amount?: number | null
           refund_id?: string | null
           shipping_address: Json
@@ -528,6 +533,7 @@ export type Database = {
           tracking_url?: string | null
           updated_at?: string
           user_id: string
+          wallet_amount_used?: number | null
         }
         Update: {
           created_at?: string
@@ -536,6 +542,8 @@ export type Database = {
           invoice_id?: string | null
           notes?: string | null
           order_number?: string
+          referral_code_used?: string | null
+          referrer_user_id?: string | null
           refund_amount?: number | null
           refund_id?: string | null
           shipping_address?: Json
@@ -549,6 +557,7 @@ export type Database = {
           tracking_url?: string | null
           updated_at?: string
           user_id?: string
+          wallet_amount_used?: number | null
         }
         Relationships: [
           {
@@ -976,6 +985,8 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
+          referral_code_used: string | null
+          referred_by_user_id: string | null
           updated_at: string
           user_id: string
         }
@@ -985,6 +996,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          referral_code_used?: string | null
+          referred_by_user_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -994,8 +1007,133 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          referral_code_used?: string | null
+          referred_by_user_id?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          cap_applied: boolean
+          created_at: string
+          currency: string
+          id: string
+          matured_at: string | null
+          matures_at: string | null
+          order_id: string
+          payment_confirmed_at: string | null
+          product_subtotal: number
+          referred_user_id: string
+          referrer_user_id: string
+          reversal_reason: string | null
+          reversed_at: string | null
+          reward_amount: number
+          reward_percentage: number
+          status: Database["public"]["Enums"]["referral_reward_status"]
+          updated_at: string
+          wallet_transaction_id: string | null
+        }
+        Insert: {
+          cap_applied?: boolean
+          created_at?: string
+          currency?: string
+          id?: string
+          matured_at?: string | null
+          matures_at?: string | null
+          order_id: string
+          payment_confirmed_at?: string | null
+          product_subtotal: number
+          referred_user_id: string
+          referrer_user_id: string
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reward_amount: number
+          reward_percentage?: number
+          status?: Database["public"]["Enums"]["referral_reward_status"]
+          updated_at?: string
+          wallet_transaction_id?: string | null
+        }
+        Update: {
+          cap_applied?: boolean
+          created_at?: string
+          currency?: string
+          id?: string
+          matured_at?: string | null
+          matures_at?: string | null
+          order_id?: string
+          payment_confirmed_at?: string | null
+          product_subtotal?: number
+          referred_user_id?: string
+          referrer_user_id?: string
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reward_amount?: number
+          reward_percentage?: number
+          status?: Database["public"]["Enums"]["referral_reward_status"]
+          updated_at?: string
+          wallet_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_rewards_wallet_transaction_id_fkey"
+            columns: ["wallet_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
         }
         Relationships: []
       }
@@ -1172,6 +1310,83 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          source: Database["public"]["Enums"]["wallet_transaction_source"]
+          type: Database["public"]["Enums"]["wallet_transaction_type"]
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          source: Database["public"]["Enums"]["wallet_transaction_source"]
+          type: Database["public"]["Enums"]["wallet_transaction_type"]
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          source?: Database["public"]["Enums"]["wallet_transaction_source"]
+          type?: Database["public"]["Enums"]["wallet_transaction_type"]
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          available_balance: number
+          created_at: string
+          currency: string
+          id: string
+          pending_balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          pending_balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          pending_balance?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -1379,6 +1594,8 @@ export type Database = {
       generate_order_number: { Args: never; Returns: string }
       generate_plant_serial_code: { Args: never; Returns: string }
       generate_plant_slug: { Args: never; Returns: string }
+      generate_referral_code: { Args: never; Returns: string }
+      get_referral_setting: { Args: { setting_key: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1403,6 +1620,7 @@ export type Database = {
         Args: { p_order_id: string; p_user_id: string }
         Returns: number
       }
+      mature_pending_rewards: { Args: never; Returns: number }
       owns_plant: { Args: { plant_id: string }; Returns: boolean }
     }
     Enums: {
@@ -1433,6 +1651,18 @@ export type Database = {
       plant_status: "alive" | "dormant" | "sick" | "removed"
       plant_type: "palm" | "fern" | "tree" | "cycad" | "shrub" | "other"
       rarity_level: "low" | "medium" | "high"
+      referral_reward_status:
+        | "pending"
+        | "available"
+        | "used"
+        | "reversed"
+        | "expired"
+      wallet_transaction_source:
+        | "referral_reward"
+        | "order_discount"
+        | "admin_adjustment"
+        | "reward_matured"
+      wallet_transaction_type: "credit" | "debit" | "reversal"
       water_level: "low" | "medium" | "high"
       wishlist_priority: "low" | "medium" | "high" | "urgent"
       wishlist_source: "frondaprima" | "any" | "specific"
@@ -1593,6 +1823,20 @@ export const Constants = {
       plant_status: ["alive", "dormant", "sick", "removed"],
       plant_type: ["palm", "fern", "tree", "cycad", "shrub", "other"],
       rarity_level: ["low", "medium", "high"],
+      referral_reward_status: [
+        "pending",
+        "available",
+        "used",
+        "reversed",
+        "expired",
+      ],
+      wallet_transaction_source: [
+        "referral_reward",
+        "order_discount",
+        "admin_adjustment",
+        "reward_matured",
+      ],
+      wallet_transaction_type: ["credit", "debit", "reversal"],
       water_level: ["low", "medium", "high"],
       wishlist_priority: ["low", "medium", "high", "urgent"],
       wishlist_source: ["frondaprima", "any", "specific"],

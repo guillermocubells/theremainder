@@ -156,6 +156,8 @@ interface CheckoutRequest {
     notes?: string;
   };
   locale?: string;
+  referralCode?: string; // Referral code from URL param
+  useWalletBalance?: boolean; // Whether to apply wallet credit
 }
 
 function calculateShipping(
@@ -192,9 +194,9 @@ serve(async (req) => {
   );
 
   try {
-    const { items, shippingCountry, shippingAddress, locale = "es" }: CheckoutRequest = await req.json();
+    const { items, shippingCountry, shippingAddress, locale = "es", referralCode, useWalletBalance }: CheckoutRequest = await req.json();
 
-    console.log("Checkout request:", { items, shippingCountry, locale });
+    console.log("Checkout request:", { items, shippingCountry, locale, referralCode, useWalletBalance });
 
     if (!items || items.length === 0) {
       throw new Error("No items in cart");
@@ -272,6 +274,9 @@ serve(async (req) => {
     // Check if user is authenticated
     let userId: string | null = null;
     let customerEmail = shippingAddress?.email || "";
+    let walletBalanceCents = 0;
+    let walletAmountToUseCents = 0;
+    let validReferralCode: string | null = null;
 
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
@@ -280,8 +285,64 @@ serve(async (req) => {
       if (data.user) {
         userId = data.user.id;
         customerEmail = data.user.email || customerEmail;
+
+        // Get wallet balance if user wants to use it
+        if (useWalletBalance) {
+          const supabaseAdmin = createClient(
+            Deno.env.get("SUPABASE_URL") ?? "",
+            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+          );
+
+          const { data: wallet } = await supabaseAdmin
+            .from("wallets")
+            .select("available_balance")
+            .eq("user_id", userId)
+            .single();
+
+          if (wallet && wallet.available_balance > 0) {
+            walletBalanceCents = Math.round(wallet.available_balance * 100);
+
+            // Get max wallet percentage setting
+            const { data: maxWalletSetting } = await supabaseAdmin
+              .from("referral_settings")
+              .select("value")
+              .eq("key", "MAX_WALLET_PERCENT")
+              .single();
+
+            const maxWalletPercent = maxWalletSetting?.value || 50;
+            const maxWalletCents = Math.round(subtotalCents * (maxWalletPercent / 100));
+
+            // Apply minimum of: wallet balance, max allowed, or subtotal
+            walletAmountToUseCents = Math.min(walletBalanceCents, maxWalletCents, subtotalCents);
+            console.log("Wallet balance available:", { walletBalanceCents, maxWalletCents, walletAmountToUseCents });
+          }
+        }
+
+        // Validate referral code if provided (and not self-referral)
+        if (referralCode) {
+          const supabaseAdmin = createClient(
+            Deno.env.get("SUPABASE_URL") ?? "",
+            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+          );
+
+          const { data: refCode } = await supabaseAdmin
+            .from("referral_codes")
+            .select("user_id, code")
+            .eq("code", referralCode.toUpperCase())
+            .single();
+
+          if (refCode && refCode.user_id !== userId) {
+            validReferralCode = refCode.code;
+            console.log("Valid referral code found:", validReferralCode);
+          } else if (refCode?.user_id === userId) {
+            console.log("Self-referral blocked");
+          }
+        }
       }
     }
+
+    // Adjust subtotal for wallet discount (Stripe still gets the reduced amount)
+    const adjustedSubtotalCents = subtotalCents - walletAmountToUseCents;
 
     // Check if Stripe customer exists
     let customerId: string | undefined;
@@ -306,7 +367,7 @@ serve(async (req) => {
       return [`${baseUrl}${imagePath}`];
     };
 
-    // Build line items
+    // Build line items - apply wallet discount as a line item if applicable
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = validatedItems.map((item) => ({
       price_data: {
         currency: "eur",
@@ -319,6 +380,21 @@ serve(async (req) => {
       },
       quantity: item.quantity,
     }));
+
+    // Add wallet discount as a negative line item
+    if (walletAmountToUseCents > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "eur",
+          product_data: {
+            name: "Descuento saldo de cuenta",
+            description: "Crédito aplicado de tu cartera",
+          },
+          unit_amount: -walletAmountToUseCents,
+        },
+        quantity: 1,
+      });
+    }
 
     // Build shipping options
     const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = [
@@ -371,6 +447,8 @@ serve(async (req) => {
         user_id: userId || "guest",
         subtotal_cents: subtotalCents.toString(),
         shipping_cents: shippingResult.shippingCostCents.toString(),
+        wallet_amount_cents: walletAmountToUseCents.toString(),
+        referral_code_used: validReferralCode || "",
         total_weight_grams: totalWeightGrams.toString(),
         shipping_zone: shippingResult.zone.id,
         shipping_country: shippingCountry,
@@ -394,7 +472,10 @@ serve(async (req) => {
         publishableKey: Deno.env.get("VITE_STRIPE_PUBLISHABLE_KEY") || "",
         shippingCostCents: shippingResult.shippingCostCents,
         subtotalCents,
-        totalCents: subtotalCents + shippingResult.shippingCostCents,
+        walletAmountCents: walletAmountToUseCents,
+        walletBalanceCents,
+        referralCodeApplied: validReferralCode,
+        totalCents: subtotalCents + shippingResult.shippingCostCents - walletAmountToUseCents,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
