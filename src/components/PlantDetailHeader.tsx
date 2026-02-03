@@ -145,11 +145,12 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               className={cn("h-5 w-5", isFavorite && "fill-current")} 
             />
           </Button>
+          {/* External link button - desktop only */}
           <Button 
             asChild
             variant="outline" 
             size="sm"
-            className="flex-shrink-0 text-primary border-border hover:bg-secondary hover:border-primary/30 text-xs sm:text-sm"
+            className="hidden sm:flex flex-shrink-0 text-primary border-border hover:bg-secondary hover:border-primary/30 text-xs sm:text-sm"
           >
             <a 
               href={plant.link} 
@@ -158,8 +159,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               className="flex items-center gap-2"
             >
               <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">{t('plant.viewMoreInfo')}</span>
-              <span className="sm:hidden">{t('plant.infoSpecies')}</span>
+              <span>{t('plant.viewMoreInfo')}</span>
             </a>
           </Button>
         </div>
@@ -176,6 +176,24 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
         {plant.variety && (
           <p className="text-base font-medium text-primary sm:hidden">{plant.variety}</p>
         )}
+
+        {/* External link button - mobile only, positioned above tags */}
+        <Button 
+          asChild
+          variant="outline" 
+          size="sm"
+          className="sm:hidden w-fit text-primary border-border hover:bg-secondary hover:border-primary/30 text-xs"
+        >
+          <a 
+            href={plant.link} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2"
+          >
+            <ExternalLink className="h-3 w-3" />
+            <span>{t('plant.infoSpecies')}</span>
+          </a>
+        </Button>
 
         {/* Tags - now responsive */}
         <div className="flex flex-wrap gap-2 sm:gap-3">
