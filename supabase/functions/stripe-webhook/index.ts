@@ -114,6 +114,294 @@ function detectCustomerType(
 }
 
 /**
+ * Get referral settings from database
+ */
+async function getReferralSettings(supabase: AnySupabaseClient): Promise<{
+  rewardPercentage: number;
+  capEur: number;
+  pendingDays: number;
+}> {
+  const { data: settings } = await supabase
+    .from("referral_settings")
+    .select("key, value");
+
+  const settingsMap: Record<string, number> = {};
+  for (const s of settings || []) {
+    settingsMap[s.key] = typeof s.value === 'number' ? s.value : parseFloat(s.value);
+  }
+
+  return {
+    rewardPercentage: settingsMap.REWARD_PERCENTAGE || 5,
+    capEur: settingsMap.CAP_EUR || 100,
+    pendingDays: settingsMap.REWARD_PENDING_DAYS || 7,
+  };
+}
+
+/**
+ * Process referral reward after payment success
+ */
+async function processReferralReward(
+  supabase: AnySupabaseClient,
+  orderId: string,
+  userId: string,
+  referralCodeUsed: string | null,
+  productSubtotalEur: number
+): Promise<{ rewardCreated: boolean; rewardAmount: number | null; error?: string }> {
+  if (!referralCodeUsed) {
+    log("No referral code used", { orderId });
+    return { rewardCreated: false, rewardAmount: null };
+  }
+
+  // 1. Find referrer by code
+  const { data: referralCode } = await supabase
+    .from("referral_codes")
+    .select("user_id")
+    .eq("code", referralCodeUsed)
+    .maybeSingle();
+
+  if (!referralCode) {
+    log("Invalid referral code", { code: referralCodeUsed });
+    return { rewardCreated: false, rewardAmount: null, error: "Invalid referral code" };
+  }
+
+  const referrerUserId = referralCode.user_id;
+
+  // 2. Anti-fraud: Block self-referrals
+  if (referrerUserId === userId) {
+    log("Self-referral blocked", { userId, referralCodeUsed });
+    return { rewardCreated: false, rewardAmount: null, error: "Self-referral not allowed" };
+  }
+
+  // 3. Check if user is "new" (no prior paid orders)
+  const { data: priorOrders, error: priorOrdersError } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("user_id", userId)
+    .in("status", ["paid", "shipped", "delivered"])
+    .neq("id", orderId)
+    .limit(1);
+
+  if (priorOrdersError) {
+    log("Error checking prior orders", { error: priorOrdersError.message });
+    return { rewardCreated: false, rewardAmount: null, error: "Database error" };
+  }
+
+  if (priorOrders && priorOrders.length > 0) {
+    log("User is not new - has prior paid orders", { userId, priorOrderCount: priorOrders.length });
+    return { rewardCreated: false, rewardAmount: null, error: "Not a new user" };
+  }
+
+  // 4. Check if reward already exists for this order (idempotency)
+  const { data: existingReward } = await supabase
+    .from("referral_rewards")
+    .select("id")
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+  if (existingReward) {
+    log("Reward already exists for order", { orderId, rewardId: existingReward.id });
+    return { rewardCreated: false, rewardAmount: null, error: "Reward already exists" };
+  }
+
+  // 5. Get referral settings
+  const settings = await getReferralSettings(supabase);
+
+  // 6. Calculate reward (only on product subtotal, excluding shipping)
+  const rewardBruto = productSubtotalEur * (settings.rewardPercentage / 100);
+  const rewardFinal = Math.min(rewardBruto, settings.capEur);
+  const capApplied = rewardBruto > settings.capEur;
+
+  // 7. Calculate maturity date
+  const maturesAt = new Date();
+  maturesAt.setDate(maturesAt.getDate() + settings.pendingDays);
+
+  // 8. Create reward record
+  const { data: reward, error: rewardError } = await supabase
+    .from("referral_rewards")
+    .insert({
+      referrer_user_id: referrerUserId,
+      referred_user_id: userId,
+      order_id: orderId,
+      status: "pending",
+      product_subtotal: productSubtotalEur,
+      reward_percentage: settings.rewardPercentage,
+      reward_amount: rewardFinal,
+      cap_applied: capApplied,
+      currency: "EUR",
+      payment_confirmed_at: new Date().toISOString(),
+      matures_at: maturesAt.toISOString(),
+    })
+    .select()
+    .single();
+
+  if (rewardError) {
+    log("Error creating reward", { error: rewardError.message });
+    return { rewardCreated: false, rewardAmount: null, error: rewardError.message };
+  }
+
+  // 9. Update referrer's pending balance
+  const { data: walletData } = await supabase
+    .from("wallets")
+    .select("pending_balance")
+    .eq("user_id", referrerUserId)
+    .single();
+
+  if (walletData) {
+    await supabase
+      .from("wallets")
+      .update({
+        pending_balance: (walletData.pending_balance || 0) + rewardFinal,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", referrerUserId);
+  }
+
+  // 10. Update referred user's profile
+  await supabase
+    .from("profiles")
+    .update({
+      referred_by_user_id: referrerUserId,
+      referral_code_used: referralCodeUsed,
+    })
+    .eq("user_id", userId);
+
+  log("Referral reward created", {
+    rewardId: reward.id,
+    referrerUserId,
+    referredUserId: userId,
+    orderId,
+    rewardAmount: rewardFinal,
+    capApplied,
+    maturesAt: maturesAt.toISOString(),
+  });
+
+  return { rewardCreated: true, rewardAmount: rewardFinal };
+}
+
+/**
+ * Reverse referral reward on refund
+ */
+async function reverseReferralReward(
+  supabase: AnySupabaseClient,
+  orderId: string,
+  isFullRefund: boolean,
+  newProductSubtotalEur?: number
+): Promise<{ reversed: boolean; reversedAmount: number | null }> {
+  // Find reward for this order
+  const { data: reward } = await supabase
+    .from("referral_rewards")
+    .select("*")
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+  if (!reward) {
+    log("No referral reward found for order", { orderId });
+    return { reversed: false, reversedAmount: null };
+  }
+
+  if (reward.status === "reversed") {
+    log("Reward already reversed", { rewardId: reward.id });
+    return { reversed: false, reversedAmount: null };
+  }
+
+  const settings = await getReferralSettings(supabase);
+  let amountToReverse = reward.reward_amount;
+  let newRewardAmount = 0;
+
+  if (!isFullRefund && newProductSubtotalEur !== undefined) {
+    // Partial refund: recalculate new reward
+    const newRewardBruto = newProductSubtotalEur * (settings.rewardPercentage / 100);
+    newRewardAmount = Math.min(newRewardBruto, settings.capEur);
+    amountToReverse = reward.reward_amount - newRewardAmount;
+
+    if (amountToReverse <= 0) {
+      log("No reward reversal needed after recalculation", { orderId, newRewardAmount });
+      return { reversed: false, reversedAmount: null };
+    }
+  }
+
+  // Get referrer's wallet
+  const { data: wallet } = await supabase
+    .from("wallets")
+    .select("id, available_balance, pending_balance")
+    .eq("user_id", reward.referrer_user_id)
+    .single();
+
+  if (!wallet) {
+    log("Wallet not found for referrer", { referrerUserId: reward.referrer_user_id });
+    return { reversed: false, reversedAmount: null };
+  }
+
+  // Create reversal transaction
+  const { data: transaction } = await supabase
+    .from("wallet_transactions")
+    .insert({
+      user_id: reward.referrer_user_id,
+      wallet_id: wallet.id,
+      type: "reversal",
+      source: "referral_reward",
+      amount: -amountToReverse,
+      currency: "EUR",
+      reference_id: reward.id,
+      description: isFullRefund ? "Full refund reversal" : "Partial refund reversal",
+    })
+    .select()
+    .single();
+
+  // Update wallet balance
+  if (reward.status === "available") {
+    // Deduct from available balance
+    await supabase
+      .from("wallets")
+      .update({
+        available_balance: Math.max(0, wallet.available_balance - amountToReverse),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", reward.referrer_user_id);
+  } else if (reward.status === "pending") {
+    // Deduct from pending balance
+    await supabase
+      .from("wallets")
+      .update({
+        pending_balance: Math.max(0, wallet.pending_balance - amountToReverse),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", reward.referrer_user_id);
+  }
+
+  // Update reward status
+  if (isFullRefund) {
+    await supabase
+      .from("referral_rewards")
+      .update({
+        status: "reversed",
+        reversed_at: new Date().toISOString(),
+        reversal_reason: "Full refund",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", reward.id);
+  } else {
+    await supabase
+      .from("referral_rewards")
+      .update({
+        reward_amount: newRewardAmount,
+        product_subtotal: newProductSubtotalEur,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", reward.id);
+  }
+
+  log("Referral reward reversed", {
+    rewardId: reward.id,
+    amountReversed: amountToReverse,
+    isFullRefund,
+    newRewardAmount: isFullRefund ? 0 : newRewardAmount,
+  });
+
+  return { reversed: true, reversedAmount: amountToReverse };
+}
+
+/**
  * Handle checkout.session.completed event
  * This is the primary event for Embedded Checkout flow
  */
@@ -146,7 +434,8 @@ async function handleCheckoutCompleted(
   const userId = metadata.user_id;
   const subtotalCents = parseInt(metadata.subtotal_cents || "0");
   const shippingCents = parseInt(metadata.shipping_cents || "0");
-  const totalCents = subtotalCents + shippingCents;
+  const walletAmountCents = parseInt(metadata.wallet_amount_cents || "0");
+  const referralCodeUsed = metadata.referral_code_used || null;
 
   // Parse items from metadata
   let items: Array<{ id: string; qty: number; price: number; name: string; image?: string }> = [];
@@ -183,22 +472,31 @@ async function handleCheckoutCompleted(
   let orderId: string | null = null;
   let plantsCreated = 0;
   let invoiceId: string | null = null;
+  let referralRewardResult = { rewardCreated: false, rewardAmount: null as number | null };
 
   // Create order for authenticated users
   if (userId && userId !== "guest") {
+    // Calculate total with wallet discount
+    const totalCents = subtotalCents + shippingCents;
+    const totalAmountEur = totalCents / 100;
+    const walletAmountEur = walletAmountCents / 100;
+
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         user_id: userId,
         order_number: orderNumber,
         status: "paid",
-        total_amount: totalCents / 100,
+        total_amount: totalAmountEur,
         shipping_address: shippingAddress,
         notes: `Stripe session: ${session.id}`,
         stripe_payment_intent_id: paymentIntentId,
         stripe_customer_id: session.customer as string || null,
         stripe_checkout_session_id: session.id,
         customer_type: customerType,
+        referrer_user_id: null, // Will be set by referral processing
+        referral_code_used: referralCodeUsed,
+        wallet_amount_used: walletAmountEur,
       })
       .select()
       .single();
@@ -208,8 +506,42 @@ async function handleCheckoutCompleted(
       throw orderError;
     }
 
-    log("Order created", { orderId: order.id, orderNumber, customerType });
+    log("Order created", { orderId: order.id, orderNumber, customerType, walletUsed: walletAmountEur });
     orderId = order.id;
+
+    // Deduct wallet balance if used
+    if (walletAmountEur > 0) {
+      const { data: wallet } = await supabase
+        .from("wallets")
+        .select("id, available_balance")
+        .eq("user_id", userId)
+        .single();
+
+      if (wallet) {
+        await supabase
+          .from("wallets")
+          .update({
+            available_balance: Math.max(0, wallet.available_balance - walletAmountEur),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", userId);
+
+        await supabase
+          .from("wallet_transactions")
+          .insert({
+            user_id: userId,
+            wallet_id: wallet.id,
+            type: "debit",
+            source: "order_discount",
+            amount: -walletAmountEur,
+            currency: "EUR",
+            reference_id: order.id,
+            description: `Order ${orderNumber} discount`,
+          });
+
+        log("Wallet balance deducted", { userId, amount: walletAmountEur });
+      }
+    }
 
     // Create order items
     for (const item of items) {
@@ -221,6 +553,32 @@ async function handleCheckoutCompleted(
         unit_price: item.price / 100,
         product_image: item.image || null,
       });
+    }
+
+    // Process referral reward
+    const productSubtotalEur = subtotalCents / 100;
+    referralRewardResult = await processReferralReward(
+      supabase,
+      order.id,
+      userId,
+      referralCodeUsed,
+      productSubtotalEur
+    );
+
+    // Update order with referrer if reward was created
+    if (referralRewardResult.rewardCreated) {
+      const { data: referralCode } = await supabase
+        .from("referral_codes")
+        .select("user_id")
+        .eq("code", referralCodeUsed)
+        .maybeSingle();
+
+      if (referralCode) {
+        await supabase
+          .from("orders")
+          .update({ referrer_user_id: referralCode.user_id })
+          .eq("id", order.id);
+      }
     }
 
     // Create Spanish invoice (B2C or B2B series based on customer_type)
@@ -274,7 +632,7 @@ async function handleCheckoutCompleted(
     log("Guest order completed", {
       sessionId: session.id,
       email: shippingAddress.email,
-      total: totalCents / 100,
+      total: subtotalCents / 100,
       customerType,
     });
   }
@@ -288,6 +646,8 @@ async function handleCheckoutCompleted(
       customerType,
       plantsCreated,
       isGuest: !userId || userId === "guest",
+      referralRewardCreated: referralRewardResult.rewardCreated,
+      referralRewardAmount: referralRewardResult.rewardAmount,
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
   );
@@ -361,7 +721,7 @@ async function handlePaymentIntentSucceeded(
 
 /**
  * Handle payment_intent.payment_failed event
- * Mark order as failed - NO invoice is created
+ * Mark order as failed - NO invoice is created, NO referral reward
  */
 async function handlePaymentIntentFailed(
   event: Stripe.Event,
@@ -400,7 +760,7 @@ async function handlePaymentIntentFailed(
 
 /**
  * Handle charge.refunded event
- * Create RECTIFICATIVA invoice and update order/invoice status
+ * Create RECTIFICATIVA invoice, update order/invoice status, and reverse referral reward
  */
 async function handleChargeRefunded(
   event: Stripe.Event,
@@ -417,7 +777,7 @@ async function handleChargeRefunded(
   // Find order by payment intent
   const { data: order } = await supabase
     .from("orders")
-    .select("id, total_amount, invoice_id")
+    .select("id, total_amount, invoice_id, wallet_amount_used")
     .eq("stripe_payment_intent_id", paymentIntentId)
     .maybeSingle();
 
@@ -447,6 +807,16 @@ async function handleChargeRefunded(
     .eq("id", order.id);
 
   log("Order refund status updated", { orderId: order.id, status: newStatus, refundAmount: amountRefunded });
+
+  // Reverse referral reward
+  // Calculate new product subtotal if partial refund
+  const newProductSubtotal = isFullRefund ? 0 : (order.total_amount - amountRefunded - (order.wallet_amount_used || 0));
+  const referralReverseResult = await reverseReferralReward(
+    supabase,
+    order.id,
+    isFullRefund,
+    newProductSubtotal > 0 ? newProductSubtotal : undefined
+  );
 
   // Update original invoice status
   if (order.invoice_id) {
@@ -500,6 +870,8 @@ async function handleChargeRefunded(
       action: newStatus,
       refundAmount: amountRefunded,
       rectificativaCreated: !!order.invoice_id,
+      referralReversed: referralReverseResult.reversed,
+      referralReversedAmount: referralReverseResult.reversedAmount,
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
   );
