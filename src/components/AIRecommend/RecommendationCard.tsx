@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Heart, ExternalLink, TrendingUp, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { PlantRecommendation, CatalogPlant } from "@/hooks/useRecommendPlants";
+import { useCatalogFavorite } from "@/hooks/wishlist";
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 import ViabilityFactorsTable from "./ViabilityFactorsTable";
 
 interface RecommendationCardProps {
   recommendation: PlantRecommendation;
   plant: CatalogPlant | undefined;
-  onAddToWishlist?: (plantId: string) => void;
   rank: number;
 }
 
@@ -29,13 +31,29 @@ const getViabilityScoreColor = (score: number) => {
 const RecommendationCard = ({ 
   recommendation, 
   plant, 
-  onAddToWishlist,
   rank 
 }: RecommendationCardProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [isViabilityOpen, setIsViabilityOpen] = useState(false);
   
+  const { isFavorite, isToggling, toggleFavorite } = useCatalogFavorite(plant?.id || '');
+  
   if (!plant) return null;
+
+  const handleFavoriteClick = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    toggleFavorite({
+      name: plant.name,
+      scientificName: plant.scientific_name || undefined,
+      imageUrl: plant.thumbnail_url || undefined,
+      price: plant.price,
+    });
+  };
 
   const scorePercentage = Math.round(recommendation.fit_score * 100);
   const viability = recommendation.viability;
@@ -188,16 +206,21 @@ const RecommendationCard = ({
                 </Link>
               </Button>
               
-              {onAddToWishlist && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onAddToWishlist(plant.id)}
-                >
-                  <Heart className="h-3.5 w-3.5 mr-1.5" />
-                  Wishlist
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleFavoriteClick}
+                disabled={isToggling}
+                className={cn(
+                  "transition-colors",
+                  isFavorite 
+                    ? "text-destructive border-destructive/30 hover:bg-destructive/10" 
+                    : "hover:text-destructive hover:border-destructive/30"
+                )}
+              >
+                <Heart className={cn("h-3.5 w-3.5 mr-1.5", isFavorite && "fill-current")} />
+                {isFavorite ? "Guardado" : "Guardar"}
+              </Button>
             </div>
           </div>
         </div>
