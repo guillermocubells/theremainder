@@ -80,10 +80,10 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
   return (
     <>
       <div className="h-full flex flex-col w-full">
-        {/* Main Image - fills available space */}
-        <div className="relative mb-4">
+        {/* Main Image - grows to fill available space */}
+        <div className="relative flex-1 min-h-0 mb-3">
           <div 
-            className="relative aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-xl cursor-pointer group shadow-lg"
+            className="relative h-full w-full overflow-hidden rounded-xl cursor-pointer group shadow-lg"
             onClick={openLightbox}
           >
             <img
@@ -104,9 +104,9 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
           </div>
         </div>
 
-        {/* Thumbnails - fixed height */}
+        {/* Thumbnails - fixed height at the bottom */}
         {displayImages.length > 1 && (
-          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex-shrink-0 flex gap-2 sm:gap-3 overflow-x-auto pb-1 scrollbar-hide">
             {displayImages.map((image, index) => (
               <button
                 key={index}
