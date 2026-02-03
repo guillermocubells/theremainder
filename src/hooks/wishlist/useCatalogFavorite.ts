@@ -3,14 +3,43 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-export const useCatalogFavorite = (catalogProductId: string) => {
+// Hook to get the actual UUID from the plants table by slug
+const usePlantUUID = (slugOrId: string) => {
+  return useQuery({
+    queryKey: ['plant-uuid', slugOrId],
+    queryFn: async () => {
+      // First check if it's already a valid UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(slugOrId)) {
+        return slugOrId;
+      }
+      
+      // Otherwise, look up the plant by slug
+      const { data, error } = await supabase
+        .from('plants')
+        .select('id')
+        .eq('slug', slugOrId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data?.id || null;
+    },
+    enabled: !!slugOrId,
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour
+  });
+};
+
+export const useCatalogFavorite = (catalogProductSlugOrId: string) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Get the actual UUID from the slug
+  const { data: catalogProductId, isLoading: isLoadingUUID } = usePlantUUID(catalogProductSlugOrId);
 
-  const { data: isFavorite, isLoading } = useQuery({
+  const { data: isFavorite, isLoading: isLoadingFavorite } = useQuery({
     queryKey: ['catalog-favorite', catalogProductId, user?.id],
     queryFn: async () => {
-      if (!user) return false;
+      if (!user || !catalogProductId) return false;
       
       const { data, error } = await supabase
         .from('wishlist_items')
@@ -28,6 +57,7 @@ export const useCatalogFavorite = (catalogProductId: string) => {
   const addToFavorites = useMutation({
     mutationFn: async (plantData: { name: string; scientificName?: string; imageUrl?: string; price?: number }) => {
       if (!user) throw new Error('Not authenticated');
+      if (!catalogProductId) throw new Error('Plant not found in catalog');
       
       const { data, error } = await supabase
         .from('wishlist_items')
@@ -64,6 +94,7 @@ export const useCatalogFavorite = (catalogProductId: string) => {
   const removeFromFavorites = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Not authenticated');
+      if (!catalogProductId) throw new Error('Plant not found in catalog');
       
       const { error } = await supabase
         .from('wishlist_items')
@@ -94,10 +125,11 @@ export const useCatalogFavorite = (catalogProductId: string) => {
 
   return {
     isFavorite: !!isFavorite,
-    isLoading,
+    isLoading: isLoadingUUID || isLoadingFavorite,
     isToggling: addToFavorites.isPending || removeFromFavorites.isPending,
     toggleFavorite,
     addToFavorites,
     removeFromFavorites,
+    catalogProductId, // Expose the resolved UUID if needed
   };
 };
