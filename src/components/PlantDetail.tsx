@@ -17,7 +17,7 @@ import CareInstructions from "./CareInstructions";
 import PlantCharacteristics from "./PlantCharacteristics";
 import PlantCuriousFacts from "./PlantCuriousFacts";
 import PlantReviews from "./PlantReviews";
-import { ProductStructuredData } from "@/components/seo";
+import { ProductStructuredData, BreadcrumbStructuredData } from "@/components/seo";
 import CartDrawer from "./CartDrawer";
 import LanguageSwitcher from "./LanguageSwitcher";
 import RelatedPlants from "./RelatedPlants";
@@ -66,6 +66,13 @@ const PlantDetail = () => {
     <TooltipProvider>
       {/* SEO: Structured Data + Meta Tags */}
       <ProductStructuredData plant={plant} />
+      <BreadcrumbStructuredData 
+        items={[
+          { name: "Inicio", url: "/" },
+          { name: "Catálogo", url: "/#catalogo" },
+          { name: plant.name, url: `/plant/${plant.id}` },
+        ]} 
+      />
       
       <div className="min-h-screen bg-background">
         {/* Header - matching main header styling */}
