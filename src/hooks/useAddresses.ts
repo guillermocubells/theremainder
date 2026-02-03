@@ -16,6 +16,20 @@ export interface Address {
   is_default: boolean;
   created_at: string;
   updated_at: string;
+  // Garden profile fields
+  is_garden_location: boolean;
+  climate_zone: string | null;
+  avg_annual_rainfall_mm: number | null;
+  sun_exposure: 'full_sun' | 'partial_shade' | 'shade' | null;
+  soil_type: 'sandy' | 'loamy' | 'clay' | 'rocky' | 'peat' | 'mixed' | null;
+  drainage: 'fast' | 'medium' | 'poor' | null;
+  wind_exposure: 'low' | 'medium' | 'high' | null;
+  altitude_m: number | null;
+  min_winter_temp_c: number | null;
+  humidity_level: 'low' | 'medium' | 'high' | null;
+  frost_frequency: 'rare' | 'occasional' | 'frequent' | null;
+  soil_ph: 'acid' | 'neutral' | 'alkaline' | null;
+  garden_notes: string | null;
 }
 
 export type AddressInput = Omit<Address, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
@@ -69,6 +83,7 @@ export const useCreateAddress = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['addresses', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['garden-addresses', user?.id] });
     },
   });
 };
@@ -102,6 +117,7 @@ export const useUpdateAddress = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['addresses', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['garden-addresses', user?.id] });
     },
   });
 };
@@ -123,6 +139,8 @@ export const useDeleteAddress = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['addresses', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['garden-addresses', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['active-garden-addresses', user?.id] });
     },
   });
 };
