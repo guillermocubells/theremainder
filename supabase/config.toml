@@ -11,3 +11,12 @@ verify_jwt = false
 
 [functions.recommend-plants]
 verify_jwt = false
+
+[functions.api-catalog]
+verify_jwt = false
+
+[functions.api-analytics]
+verify_jwt = false
+
+[functions.send-notification-email]
+verify_jwt = false
