@@ -96,12 +96,31 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
   return (
     <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-border h-full w-full flex flex-col">
       <div className="flex flex-col space-y-4 flex-1">
-        {/* Title row with favorite and external link button */}
-        <div className="flex items-center justify-between gap-4">
+        {/* Title row with favorite button */}
+        <div className="flex items-start sm:items-center justify-between gap-4">
           <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-              {plant.name}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
+                {plant.name}
+              </h1>
+              {/* Mobile favorite button - aligned with title */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleFavoriteClick}
+                disabled={isToggling}
+                className={cn(
+                  "h-9 w-9 rounded-full transition-colors sm:hidden flex-shrink-0",
+                  isFavorite 
+                    ? "text-destructive hover:text-destructive/80" 
+                    : "text-muted-foreground hover:text-destructive"
+                )}
+              >
+                <Heart 
+                  className={cn("h-5 w-5", isFavorite && "fill-current")} 
+                />
+              </Button>
+            </div>
             {/* Common name - shown below title on mobile */}
             <p className="text-base sm:hidden text-muted-foreground font-medium">{plant.commonName}</p>
             <Tooltip delayDuration={0}>
@@ -128,23 +147,6 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               </TooltipContent>
             </Tooltip>
           </div>
-          {/* Mobile favorite button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleFavoriteClick}
-            disabled={isToggling}
-            className={cn(
-              "h-9 w-9 rounded-full transition-colors sm:hidden flex-shrink-0",
-              isFavorite 
-                ? "text-destructive hover:text-destructive/80" 
-                : "text-muted-foreground hover:text-destructive"
-            )}
-          >
-            <Heart 
-              className={cn("h-5 w-5", isFavorite && "fill-current")} 
-            />
-          </Button>
           {/* External link button - desktop only */}
           <Button 
             asChild
