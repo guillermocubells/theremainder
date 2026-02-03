@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-export type KanbanColumnId = 'searching' | 'in_collection' | 'watching' | 'archived';
+export type KanbanColumnId = 'searching' | 'in_collection' | 'archived';
 
 interface KanbanColumnProps {
   id: KanbanColumnId;

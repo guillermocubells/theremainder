@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { PlantItem, PlantItemStatus } from '@/hooks/garden/types';
 import { KanbanColumn, KanbanColumnId } from './KanbanColumn';
-import { Heart, Leaf, Eye, Archive, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Leaf, Archive, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -41,15 +41,6 @@ const columns: {
     sourceTypes: ['owned'],
   },
   {
-    id: 'watching',
-    title: 'En observación',
-    icon: <Eye className="h-4 w-4 text-accent-foreground" />,
-    colorClass: 'bg-accent',
-    emptyMessage: 'Plantas con viabilidad media o condiciones delicadas',
-    statuses: ['in_collection'],
-    sourceTypes: ['owned'],
-  },
-  {
     id: 'archived',
     title: 'Ya no disponibles',
     icon: <Archive className="h-4 w-4 text-muted-foreground" />,
@@ -64,7 +55,6 @@ const categorizeItems = (items: PlantItem[]): Record<KanbanColumnId, PlantItem[]
   const result: Record<KanbanColumnId, PlantItem[]> = {
     searching: [],
     in_collection: [],
-    watching: [],
     archived: [],
   };
 
@@ -83,20 +73,9 @@ const categorizeItems = (items: PlantItem[]): Record<KanbanColumnId, PlantItem[]
       }
     }
 
-    // Owned plants - determine if watching or in collection
+    // Owned plants go to collection
     if (item.sourceType === 'owned' && item.status === 'in_collection') {
-      // Check if plant needs watching (sick status or concerning observation)
-      const needsWatching = 
-        item.collectionData?.plantStatus === 'sick' ||
-        item.collectionData?.plantStatus === 'dormant' ||
-        item.collectionData?.lastObservation?.condition === 'concern' ||
-        item.collectionData?.lastObservation?.condition === 'critical';
-      
-      if (needsWatching) {
-        result.watching.push(item);
-      } else {
-        result.in_collection.push(item);
-      }
+      result.in_collection.push(item);
       return;
     }
 
@@ -169,16 +148,6 @@ export const GardenKanban = ({ items }: GardenKanbanProps) => {
             toast.success('Planta archivada');
           },
         });
-      } else if (targetColumnId === 'watching') {
-        // Mark as sick for observation
-        updateOwned.mutate({
-          id: item.sourceId,
-          status: 'sick',
-        }, {
-          onSuccess: () => {
-            toast.success('Planta movida a observación');
-          },
-        });
       } else if (targetColumnId === 'in_collection') {
         // Mark as alive
         updateOwned.mutate({
@@ -227,7 +196,7 @@ export const GardenKanban = ({ items }: GardenKanbanProps) => {
         ref={scrollContainerRef}
         className={cn(
           "flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory",
-          "md:grid md:grid-cols-4 md:overflow-x-visible md:snap-none",
+          "md:grid md:grid-cols-3 md:overflow-x-visible md:snap-none",
           "scrollbar-hide"
         )}
         onScroll={handleScroll}
