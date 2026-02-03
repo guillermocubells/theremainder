@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { plants } from '@/data/plants';
 
 export interface StockNotification {
   id: string;
@@ -9,13 +10,14 @@ export interface StockNotification {
   email: string;
   notified_at: string | null;
   created_at: string;
-  plants?: {
+  // Derived from local plants data
+  plantData?: {
     id: string;
     name: string;
-    scientific_name: string | null;
-    thumbnail_url: string | null;
-    price: number;
-    stock_qty: number;
+    scientificName: string;
+    thumbnailUrl: string | undefined;
+    price: number | undefined;
+    stockQty: number;
   } | null;
 }
 
@@ -29,15 +31,27 @@ export const useStockNotifications = () => {
       
       const { data, error } = await supabase
         .from('stock_notifications')
-        .select(`
-          *,
-          plants (id, name, scientific_name, thumbnail_url, price, stock_qty)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as StockNotification[];
+      
+      // Enrich with local plant data
+      return data.map(notification => {
+        const localPlant = plants.find(p => p.id === notification.plant_id);
+        return {
+          ...notification,
+          plantData: localPlant ? {
+            id: localPlant.id,
+            name: localPlant.name,
+            scientificName: localPlant.commonName,
+            thumbnailUrl: localPlant.images?.[0],
+            price: localPlant.price,
+            stockQty: localPlant.quantity,
+          } : null,
+        } as StockNotification;
+      });
     },
     enabled: !!user,
   });

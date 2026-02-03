@@ -76,15 +76,15 @@ const SharedSearchListPage = () => {
     ...stockNotifications.map(notification => ({
       id: notification.id,
       type: 'stock' as const,
-      name: notification.plants?.name || 'Planta del catálogo',
-      scientificName: notification.plants?.scientific_name,
-      imageUrl: notification.plants?.thumbnail_url,
+      name: notification.plantData?.name || 'Planta del catálogo',
+      scientificName: notification.plantData?.scientificName,
+      imageUrl: notification.plantData?.thumbnailUrl,
       priority: 'medium' as const,
       notes: null,
       isInCatalog: true,
       catalogId: notification.plant_id,
-      isInStock: notification.plants?.is_in_stock,
-      price: notification.plants?.price,
+      isInStock: notification.plantData?.isInStock,
+      price: notification.plantData?.price,
     })),
   ];
 

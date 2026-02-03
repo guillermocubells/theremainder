@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { plants } from '@/data/plants';
 
 interface SharedSearchList {
   id: string;
@@ -176,29 +177,33 @@ export const usePublicSearchList = (slug: string) => {
 
       if (itemsError) throw itemsError;
 
-      // Fetch stock notifications
-      const { data: stockNotifications, error: stockError } = await supabase
+      // Fetch stock notifications (without the plants join, use local data)
+      const { data: stockNotificationsRaw, error: stockError } = await supabase
         .from('stock_notifications')
-        .select(`
-          id,
-          plant_id,
-          plants:plant_id (
-            id,
-            name,
-            scientific_name,
-            thumbnail_url,
-            price,
-            is_in_stock
-          )
-        `)
+        .select('id, plant_id')
         .eq('user_id', sharedList.user_id);
 
       if (stockError) throw stockError;
 
+      // Enrich stock notifications with local plant data
+      const stockNotifications = (stockNotificationsRaw || []).map(n => {
+        const localPlant = plants.find(p => p.id === n.plant_id);
+        return {
+          ...n,
+          plantData: localPlant ? {
+            name: localPlant.name,
+            scientificName: localPlant.commonName,
+            thumbnailUrl: localPlant.images?.[0],
+            price: localPlant.price,
+            isInStock: localPlant.quantity > 0,
+          } : null,
+        };
+      });
+
       return {
         sharedList: sharedList as SharedSearchList,
         wishlistItems: wishlistItems || [],
-        stockNotifications: stockNotifications || [],
+        stockNotifications,
       };
     },
     enabled: !!slug,
