@@ -236,6 +236,10 @@
     "climateType": "Tipo de Clima",
     "bestLocation": "Mejor Ubicación"
   },
+  "notes": {
+    "title": "Notas Especiales",
+    "subtitle": "Observaciones y consejos específicos para esta planta"
+  },
   "cart": {
     "title": "Carrito de Compra",
     "empty": "Tu carrito está vacío",
@@ -389,6 +393,13 @@
     "confirm": "Confirmar",
     "yes": "Sí",
     "no": "No"
+  },
+  "lightbox": {
+    "noImages": "Sin imágenes",
+    "enlargedImage": "imagen ampliada",
+    "thumbnail": "miniatura",
+    "tapOutsideHint": "Toca fuera de la imagen para cerrar",
+    "swipeHint": "Desliza para navegar"
   },
   "specifications": {
     "title": "Especificaciones",

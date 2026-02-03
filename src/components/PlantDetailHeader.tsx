@@ -94,7 +94,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
   };
 
   return (
-    <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-border h-full w-full flex flex-col">
+    <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-border h-full w-full flex flex-col">
       <div className="flex flex-col space-y-4 flex-1">
         {/* Title row with favorite button */}
         <div className="flex items-start sm:items-center justify-between gap-4">
@@ -248,7 +248,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           {plant.hardinessZones && plant.hardinessZones.length > 0 && (
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200 cursor-help">
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-accent text-accent-foreground border border-border cursor-help">
                   <Thermometer className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>{formatHardinessZones(plant.hardinessZones)}</span>
                 </div>
