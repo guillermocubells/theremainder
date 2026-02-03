@@ -20,7 +20,7 @@ interface WhatsAppButtonProps {
 }
 
 const WhatsAppButton = ({ 
-  phoneNumber = "34912345678", // Default placeholder - user should change this
+  phoneNumber = "34655699978", // Spain country code + phone number
   defaultMessage 
 }: WhatsAppButtonProps) => {
   const { t } = useTranslation();
