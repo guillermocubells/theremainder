@@ -104,6 +104,7 @@
     "curiousFacts": "Curious Facts",
     "reviews": "Reviews",
     "relatedPlants": "Related plants",
+    "recentlyViewed": "Recently viewed",
     "notFound": "Plant not found",
     "height": "Height",
     "spread": "Spread",
@@ -329,6 +330,7 @@
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
+    "clear": "Clear",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
