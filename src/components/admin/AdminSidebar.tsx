@@ -9,6 +9,7 @@ import {
   Settings,
   ArrowLeft,
   Package,
+  FileText,
 } from "lucide-react";
 
 const navItems = [
@@ -16,6 +17,7 @@ const navItems = [
   { path: "/admin/plants", icon: Leaf, label: "admin.plants" },
   { path: "/admin/categories", icon: FolderTree, label: "admin.categories" },
   { path: "/admin/orders", icon: Package, label: "admin.orders" },
+  { path: "/admin/invoices", icon: FileText, label: "admin.invoices" },
   { path: "/admin/shipping", icon: Truck, label: "admin.shipping" },
   { path: "/admin/settings", icon: Settings, label: "admin.settings" },
 ];
