@@ -17,6 +17,7 @@ import PlantCuriousFacts from "./PlantCuriousFacts";
 import PlantReviews from "./PlantReviews";
 import CartDrawer from "./CartDrawer";
 import LanguageSwitcher from "./LanguageSwitcher";
+import Footer from "./Footer";
 
 const PlantDetail = () => {
   const { plantId } = useParams();
@@ -149,6 +150,9 @@ const PlantDetail = () => {
             </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </TooltipProvider>
   );
