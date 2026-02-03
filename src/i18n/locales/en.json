@@ -463,5 +463,14 @@
       "message": "We've received your message and will respond within 24-48 business hours.",
       "sendAnother": "Send another message"
     }
+  },
+  "stockNotification": {
+    "outOfStock": "This product is currently out of stock",
+    "notifyMe": "Notify me when available",
+    "cancelNotification": "Cancel notification",
+    "subscribed": "We'll notify you when it's available",
+    "unsubscribed": "Notification cancelled",
+    "loginRequired": "You must be logged in to receive notifications",
+    "error": "An error occurred. Please try again."
   }
 }

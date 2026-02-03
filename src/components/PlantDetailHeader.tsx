@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { formatHardinessZones, getZoneCountLabel } from "@/utils/hardinessZones";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AddToCartButton from "./AddToCartButton";
+import StockNotificationButton from "./StockNotificationButton";
 
 interface Plant {
   id: string;
@@ -247,8 +248,8 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           </Collapsible>
         )}
 
-        {/* Price and Add to cart button */}
-        {plant.quantity && Number(plant.quantity) > 0 && (
+        {/* Price and Add to cart button OR Stock Notification */}
+        {plant.quantity && Number(plant.quantity) > 0 ? (
           <div className="pt-4 sm:pt-6 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12">
             {totalPrice !== undefined && (
               <p className="text-2xl sm:text-3xl font-bold text-primary transition-all duration-200 min-w-[120px] sm:min-w-[140px]">
@@ -264,6 +265,13 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               containerSize={plant.containerSize}
               onQuantityChange={setSelectedQuantity}
             />
+          </div>
+        ) : (
+          <div className="pt-4 sm:pt-6 flex flex-col gap-3">
+            <p className="text-base sm:text-lg text-muted-foreground font-medium">
+              {t('stockNotification.outOfStock')}
+            </p>
+            <StockNotificationButton plantId={plant.id} />
           </div>
         )}
       </div>

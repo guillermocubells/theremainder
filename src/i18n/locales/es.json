@@ -472,5 +472,14 @@
       "orderNumber": "Número de pedido",
       "backToStore": "Volver a la tienda"
     }
+  },
+  "stockNotification": {
+    "outOfStock": "Este producto está agotado actualmente",
+    "notifyMe": "Avisarme cuando esté disponible",
+    "cancelNotification": "Cancelar notificación",
+    "subscribed": "Te avisaremos cuando esté disponible",
+    "unsubscribed": "Notificación cancelada",
+    "loginRequired": "Debes iniciar sesión para recibir notificaciones",
+    "error": "Ha ocurrido un error. Inténtalo de nuevo."
   }
 }

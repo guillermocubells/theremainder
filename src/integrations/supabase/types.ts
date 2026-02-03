@@ -698,6 +698,41 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_notifications: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          notified_at: string | null
+          plant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          notified_at?: string | null
+          plant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          notified_at?: string | null
+          plant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_notifications_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_settings: {
         Row: {
           description: string | null
@@ -898,6 +933,10 @@ export type Database = {
       is_own_plant_location: { Args: { pl_user_id: string }; Returns: boolean }
       is_own_profile: { Args: { p_user_id: string }; Returns: boolean }
       is_own_saved_search: { Args: { ss_user_id: string }; Returns: boolean }
+      is_own_stock_notification: {
+        Args: { n_user_id: string }
+        Returns: boolean
+      }
       is_own_wishlist_item: { Args: { wi_user_id: string }; Returns: boolean }
       match_wishlist_to_order: {
         Args: { p_order_id: string; p_user_id: string }
