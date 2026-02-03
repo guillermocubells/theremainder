@@ -35,7 +35,7 @@ const emptyStates: Record<GardenFilter, {
   archived: {
     icon: Archive,
     title: 'No tienes plantas archivadas',
-    description: 'Las plantas que hayas perdido o ya no cultives aparecerán aquí como recuerdo.',
+    description: 'Aquí aparecerán las plantas de tu colección que hayas perdido, que hayan muerto o que ya no cultives.',
     action: 'none',
   },
 };
