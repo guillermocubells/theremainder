@@ -109,8 +109,8 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
             </div>
           )}
           
-          {/* Stock quantity */}
-          {plant.quantity && (
+          {/* Stock quantity - only show if > 0 */}
+          {plant.quantity && plant.quantity > 0 && (
             <div className="absolute bottom-2 right-2 flex items-center gap-1">
               {plant.quantity === 1 && <span className="text-sm">🍂</span>}
               <span className={`text-xs font-semibold px-2 py-1 rounded-full shadow-sm ${
