@@ -14,7 +14,6 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
   const { t } = useTranslation();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
   
   // Touch/swipe handling for lightbox
   const touchStartX = useRef<number | null>(null);
@@ -23,9 +22,9 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
   const navigateLightbox = useCallback((direction: 'prev' | 'next') => {
     if (!images || images.length === 0) return;
     if (direction === 'prev') {
-      setLightboxIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+      setSelectedIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
     } else {
-      setLightboxIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+      setSelectedIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
     }
   }, [images]);
 
@@ -64,8 +63,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
     return null;
   }
 
-  const openLightbox = (index: number) => {
-    setLightboxIndex(index);
+  const openLightbox = () => {
     setLightboxOpen(true);
   };
 
@@ -84,7 +82,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
         <div className="relative mb-4">
           <div 
             className="relative aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-xl cursor-pointer group"
-            onClick={() => openLightbox(selectedIndex)}
+            onClick={() => openLightbox()}
           >
             <img 
               src={images[selectedIndex]} 
@@ -96,7 +94,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
               className="absolute bottom-3 right-3 p-2.5 rounded-full bg-foreground/80 hover:bg-foreground text-background transition-all duration-200 hover:scale-110 shadow-lg"
               onClick={(e) => {
                 e.stopPropagation();
-                openLightbox(selectedIndex);
+                openLightbox();
               }}
             >
               <Search className="h-5 w-5" />
@@ -174,8 +172,8 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
               )}
 
               <img
-                src={images[lightboxIndex]}
-                alt={`${plantName} - imagen ${lightboxIndex + 1}`}
+                src={images[selectedIndex]}
+                alt={`${plantName} - imagen ${selectedIndex + 1}`}
                 className="w-full h-auto max-h-[80vh] object-contain rounded-lg select-none"
                 draggable={false}
               />
@@ -183,7 +181,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
               {/* Image counter */}
               {images.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 text-white text-sm font-medium">
-                  {lightboxIndex + 1} / {images.length}
+                  {selectedIndex + 1} / {images.length}
                 </div>
               )}
             </div>
