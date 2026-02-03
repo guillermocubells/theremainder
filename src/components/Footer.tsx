@@ -24,7 +24,7 @@ const Footer = () => {
 
   const navigationLinks = [
     { key: 'contact', href: '/contact' },
-    { key: 'delivery', href: '#' },
+    { key: 'shipping', href: '/envios-y-entregas' },
     { key: 'faq', href: '#' },
   ];
 
