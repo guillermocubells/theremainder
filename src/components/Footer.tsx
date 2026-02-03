@@ -97,7 +97,7 @@ const Footer = () => {
             {/* Links grid - 2 columns on mobile */}
             <div className="grid grid-cols-2 gap-8 mb-8">
               {/* Navigation */}
-              <div className="text-center">
+              <div className="text-left">
                 <h4 className="text-[10px] font-medium uppercase tracking-[0.3em] text-primary-foreground/35 mb-4">
                   {t('footer.navigation.title')}
                 </h4>
@@ -116,7 +116,7 @@ const Footer = () => {
               </div>
 
               {/* Legal */}
-              <div className="text-center">
+              <div className="text-left">
                 <h4 className="text-[10px] font-medium uppercase tracking-[0.3em] text-primary-foreground/35 mb-4">
                   {t('footer.legal.title')}
                 </h4>
