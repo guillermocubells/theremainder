@@ -29,12 +29,9 @@ const RelatedPlants = ({ currentPlant, maxItems = 4 }: RelatedPlantsProps) => {
 
   return (
     <section className="mt-8 sm:mt-12">
-      <div className="flex items-center gap-2 mb-4 sm:mb-6">
-        <Leaf className="h-5 w-5 text-moss" />
-        <h2 className="text-lg sm:text-xl font-semibold text-foreground">
-          {t('plant.relatedPlants', 'Plantas relacionadas')}
-        </h2>
-      </div>
+      <h2 className="text-sm sm:text-base font-semibold text-foreground mb-4 sm:mb-6">
+        {t('plant.relatedPlants', 'Plantas relacionadas')}
+      </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {relatedPlants.map((plant) => (
