@@ -294,18 +294,49 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+
+    // SECURITY: Require authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      console.error("[recommend-plants] Missing or invalid Authorization header");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - authentication required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
+    // Validate the JWT token
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      console.error("[recommend-plants] Invalid token:", claimsError?.message);
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - invalid token" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+    console.log("[recommend-plants] Authenticated user:", userId);
 
     if (!lovableApiKey) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use service role key for database queries
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body: RecommendInput = await req.json();
     const { user_prompt, filters, catalog_subset } = body;
 
-    console.log("[recommend-plants] Request:", { user_prompt, filters, hasCatalogSubset: !!catalog_subset });
+    console.log("[recommend-plants] Request:", { user_prompt, filters, hasCatalogSubset: !!catalog_subset, userId });
 
     // Use provided catalog or fetch from database
     let catalog: CatalogPlant[];
