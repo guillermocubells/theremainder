@@ -47,18 +47,16 @@ export const usePublicPlant = (slug: string | undefined) => {
       
       if (slugError || !slugData) return null;
       
-      // Get plant with observations (using service role would be needed for full access)
-      // For now, we'll get basic info
+      // Get plant info using secure view (excludes sensitive location data)
       const { data: plantData, error: plantError } = await supabase
-        .from('owned_plants')
+        .from('owned_plants_public')
         .select(`
           id,
           nickname,
           scientific_name,
           common_name,
           photos,
-          status,
-          location_text
+          status
         `)
         .eq('id', slugData.owned_plant_id)
         .single();
