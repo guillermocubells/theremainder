@@ -233,7 +233,7 @@ export const GardenKanban = ({ items }: GardenKanbanProps) => {
         onScroll={handleScroll}
       >
         {columns.map((column) => (
-          <div key={column.id} className="snap-start flex-shrink-0 w-[85vw] md:w-auto">
+          <div key={column.id} className="snap-start flex-shrink-0 flex-grow-0 w-[85vw] md:w-full md:min-w-0">
             <KanbanColumn
               id={column.id}
               title={column.title}
