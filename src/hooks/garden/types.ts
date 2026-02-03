@@ -1,8 +1,8 @@
 // Unified PlantItem model for "Mi Jardín"
-// Combines wishlist items and owned plants into a single experience
+// Combines wishlist items, stock notifications, and owned plants into a single experience
 
 export type PlantItemStatus = 
-  | 'searching'    // En búsqueda (wishlist/looking)
+  | 'searching'    // En búsqueda (wishlist/looking or stock notification)
   | 'available'    // Disponible en catálogo
   | 'purchased'    // Comprada (transición)
   | 'in_collection' // En colección (owned)
@@ -12,8 +12,8 @@ export type PlantHealthStatus = 'healthy' | 'okay' | 'concern' | 'critical';
 
 export interface PlantItem {
   id: string;
-  sourceType: 'wishlist' | 'owned';
-  sourceId: string; // Original ID from wishlist_items or owned_plants
+  sourceType: 'wishlist' | 'owned' | 'stock_notification';
+  sourceId: string; // Original ID from wishlist_items, owned_plants, or plant_id for stock notifications
   
   // Common fields
   name: string;
@@ -37,6 +37,13 @@ export interface PlantItem {
     catalogProductId: string | null;
     isInStock: boolean;
     catalogPrice: number | null;
+  };
+  
+  // Stock notification-specific (when sourceType === 'stock_notification')
+  stockNotificationData?: {
+    plantId: string;
+    currentStock: number;
+    price: number | null;
   };
   
   // Collection-specific (when sourceType === 'owned')

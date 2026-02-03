@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWishlistItems } from '@/hooks/wishlist/useWishlistItems';
 import { useOwnedPlants } from '@/hooks/collection/useOwnedPlants';
+import { useStockNotifications } from '@/hooks/collection/useStockNotifications';
 import { useRecentObservations } from '@/hooks/collection/useObservations';
 import { PlantItem, PlantItemStatus, GardenFilters } from './types';
 
@@ -41,6 +42,30 @@ const transformWishlistToPlantItem = (item: any): PlantItem => {
     },
     createdAt: item.created_at,
     updatedAt: item.updated_at,
+  };
+};
+
+// Transform stock notification to PlantItem
+const transformStockNotificationToPlantItem = (notification: any): PlantItem => {
+  const plant = notification.plants;
+  const isInStock = plant?.stock_qty > 0;
+  
+  return {
+    id: `stock-${notification.plant_id}`,
+    sourceType: 'stock_notification',
+    sourceId: notification.plant_id,
+    name: plant?.name || 'Planta',
+    scientificName: plant?.scientific_name || null,
+    commonName: plant?.name || null,
+    imageUrl: plant?.thumbnail_url || null,
+    status: isInStock ? 'available' : 'searching',
+    stockNotificationData: {
+      plantId: notification.plant_id,
+      currentStock: plant?.stock_qty || 0,
+      price: plant?.price || null,
+    },
+    createdAt: notification.created_at,
+    updatedAt: notification.created_at,
   };
 };
 
@@ -84,13 +109,15 @@ const transformOwnedToPlantItem = (plant: any, lastObservation?: any): PlantItem
 export const useMyGarden = (filters?: GardenFilters) => {
   const { user } = useAuth();
   const { data: wishlistItems, isLoading: wishlistLoading } = useWishlistItems();
+  const { data: stockNotifications, isLoading: stockLoading } = useStockNotifications();
   const { data: ownedPlants, isLoading: plantsLoading } = useOwnedPlants();
   const { data: recentObservations } = useRecentObservations(50);
 
   return useQuery({
-    queryKey: ['my-garden', user?.id, filters, wishlistItems, ownedPlants, recentObservations],
+    queryKey: ['my-garden', user?.id, filters, wishlistItems, stockNotifications, ownedPlants, recentObservations],
     queryFn: async () => {
       const items: PlantItem[] = [];
+      const addedPlantIds = new Set<string>();
       
       // Create a map of plant ID to last observation
       const observationMap = new Map<string, any>();
@@ -104,6 +131,18 @@ export const useMyGarden = (filters?: GardenFilters) => {
       wishlistItems?.forEach(item => {
         if (item.status !== 'acquired') {
           items.push(transformWishlistToPlantItem(item));
+          // Track catalog IDs to avoid duplicates with stock notifications
+          if (item.catalog_product_id) {
+            addedPlantIds.add(item.catalog_product_id);
+          }
+        }
+      });
+      
+      // Transform stock notifications (exclude those already in wishlist)
+      stockNotifications?.forEach(notification => {
+        if (!addedPlantIds.has(notification.plant_id)) {
+          items.push(transformStockNotificationToPlantItem(notification));
+          addedPlantIds.add(notification.plant_id);
         }
       });
       
@@ -144,20 +183,41 @@ export const useMyGarden = (filters?: GardenFilters) => {
       
       return filtered;
     },
-    enabled: !!user && !wishlistLoading && !plantsLoading,
+    enabled: !!user && !wishlistLoading && !stockLoading && !plantsLoading,
   });
 };
 
 export const useGardenStats = () => {
   const { user } = useAuth();
   const { data: wishlistItems } = useWishlistItems();
+  const { data: stockNotifications } = useStockNotifications();
   const { data: ownedPlants } = useOwnedPlants();
 
   return useQuery({
-    queryKey: ['garden-stats', user?.id, wishlistItems?.length, ownedPlants?.length],
+    queryKey: ['garden-stats', user?.id, wishlistItems?.length, stockNotifications?.length, ownedPlants?.length],
     queryFn: async () => {
-      const searching = wishlistItems?.filter(i => i.status !== 'acquired').length || 0;
-      const available = wishlistItems?.filter(i => i.status !== 'acquired' && i.plants?.stock_qty > 0).length || 0;
+      // Count unique plants in "searching" (wishlist + stock notifications without overlap)
+      const wishlistCatalogIds = new Set(
+        wishlistItems?.filter(i => i.status !== 'acquired' && i.catalog_product_id)
+          .map(i => i.catalog_product_id) || []
+      );
+      
+      const wishlistSearching = wishlistItems?.filter(i => i.status !== 'acquired').length || 0;
+      const stockNotificationsNotInWishlist = stockNotifications?.filter(
+        n => !wishlistCatalogIds.has(n.plant_id)
+      ).length || 0;
+      
+      const searching = wishlistSearching + stockNotificationsNotInWishlist;
+      
+      // Available = items currently in stock
+      const wishlistAvailable = wishlistItems?.filter(
+        i => i.status !== 'acquired' && i.plants?.stock_qty > 0
+      ).length || 0;
+      const stockAvailable = stockNotifications?.filter(
+        n => !wishlistCatalogIds.has(n.plant_id) && n.plants?.stock_qty > 0
+      ).length || 0;
+      const available = wishlistAvailable + stockAvailable;
+      
       const inCollection = ownedPlants?.filter(p => p.status !== 'removed').length || 0;
       const archived = ownedPlants?.filter(p => p.status === 'removed').length || 0;
       
