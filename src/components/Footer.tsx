@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Instagram, Mail } from "lucide-react";
+import { Instagram, Mail, MessageCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -36,6 +36,7 @@ const Footer = () => {
 
   const socialLinks = [
     { icon: Instagram, href: 'https://www.instagram.com/frondaprima/', label: 'Instagram' },
+    { icon: MessageCircle, href: 'https://wa.me/34655699978?text=Hola%2C%20tengo%20una%20consulta%20sobre%20Frondaprima', label: 'WhatsApp' },
     { icon: Mail, href: 'mailto:guillermocubells@gmail.com?subject=Consulta%20desde%20Frondaprima', label: 'Email' },
   ];
 
