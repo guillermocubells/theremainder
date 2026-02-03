@@ -69,12 +69,6 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
     setLightboxOpen(true);
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      setLightboxOpen(false);
-    }
-  };
-
   return (
     <>
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-green-200 mb-6 sm:mb-8 transition-all duration-300 hover:shadow-lg">
@@ -109,78 +103,68 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
         </Carousel>
       </div>
 
-      {/* Lightbox Modal - Matching PlantImageGallery style */}
+      {/* Lightbox Modal */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent 
-          className="max-w-[95vw] max-h-[95vh] w-auto p-0 bg-transparent border-none shadow-none [&>button]:hidden"
-          onInteractOutside={() => setLightboxOpen(false)}
+          className="max-w-4xl w-[95vw] p-0 bg-black/95 border-none gap-0"
         >
           <VisuallyHidden>
             <DialogTitle>{plantName} - Imagen ampliada</DialogTitle>
           </VisuallyHidden>
           
-          {/* Full overlay for click-outside detection */}
-          <div 
-            className="fixed inset-0 flex items-center justify-center p-4"
-            onClick={handleBackdropClick}
-          >
-            <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
-              {/* Close button - prominent */}
-              <button
-                onClick={() => setLightboxOpen(false)}
-                className="absolute -top-12 right-0 sm:top-2 sm:right-2 z-50 flex items-center gap-2 bg-white/90 hover:bg-white text-foreground px-4 py-2 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
-              >
-                <X className="h-5 w-5" />
-                <span className="text-sm font-medium">Cerrar</span>
-              </button>
+          <div className="relative">
+            {/* Close button */}
+            <button
+              onClick={() => setLightboxOpen(false)}
+              className="absolute top-2 right-2 z-50 flex items-center gap-2 bg-white/90 hover:bg-white text-foreground px-3 py-1.5 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+            >
+              <X className="h-4 w-4" />
+              <span className="text-sm font-medium">Cerrar</span>
+            </button>
 
-              {/* Image container with swipe support */}
-              <div 
-                className="bg-black/95 rounded-xl overflow-hidden p-2 relative"
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-              >
-                {/* Navigation arrows - hidden on mobile, visible on desktop */}
-                {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => navigateLightbox('prev')}
-                      className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/20 hover:bg-white/40 transition-all duration-200 hover:scale-110"
-                    >
-                      <ChevronLeft className="h-6 w-6 text-white" />
-                    </button>
-                    <button
-                      onClick={() => navigateLightbox('next')}
-                      className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/20 hover:bg-white/40 transition-all duration-200 hover:scale-110"
-                    >
-                      <ChevronRight className="h-6 w-6 text-white" />
-                    </button>
-                  </>
-                )}
+            {/* Image container with swipe support */}
+            <div 
+              className="p-2 relative"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              {/* Navigation arrows - hidden on mobile, visible on desktop */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => navigateLightbox('prev')}
+                    className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/20 hover:bg-white/40 transition-all duration-200 hover:scale-110"
+                  >
+                    <ChevronLeft className="h-6 w-6 text-white" />
+                  </button>
+                  <button
+                    onClick={() => navigateLightbox('next')}
+                    className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/20 hover:bg-white/40 transition-all duration-200 hover:scale-110"
+                  >
+                    <ChevronRight className="h-6 w-6 text-white" />
+                  </button>
+                </>
+              )}
 
-                <img
-                  src={images[lightboxIndex]}
-                  alt={`${plantName} - imagen ${lightboxIndex + 1}`}
-                  className="w-full h-auto max-h-[75vh] object-contain rounded-lg animate-scale-in select-none"
-                  draggable={false}
-                />
-                
-                {/* Image counter */}
-                {images.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 text-white text-sm font-medium">
-                    {lightboxIndex + 1} / {images.length}
-                  </div>
-                )}
-              </div>
-
-              {/* Hint text for mobile */}
-              <p className="text-center text-white/60 text-xs mt-3 sm:hidden">
-                Desliza para navegar · Toca fuera para cerrar
-              </p>
-              <p className="text-center text-white/60 text-xs mt-3 hidden sm:block">
-                Toca fuera de la imagen para cerrar
-              </p>
+              <img
+                src={images[lightboxIndex]}
+                alt={`${plantName} - imagen ${lightboxIndex + 1}`}
+                className="w-full h-auto max-h-[80vh] object-contain rounded-lg select-none"
+                draggable={false}
+              />
+              
+              {/* Image counter */}
+              {images.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 text-white text-sm font-medium">
+                  {lightboxIndex + 1} / {images.length}
+                </div>
+              )}
             </div>
+
+            {/* Hint text for mobile */}
+            <p className="text-center text-white/60 text-xs pb-3 sm:hidden">
+              Desliza para navegar
+            </p>
           </div>
         </DialogContent>
       </Dialog>
