@@ -37,7 +37,7 @@ import {
 import { WishlistDashboard } from "./pages/wishlist";
 
 // Unified Garden module
-import { MyGarden } from "./pages/garden";
+import { MyGarden, SharedSearchListPage } from "./pages/garden";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +95,9 @@ const App = () => (
               
               {/* Public plant page (no auth required) */}
               <Route path="/p/:slug" element={<PublicPlantPage />} />
+              
+              {/* Public shared search list (no auth required) */}
+              <Route path="/garden/shared/:slug" element={<SharedSearchListPage />} />
               
               {/* Admin routes */}
               <Route path="/admin" element={<AdminLayout />}>

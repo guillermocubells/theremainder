@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMyGarden, useGardenStats } from '@/hooks/garden';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { GardenKanban, GardenEmptyState } from '@/components/garden';
+import { ShareSearchListButton } from '@/components/garden/ShareSearchListButton';
 import AddPlantDialog from '@/components/collection/AddPlantDialog';
 import { AddWishlistItemDialog } from '@/components/wishlist';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,15 @@ const MyGarden = () => {
 
   const { data: plants, isLoading } = useMyGarden({ filter: 'all', search: searchQuery });
   const { data: stats } = useGardenStats();
+
+  // Count searching items for share button
+  const searchingCount = useMemo(() => {
+    if (!plants) return 0;
+    return plants.filter(p => 
+      (p.sourceType === 'wishlist' || p.sourceType === 'stock_notification') && 
+      p.status !== 'in_collection'
+    ).length;
+  }, [plants]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -49,6 +59,7 @@ const MyGarden = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ShareSearchListButton searchingCount={searchingCount} />
             <Button 
               variant="outline" 
               size="sm" 
