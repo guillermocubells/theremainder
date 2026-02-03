@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import PlantDetail from "./components/PlantDetail";
 import Contact from "./pages/Contact";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import ShippingInfo from "./pages/ShippingInfo";
 
 import { AdminLayout } from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="/checkout/success" element={<CheckoutSuccess />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/envios-y-entregas" element={<ShippingInfo />} />
               
               {/* Mi Jardín - Unified Garden module */}
               <Route path="/garden" element={
