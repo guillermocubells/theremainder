@@ -345,9 +345,14 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
         {plant.quantity && Number(plant.quantity) > 0 ? (
           <div className="pt-4 sm:pt-6 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12">
             {totalPrice !== undefined && (
-              <p className="text-2xl sm:text-3xl font-bold text-primary transition-all duration-200 min-w-[120px] sm:min-w-[140px]">
-                {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-              </p>
+              <div className="flex items-baseline gap-2 min-w-[120px] sm:min-w-[140px]">
+                <p className="text-2xl sm:text-3xl font-bold text-primary transition-all duration-200">
+                  {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                </p>
+                <span className="text-xs sm:text-sm text-muted-foreground/70">
+                  IVA incl.
+                </span>
+              </div>
             )}
             <AddToCartButton
               plantId={plant.id}
