@@ -81,23 +81,18 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
     <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-border">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
-        <div className="flex items-center gap-2">
-          <div className="p-1 sm:p-1.5 bg-secondary rounded-lg">
-            <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-foreground">
-              {t('reviews.title')}
-            </h2>
-            {reviews.length > 0 && (
-              <div className="flex items-center gap-2 mt-0.5">
-                {renderStars(Math.round(Number(averageRating)))}
-                <span className="text-xs sm:text-sm text-muted-foreground">
-                  {averageRating} {t('reviews.of')} 5 ({reviews.length} {reviews.length === 1 ? t('reviews.review') : t('reviews.reviewsCount')})
-                </span>
-              </div>
-            )}
-          </div>
+        <div>
+          <h2 className="text-sm sm:text-base font-semibold text-foreground">
+            {t('reviews.title')}
+          </h2>
+          {reviews.length > 0 && (
+            <div className="flex items-center gap-2 mt-0.5">
+              {renderStars(Math.round(Number(averageRating)))}
+              <span className="text-xs sm:text-sm text-muted-foreground">
+                {averageRating} {t('reviews.of')} 5 ({reviews.length} {reviews.length === 1 ? t('reviews.review') : t('reviews.reviewsCount')})
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
