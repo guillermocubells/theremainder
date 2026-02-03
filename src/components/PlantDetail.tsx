@@ -18,6 +18,7 @@ import PlantCuriousFacts from "./PlantCuriousFacts";
 import PlantReviews from "./PlantReviews";
 import CartDrawer from "./CartDrawer";
 import LanguageSwitcher from "./LanguageSwitcher";
+import RelatedPlants from "./RelatedPlants";
 import Footer from "./Footer";
 
 const PlantDetail = () => {
@@ -151,6 +152,11 @@ const PlantDetail = () => {
             {/* Reviews Section */}
             <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '350ms' }}>
               <PlantReviews plantId={plant.id} plantName={plant.name} />
+            </div>
+
+            {/* Related Plants Section */}
+            <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
+              <RelatedPlants currentPlant={plant} />
             </div>
           </div>
         </div>
