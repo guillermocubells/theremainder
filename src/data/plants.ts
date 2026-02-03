@@ -136,7 +136,7 @@ export const plants: Plant[] = [{
   id: "ptychosperma-caryotoides",
   name: "Ptychosperma caryotoides",
   variety: "",
-  quantity: 3,
+  quantity: 0,
   commonName: "Palmera Cereza del Bosque",
   description: "Palmera plumosa australiana con frutos rojos vibrantes",
   link: "https://palmpedia.net/wiki/Ptychosperma_caryotoides",
