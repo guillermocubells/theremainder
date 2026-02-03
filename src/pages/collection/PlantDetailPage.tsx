@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useOwnedPlant, useUpdateOwnedPlant, useDeleteOwnedPlant } from '@/hooks/collection/useOwnedPlants';
 import { useObservations } from '@/hooks/collection/useObservations';
 import { usePlantNotes, useCreatePlantNote, useDeletePlantNote } from '@/hooks/collection/usePlantNotes';
 import { usePublicSlug, useCreatePublicSlug, useTogglePublicSharing } from '@/hooks/collection/usePublicSharing';
-import { usePlantLocations } from '@/hooks/collection/usePlantLocations';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -14,9 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Progress } from '@/components/ui/progress';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -27,16 +28,23 @@ import {
   Calendar,
   Share2,
   QrCode,
-  Download,
   ExternalLink,
   Plus,
   StickyNote,
-  Tag
+  Tag,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Leaf,
+  History
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import AddObservationDialog from '@/components/collection/AddObservationDialog';
+import { cn } from '@/lib/utils';
 
 const statusColors: Record<string, string> = {
   alive: 'bg-green-100 text-green-800',
@@ -74,7 +82,6 @@ const PlantDetailPage = () => {
   const { data: observations } = useObservations(id);
   const { data: notes } = usePlantNotes(id);
   const { data: publicSlug } = usePublicSlug(id);
-  const { data: locations } = usePlantLocations();
   
   const updatePlant = useUpdateOwnedPlant();
   const deletePlant = useDeleteOwnedPlant();
@@ -86,7 +93,55 @@ const PlantDetailPage = () => {
   const [addObservationOpen, setAddObservationOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [newNote, setNewNote] = useState('');
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [observationsOpen, setObservationsOpen] = useState(true);
+  const [notesOpen, setNotesOpen] = useState(false);
+
+  // Touch handling for lightbox
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const displayImages = plant?.photos?.slice(0, 6) || [];
+
+  const navigateLightbox = useCallback((direction: 'prev' | 'next') => {
+    if (displayImages.length === 0) return;
+    if (direction === 'prev') {
+      setSelectedIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
+    } else {
+      setSelectedIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
+    }
+  }, [displayImages.length]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null || displayImages.length <= 1) {
+      touchStartX.current = null;
+      touchStartY.current = null;
+      return;
+    }
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const diffX = touchStartX.current - touchEndX;
+    const diffY = Math.abs((touchStartY.current || 0) - touchEndY);
+    const swipeThreshold = 50;
+
+    if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > diffY) {
+      if (diffX > 0) {
+        navigateLightbox('next');
+      } else {
+        navigateLightbox('prev');
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+  }, [displayImages.length, navigateLightbox]);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -94,7 +149,7 @@ const PlantDetailPage = () => {
     try {
       await deletePlant.mutateAsync(id);
       toast.success('Planta eliminada');
-      navigate('/collection');
+      navigate('/garden');
     } catch (error) {
       toast.error('Error al eliminar');
     }
@@ -158,12 +213,14 @@ const PlantDetailPage = () => {
     const url = `${window.location.origin}/plant/${publicSlug.slug}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
     
-    // Download QR
     const link = document.createElement('a');
     link.href = qrUrl;
     link.download = `qr-${plant?.nickname || 'plant'}.png`;
     link.click();
   };
+
+  // Calculate viability score (mock - you can integrate real calculation)
+  const viabilityScore = 70; // This should come from your viability calculator
 
   if (isLoading) {
     return (
@@ -183,8 +240,8 @@ const PlantDetailPage = () => {
         <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
           <p>Planta no encontrada</p>
-          <Link to="/collection">
-            <Button variant="link">Volver a mi colección</Button>
+          <Link to="/garden">
+            <Button variant="link">Volver a mi jardín</Button>
           </Link>
         </main>
         <Footer />
@@ -199,94 +256,83 @@ const PlantDetailPage = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
-      <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Back link */}
-        <Link
-          to="/collection"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver a mi colección
-        </Link>
+      <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Back link */}
+          <Link 
+            to="/garden" 
+            className="inline-flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors duration-200 text-sm mb-4 group"
+          >
+            <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+            <span>Volver a mi jardín</span>
+          </Link>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Header card with photos */}
-            <Card>
-              <CardContent className="p-0">
-                {/* Photo gallery */}
-                {plant.photos && plant.photos.length > 0 ? (
-                  <div className="relative">
-                    <img 
-                      src={selectedPhoto || plant.photos[0]} 
-                      alt={plant.nickname}
-                      className="w-full h-64 sm:h-80 object-cover cursor-pointer"
-                      onClick={() => setSelectedPhoto(selectedPhoto || plant.photos[0])}
-                    />
-                    {plant.photos.length > 1 && (
-                      <div className="absolute bottom-4 left-4 right-4 flex gap-2 overflow-x-auto pb-2">
-                        {plant.photos.map((photo, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setSelectedPhoto(photo)}
-                            className={`w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 ${
-                              (selectedPhoto || plant.photos[0]) === photo
-                                ? 'border-primary'
-                                : 'border-white/50'
-                            }`}
-                          >
-                            <img src={photo} alt="" className="w-full h-full object-cover" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="w-full h-48 bg-muted flex items-center justify-center">
-                    <span className="text-muted-foreground">Sin fotos</span>
-                  </div>
-                )}
-                
-                {/* Plant info */}
-                <div className="p-6">
+          {/* Two column layout - matching PDP style */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 sm:mb-8">
+            {/* Left column - Plant Header (2/3 width) */}
+            <div className="lg:col-span-2 animate-fade-in flex" style={{ animationDelay: '0ms' }}>
+              <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-border h-full w-full flex flex-col">
+                <div className="flex flex-col space-y-4 flex-1">
+                  {/* Title row with actions */}
                   <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h1 className="text-2xl font-bold text-foreground">{plant.nickname}</h1>
+                    <div className="flex-1 flex flex-col gap-1">
+                      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
+                        {plant.nickname}
+                      </h1>
                       {(plant.scientific_name || plant.common_name) && (
-                        <p className="text-muted-foreground italic">
+                        <p className="text-base sm:text-lg text-muted-foreground font-medium italic">
                           {plant.scientific_name || plant.common_name}
                         </p>
                       )}
                     </div>
-                    <Badge className={statusColors[plant.status]}>
+                    
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-9 w-9 sm:h-10 sm:w-10"
+                        asChild
+                      >
+                        <Link to={`/collection/plant/${id}/edit`}>
+                          <Edit2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                        </Link>
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-9 w-9 sm:h-10 sm:w-10 text-destructive hover:text-destructive"
+                        onClick={() => setDeleteDialogOpen(true)}
+                      >
+                        <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Status and info tags */}
+                  <div className="flex flex-wrap gap-2 sm:gap-3">
+                    <Badge className={cn("text-xs sm:text-sm", statusColors[plant.status])}>
                       {statusLabels[plant.status]}
                     </Badge>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-4 mt-4 text-sm text-muted-foreground">
+                    
                     {locationName && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        {locationName}
+                      <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground">
+                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span>{locationName}</span>
                       </div>
                     )}
+                    
                     {plant.purchase_date && (
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        Comprada: {format(new Date(plant.purchase_date), 'd MMM yyyy', { locale: es })}
-                      </div>
-                    )}
-                    {plant.next_checkin_date && (
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-4 w-4" />
-                        Próximo: {format(new Date(plant.next_checkin_date), 'd MMM', { locale: es })}
+                      <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-accent text-accent-foreground border border-border">
+                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span>{format(new Date(plant.purchase_date), 'd MMM yyyy', { locale: es })}</span>
                       </div>
                     )}
                   </div>
                   
+                  {/* Tags */}
                   {plant.tags && plant.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-4">
+                    <div className="flex flex-wrap gap-2">
                       {plant.tags.map(tag => (
                         <span 
                           key={tag}
@@ -298,236 +344,389 @@ const PlantDetailPage = () => {
                       ))}
                     </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Tabs for observations and notes */}
-            <Tabs defaultValue="observations">
-              <TabsList className="w-full">
-                <TabsTrigger value="observations" className="flex-1">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Observaciones ({observations?.length || 0})
-                </TabsTrigger>
-                <TabsTrigger value="notes" className="flex-1">
-                  <StickyNote className="h-4 w-4 mr-2" />
-                  Notas ({notes?.length || 0})
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="observations" className="mt-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-medium">Historial de observaciones</h3>
-                  <Button size="sm" onClick={() => setAddObservationOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Añadir
-                  </Button>
-                </div>
-                
-                {observations && observations.length > 0 ? (
-                  <div className="space-y-4">
-                    {observations.map(obs => (
-                      <Card key={obs.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-4">
-                            {obs.photos?.[0] && (
-                              <img 
-                                src={obs.photos[0]} 
-                                alt="" 
-                                className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
-                              />
-                            )}
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge className={conditionColors[obs.condition]}>
-                                  {conditionLabels[obs.condition]}
-                                </Badge>
-                                <span className="text-sm text-muted-foreground">
-                                  {format(new Date(obs.observation_date), "d 'de' MMMM, yyyy", { locale: es })}
-                                </span>
-                              </div>
-                              {obs.notes && (
-                                <p className="text-sm text-foreground">{obs.notes}</p>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <Eye className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-muted-foreground">Sin observaciones todavía</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="notes" className="mt-4">
-                <div className="space-y-4">
-                  {/* Add note form */}
-                  <Card>
-                    <CardContent className="p-4">
-                      <Textarea
-                        value={newNote}
-                        onChange={(e) => setNewNote(e.target.value)}
-                        placeholder="Escribe una nota privada..."
-                        rows={3}
-                      />
-                      <Button 
-                        className="mt-2" 
-                        size="sm"
-                        onClick={handleAddNote}
-                        disabled={createNote.isPending || !newNote.trim()}
-                      >
-                        {createNote.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                        ) : (
-                          <Plus className="h-4 w-4 mr-1" />
-                        )}
-                        Añadir nota
-                      </Button>
-                    </CardContent>
-                  </Card>
-                  
-                  {notes && notes.length > 0 ? (
-                    notes.map(note => (
-                      <Card key={note.id}>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start gap-2">
-                            <div className="flex-1">
-                              <p className="text-sm whitespace-pre-wrap">{note.content}</p>
-                              <p className="text-xs text-muted-foreground mt-2">
-                                {format(new Date(note.created_at), "d MMM yyyy, HH:mm", { locale: es })}
-                              </p>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteNote(note.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <Card>
-                      <CardContent className="p-6 text-center">
-                        <StickyNote className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-muted-foreground">Sin notas todavía</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Acciones</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start" asChild>
-                  <Link to={`/collection/plant/${id}/edit`}>
-                    <Edit2 className="h-4 w-4 mr-2" />
-                    Editar planta
-                  </Link>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-destructive hover:text-destructive"
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Eliminar planta
-                </Button>
-              </CardContent>
-            </Card>
-            
-            {/* Public sharing */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Share2 className="h-4 w-4" />
-                  Compartir públicamente
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!publicSlug ? (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={handleCreateSlug}
-                    disabled={createPublicSlug.isPending}
-                  >
-                    {createPublicSlug.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Share2 className="h-4 w-4 mr-2" />
-                    )}
-                    Crear enlace público
-                  </Button>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="public-toggle">Página pública</Label>
-                      <Switch
-                        id="public-toggle"
-                        checked={publicSlug.is_public}
-                        onCheckedChange={handleTogglePublic}
-                        disabled={togglePublic.isPending}
-                      />
+                  {/* Viability Score - prominent display */}
+                  <div className="bg-secondary border border-border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Leaf className="h-5 w-5 text-primary" />
+                        <span className="font-semibold text-foreground">Viabilidad en tu jardín</span>
+                      </div>
+                      <span className={cn(
+                        "text-lg font-bold",
+                        viabilityScore >= 70 ? "text-green-600" :
+                        viabilityScore >= 50 ? "text-yellow-600" : "text-red-600"
+                      )}>
+                        {viabilityScore}%
+                      </span>
                     </div>
-                    
-                    {publicSlug.is_public && publicUrl && (
-                      <div className="space-y-2">
-                        <Input 
-                          value={publicUrl} 
-                          readOnly 
-                          className="text-xs"
+                    <Progress 
+                      value={viabilityScore} 
+                      className="h-2"
+                      indicatorClassName={cn(
+                        viabilityScore >= 70 ? "bg-green-500" :
+                        viabilityScore >= 50 ? "bg-yellow-500" : "bg-red-500"
+                      )}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Basado en las condiciones de tu jardín activo
+                    </p>
+                  </div>
+
+                  {/* Public Sharing Section */}
+                  <Collapsible className="bg-muted border border-border rounded-lg overflow-hidden">
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 sm:p-4 hover:bg-muted/80 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Share2 className="h-4 w-4 text-primary" />
+                        <h3 className="font-semibold text-foreground text-sm sm:text-base">
+                          Compartir públicamente
+                        </h3>
+                      </div>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 data-[state=open]:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 pb-3 sm:px-4 sm:pb-4">
+                      <div className="space-y-3">
+                        {!publicSlug ? (
+                          <Button 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={handleCreateSlug}
+                            disabled={createPublicSlug.isPending}
+                          >
+                            {createPublicSlug.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                              <Share2 className="h-4 w-4 mr-2" />
+                            )}
+                            Crear enlace público
+                          </Button>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="public-toggle" className="text-sm">Página pública activa</Label>
+                              <Switch
+                                id="public-toggle"
+                                checked={publicSlug.is_public}
+                                onCheckedChange={handleTogglePublic}
+                                disabled={togglePublic.isPending}
+                              />
+                            </div>
+                            
+                            {publicSlug.is_public && publicUrl && (
+                              <div className="space-y-2">
+                                <Input 
+                                  value={publicUrl} 
+                                  readOnly 
+                                  className="text-xs"
+                                />
+                                <div className="flex gap-2">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="flex-1"
+                                    onClick={() => window.open(publicUrl, '_blank')}
+                                  >
+                                    <ExternalLink className="h-4 w-4 mr-1" />
+                                    Ver
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="flex-1"
+                                    onClick={generateQRCode}
+                                  >
+                                    <QrCode className="h-4 w-4 mr-1" />
+                                    QR
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          La página pública muestra solo el nombre, fotos y observaciones recientes.
+                        </p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right column - Image Gallery (1/3 width) */}
+            <div className="animate-fade-in flex" style={{ animationDelay: '50ms' }}>
+              <div className="h-full flex flex-col w-full">
+                {displayImages.length > 0 ? (
+                  <>
+                    {/* Main Image */}
+                    <div className="relative mb-4">
+                      <div 
+                        className="relative aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-xl cursor-pointer group shadow-lg"
+                        onClick={() => setLightboxOpen(true)}
+                      >
+                        <img
+                          src={displayImages[selectedIndex]}
+                          alt={`${plant.nickname} - imagen ${selectedIndex + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => window.open(publicUrl, '_blank')}
+                        <button 
+                          className="absolute bottom-3 right-3 bg-primary hover:bg-primary/90 text-primary-foreground p-2.5 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLightboxOpen(true);
+                          }}
+                        >
+                          <Search className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Thumbnails */}
+                    {displayImages.length > 1 && (
+                      <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                        {displayImages.map((image, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedIndex(index)}
+                            className={cn(
+                              "flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200",
+                              selectedIndex === index 
+                                ? "border-primary ring-2 ring-primary/30" 
+                                : "border-border hover:border-primary/50"
+                            )}
                           >
-                            <ExternalLink className="h-4 w-4 mr-1" />
-                            Ver
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="flex-1"
-                            onClick={generateQRCode}
-                          >
-                            <QrCode className="h-4 w-4 mr-1" />
-                            QR
-                          </Button>
-                        </div>
+                            <img
+                              src={image}
+                              alt={`${plant.nickname} - miniatura ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </button>
+                        ))}
                       </div>
                     )}
                   </>
+                ) : (
+                  <div className="h-full flex items-center justify-center min-h-[200px] bg-card rounded-xl border border-border">
+                    <div className="text-center text-muted-foreground p-6">
+                      <div className="w-16 h-16 mx-auto mb-2 bg-muted rounded-lg flex items-center justify-center">
+                        <Leaf className="w-8 h-8" />
+                      </div>
+                      <p className="text-sm">Sin fotos</p>
+                      <Button variant="outline" size="sm" className="mt-2" asChild>
+                        <Link to={`/collection/plant/${id}/edit`}>
+                          Añadir fotos
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  La página pública muestra solo el nombre, fotos y observaciones recientes. Tu email nunca se comparte.
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          </div>
+
+          {/* Observations Section - collapsible like PDP sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
+            {/* Observations History */}
+            <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
+              <Collapsible open={observationsOpen} onOpenChange={setObservationsOpen}>
+                <div className="bg-card/80 backdrop-blur-sm rounded-xl border border-border overflow-hidden">
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 sm:p-6 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <History className="h-5 w-5 text-primary" />
+                      <h3 className="text-sm sm:text-base font-semibold text-foreground">
+                        Historial de observaciones
+                      </h3>
+                      <Badge variant="secondary" className="ml-2">
+                        {observations?.length || 0}
+                      </Badge>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 data-[state=open]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-4">
+                      <Button size="sm" onClick={() => setAddObservationOpen(true)} className="w-full sm:w-auto">
+                        <Plus className="h-4 w-4 mr-1" />
+                        Nueva observación
+                      </Button>
+                      
+                      {observations && observations.length > 0 ? (
+                        <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                          {observations.map(obs => (
+                            <div key={obs.id} className="flex items-start gap-3 p-3 bg-muted rounded-lg">
+                              {obs.photos?.[0] && (
+                                <img 
+                                  src={obs.photos[0]} 
+                                  alt="" 
+                                  className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge className={cn("text-xs", conditionColors[obs.condition])}>
+                                    {conditionLabels[obs.condition]}
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(obs.observation_date), "d MMM yyyy", { locale: es })}
+                                  </span>
+                                </div>
+                                {obs.notes && (
+                                  <p className="text-sm text-foreground line-clamp-2">{obs.notes}</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6">
+                          <Eye className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-muted-foreground text-sm">Sin observaciones todavía</p>
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            </div>
+
+            {/* Notes Section */}
+            <div className="animate-fade-in" style={{ animationDelay: '150ms' }}>
+              <Collapsible open={notesOpen} onOpenChange={setNotesOpen}>
+                <div className="bg-card/80 backdrop-blur-sm rounded-xl border border-border overflow-hidden">
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 sm:p-6 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <StickyNote className="h-5 w-5 text-primary" />
+                      <h3 className="text-sm sm:text-base font-semibold text-foreground">
+                        Notas privadas
+                      </h3>
+                      <Badge variant="secondary" className="ml-2">
+                        {notes?.length || 0}
+                      </Badge>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 data-[state=open]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-4">
+                      {/* Add note form */}
+                      <div className="space-y-2">
+                        <Textarea
+                          value={newNote}
+                          onChange={(e) => setNewNote(e.target.value)}
+                          placeholder="Escribe una nota privada..."
+                          rows={2}
+                          className="text-sm"
+                        />
+                        <Button 
+                          size="sm"
+                          onClick={handleAddNote}
+                          disabled={createNote.isPending || !newNote.trim()}
+                          className="w-full sm:w-auto"
+                        >
+                          {createNote.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                          ) : (
+                            <Plus className="h-4 w-4 mr-1" />
+                          )}
+                          Añadir nota
+                        </Button>
+                      </div>
+                      
+                      {notes && notes.length > 0 ? (
+                        <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                          {notes.map(note => (
+                            <div key={note.id} className="flex justify-between items-start gap-2 p-3 bg-muted rounded-lg">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {format(new Date(note.created_at), "d MMM yyyy, HH:mm", { locale: es })}
+                                </p>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 flex-shrink-0"
+                                onClick={() => handleDeleteNote(note.id)}
+                              >
+                                <Trash2 className="h-3 w-3 text-muted-foreground" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6">
+                          <StickyNote className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-muted-foreground text-sm">Sin notas todavía</p>
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            </div>
           </div>
         </div>
       </main>
 
       <Footer />
+
+      {/* Lightbox Modal */}
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent className="max-w-4xl w-[95vw] p-0 bg-black/95 border-none gap-0">
+          <VisuallyHidden>
+            <DialogTitle>{plant.nickname} - Imagen ampliada</DialogTitle>
+          </VisuallyHidden>
+          
+          <div className="relative">
+            <button
+              onClick={() => setLightboxOpen(false)}
+              className="absolute top-2 right-2 z-50 flex items-center gap-2 bg-white/90 hover:bg-white text-foreground px-3 py-1.5 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+            >
+              <X className="h-4 w-4" />
+              <span className="text-sm font-medium">Cerrar</span>
+            </button>
+
+            <div 
+              className="p-2 relative"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              {displayImages.length > 1 && (
+                <>
+                  <button
+                    onClick={() => navigateLightbox('prev')}
+                    className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/20 hover:bg-white/40 transition-all duration-200 hover:scale-110"
+                  >
+                    <ChevronLeft className="h-6 w-6 text-white" />
+                  </button>
+                  <button
+                    onClick={() => navigateLightbox('next')}
+                    className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/20 hover:bg-white/40 transition-all duration-200 hover:scale-110"
+                  >
+                    <ChevronRight className="h-6 w-6 text-white" />
+                  </button>
+                </>
+              )}
+
+              <img
+                src={displayImages[selectedIndex]}
+                alt={`${plant.nickname} - imagen ${selectedIndex + 1}`}
+                className="w-full h-auto max-h-[80vh] object-contain rounded-lg select-none"
+                draggable={false}
+              />
+              
+              {displayImages.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 text-white text-sm font-medium">
+                  {selectedIndex + 1} / {displayImages.length}
+                </div>
+              )}
+            </div>
+
+            <p className="text-center text-white/60 text-xs pb-3 sm:hidden">
+              Desliza para navegar
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AddObservationDialog 
         open={addObservationOpen} 
