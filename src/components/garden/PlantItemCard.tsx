@@ -21,11 +21,14 @@ import {
   Archive,
   CheckCircle2,
   AlertTriangle,
-  Heart
+  Heart,
+  ExternalLink,
+  Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUpdateWishlistItem, useMoveWishlistItem } from '@/hooks/wishlist/useWishlistItems';
 import { useUpdateOwnedPlant } from '@/hooks/collection/useOwnedPlants';
+import { useDeleteStockNotification } from '@/hooks/collection/useStockNotifications';
 import { toast } from 'sonner';
 
 interface PlantItemCardProps {
@@ -72,6 +75,7 @@ export const PlantItemCard = ({ item }: PlantItemCardProps) => {
   const updateWishlist = useUpdateWishlistItem();
   const moveWishlist = useMoveWishlistItem();
   const updateOwned = useUpdateOwnedPlant();
+  const deleteStockNotification = useDeleteStockNotification();
   
   const config = statusConfig[item.status];
   const StatusIcon = config.icon;
@@ -79,6 +83,9 @@ export const PlantItemCard = ({ item }: PlantItemCardProps) => {
   const handleCardClick = () => {
     if (item.sourceType === 'owned') {
       navigate(`/collection/plant/${item.sourceId}`);
+    } else if (item.sourceType === 'stock_notification') {
+      // Go to catalog product page
+      navigate(`/plant/${item.sourceId}`);
     } else {
       navigate(`/garden/plant/${item.sourceId}?type=wishlist`);
     }
@@ -129,10 +136,41 @@ export const PlantItemCard = ({ item }: PlantItemCardProps) => {
 
   const handleViewCatalog = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (item.wishlistData?.catalogProductId) {
-      navigate(`/plant/${item.wishlistData.catalogProductId}`);
+    const productId = item.wishlistData?.catalogProductId || 
+                      (item.sourceType === 'stock_notification' ? item.sourceId : null);
+    if (productId) {
+      navigate(`/plant/${productId}`);
     }
   };
+
+  const handleRemoveStockNotification = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (item.sourceType === 'stock_notification') {
+      deleteStockNotification.mutate(item.sourceId, {
+        onSuccess: () => {
+          toast.success('Notificación eliminada');
+        },
+      });
+    }
+  };
+
+  // Get source label for stock notifications
+  const getSourceLabel = () => {
+    if (item.sourceType === 'wishlist') {
+      if (item.wishlistData?.sourcePreference === 'frondaprima') {
+        return 'Catálogo FrondaPrima';
+      } else if (item.wishlistData?.providerName) {
+        return item.wishlistData.providerName;
+      } else {
+        return 'Planta externa';
+      }
+    } else if (item.sourceType === 'stock_notification') {
+      return 'Catálogo FrondaPrima';
+    }
+    return null;
+  };
+
+  const sourceLabel = getSourceLabel();
 
   return (
     <Card 
@@ -203,6 +241,22 @@ export const PlantItemCard = ({ item }: PlantItemCardProps) => {
                       </DropdownMenuItem>
                     </>
                   )}
+                  {item.sourceType === 'stock_notification' && (
+                    <>
+                      <DropdownMenuItem onClick={handleViewCatalog}>
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Ver en catálogo
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={handleRemoveStockNotification}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar notificación
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   {item.sourceType === 'owned' && (
                     <>
                       <DropdownMenuItem onClick={(e) => {
@@ -249,6 +303,21 @@ export const PlantItemCard = ({ item }: PlantItemCardProps) => {
                   )}
                 </>
               )}
+
+              {/* Stock notification indicators */}
+              {item.sourceType === 'stock_notification' && item.stockNotificationData && (
+                <>
+                  <Badge variant="outline" className="text-xs">
+                    <Bell className="h-3 w-3 mr-1 text-primary" />
+                    Alerta
+                  </Badge>
+                  {item.status === 'available' && item.stockNotificationData.price && (
+                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                      {item.stockNotificationData.price.toFixed(2)}€
+                    </Badge>
+                  )}
+                </>
+              )}
               
               {/* Collection indicators */}
               {item.sourceType === 'owned' && item.collectionData && (
@@ -276,10 +345,11 @@ export const PlantItemCard = ({ item }: PlantItemCardProps) => {
                   <span className="truncate">{item.collectionData.locationName}</span>
                 </div>
               )}
-              {item.sourceType === 'wishlist' && item.status === 'searching' && (
-                <p className="text-xs text-muted-foreground">
-                  Te avisaremos cuando esté disponible
-                </p>
+              {(item.sourceType === 'wishlist' || item.sourceType === 'stock_notification') && sourceLabel && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <ExternalLink className="h-3 w-3" />
+                  <span className="truncate">{sourceLabel}</span>
+                </div>
               )}
             </div>
           </div>
