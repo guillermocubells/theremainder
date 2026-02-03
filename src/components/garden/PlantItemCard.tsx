@@ -26,7 +26,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useUpdateWishlistItem, useMoveWishlistItem } from '@/hooks/wishlist/useWishlistItems';
+import { useUpdateWishlistItem, useMoveWishlistItem, useDeleteWishlistItem } from '@/hooks/wishlist/useWishlistItems';
 import { useUpdateOwnedPlant } from '@/hooks/collection/useOwnedPlants';
 import { useDeleteStockNotification } from '@/hooks/collection/useStockNotifications';
 import { toast } from 'sonner';
@@ -74,6 +74,7 @@ export const PlantItemCard = ({ item }: PlantItemCardProps) => {
   const navigate = useNavigate();
   const updateWishlist = useUpdateWishlistItem();
   const moveWishlist = useMoveWishlistItem();
+  const deleteWishlist = useDeleteWishlistItem();
   const updateOwned = useUpdateOwnedPlant();
   const deleteStockNotification = useDeleteStockNotification();
   
@@ -149,6 +150,17 @@ export const PlantItemCard = ({ item }: PlantItemCardProps) => {
       deleteStockNotification.mutate(item.sourceId, {
         onSuccess: () => {
           toast.success('Notificación eliminada');
+        },
+      });
+    }
+  };
+
+  const handleRemoveWishlistItem = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (item.sourceType === 'wishlist') {
+      deleteWishlist.mutate(item.sourceId, {
+        onSuccess: () => {
+          toast.success('Planta eliminada de búsqueda');
         },
       });
     }
@@ -238,6 +250,13 @@ export const PlantItemCard = ({ item }: PlantItemCardProps) => {
                       <DropdownMenuItem onClick={handleMarkPurchased}>
                         <CheckCircle2 className="h-4 w-4 mr-2" />
                         Marcar como comprada
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={handleRemoveWishlistItem}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Ya no me interesa
                       </DropdownMenuItem>
                     </>
                   )}
