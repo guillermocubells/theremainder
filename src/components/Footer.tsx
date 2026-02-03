@@ -31,7 +31,7 @@ const Footer = () => {
   const legalLinks = [
     { key: 'notice', href: '#' },
     { key: 'termsOfSale', href: '#' },
-    { key: 'privacyPolicy', href: '#' },
+    { key: 'privacyPolicy', href: '/privacy' },
   ];
 
   const socialLinks = [
