@@ -155,6 +155,12 @@
     "reviews": "Reseñas",
     "relatedPlants": "Plantas relacionadas",
     "recentlyViewed": "Visto recientemente",
+  "share": {
+    "share": "Compartir",
+    "linkCopied": "Enlace copiado al portapapeles",
+    "copyError": "Error al copiar el enlace",
+    "copyLink": "Copiar enlace"
+  },
     "notFound": "Planta no encontrada",
     "height": "Altura",
     "spread": "Extensión",

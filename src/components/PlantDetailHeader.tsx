@@ -9,6 +9,7 @@ import { formatHardinessZones, getZoneCountLabel } from "@/utils/hardinessZones"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AddToCartButton from "./AddToCartButton";
 import StockNotificationButton from "./StockNotificationButton";
+import SocialShareButtons from "./SocialShareButtons";
 import { useCatalogFavorite } from "@/hooks/wishlist";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -267,6 +268,15 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               </TooltipContent>
             </Tooltip>
           )}
+        </div>
+        
+        {/* Social share buttons */}
+        <div className="pt-1">
+          <SocialShareButtons 
+            plantName={plant.name} 
+            plantId={plant.id} 
+            price={plant.price} 
+          />
         </div>
         
         <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">{plant.description}</p>
