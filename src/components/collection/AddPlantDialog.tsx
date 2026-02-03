@@ -288,7 +288,7 @@ const AddPlantDialog = ({ open, onOpenChange }: AddPlantDialogProps) => {
           </div>
           
           {/* Dates */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="purchase_date">Fecha de compra</Label>
               <Input
@@ -296,6 +296,7 @@ const AddPlantDialog = ({ open, onOpenChange }: AddPlantDialogProps) => {
                 type="date"
                 value={formData.purchase_date}
                 onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
+                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -305,6 +306,7 @@ const AddPlantDialog = ({ open, onOpenChange }: AddPlantDialogProps) => {
                 type="date"
                 value={formData.next_checkin_date}
                 onChange={(e) => setFormData({ ...formData, next_checkin_date: e.target.value })}
+                className="w-full"
               />
             </div>
           </div>
