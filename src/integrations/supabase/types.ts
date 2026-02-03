@@ -166,6 +166,86 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          buyer_address: Json | null
+          buyer_email: string | null
+          buyer_name: string
+          cancelled_at: string | null
+          created_at: string
+          currency: string
+          id: string
+          invoice_number: string
+          issued_at: string
+          items: Json
+          order_id: string
+          seller_address: string | null
+          seller_email: string | null
+          seller_name: string
+          seller_tax_id: string | null
+          shipping_cost: number
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buyer_address?: Json | null
+          buyer_email?: string | null
+          buyer_name: string
+          cancelled_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_number: string
+          issued_at?: string
+          items?: Json
+          order_id: string
+          seller_address?: string | null
+          seller_email?: string | null
+          seller_name: string
+          seller_tax_id?: string | null
+          shipping_cost?: number
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buyer_address?: Json | null
+          buyer_email?: string | null
+          buyer_name?: string
+          cancelled_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_number?: string
+          issued_at?: string
+          items?: Json
+          order_id?: string
+          seller_address?: string | null
+          seller_email?: string | null
+          seller_name?: string
+          seller_tax_id?: string | null
+          shipping_cost?: number
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -241,6 +321,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          invoice_id: string | null
           notes: string | null
           order_number: string
           shipping_address: Json
@@ -254,6 +335,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          invoice_id?: string | null
           notes?: string | null
           order_number: string
           shipping_address: Json
@@ -267,6 +349,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          invoice_id?: string | null
           notes?: string | null
           order_number?: string
           shipping_address?: Json
@@ -277,7 +360,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       owned_plants: {
         Row: {
@@ -1059,10 +1150,15 @@ export type Database = {
       }
     }
     Functions: {
+      create_invoice_from_order: {
+        Args: { p_order_id: string }
+        Returns: string
+      }
       create_owned_plants_from_order: {
         Args: { p_order_id: string; p_user_id: string }
         Returns: number
       }
+      generate_invoice_number: { Args: never; Returns: string }
       generate_order_number: { Args: never; Returns: string }
       generate_plant_serial_code: { Args: never; Returns: string }
       generate_plant_slug: { Args: never; Returns: string }
@@ -1098,6 +1194,7 @@ export type Database = {
       email_frequency: "instant" | "daily" | "weekly"
       growth_speed: "slow" | "medium" | "fast"
       humidity_level: "low" | "medium" | "high"
+      invoice_status: "issued" | "cancelled" | "refunded"
       notification_type: "available" | "price_drop" | "similar"
       observation_condition: "healthy" | "okay" | "concern" | "critical"
       order_status: "pending" | "paid" | "shipped" | "delivered" | "cancelled"
@@ -1240,6 +1337,7 @@ export const Constants = {
       email_frequency: ["instant", "daily", "weekly"],
       growth_speed: ["slow", "medium", "fast"],
       humidity_level: ["low", "medium", "high"],
+      invoice_status: ["issued", "cancelled", "refunded"],
       notification_type: ["available", "price_drop", "similar"],
       observation_condition: ["healthy", "okay", "concern", "critical"],
       order_status: ["pending", "paid", "shipped", "delivered", "cancelled"],

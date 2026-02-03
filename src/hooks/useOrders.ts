@@ -13,25 +13,28 @@ export interface OrderItem {
   created_at: string;
 }
 
+export interface ShippingAddress {
+  full_name: string;
+  street: string;
+  apartment?: string;
+  city: string;
+  postal_code: string;
+  province: string;
+  country: string;
+  phone?: string;
+}
+
 export interface Order {
   id: string;
   order_number: string;
   user_id: string;
   status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
   total_amount: number;
-  shipping_address: {
-    full_name: string;
-    street: string;
-    apartment?: string;
-    city: string;
-    postal_code: string;
-    province: string;
-    country: string;
-    phone?: string;
-  };
+  shipping_address: ShippingAddress;
   tracking_number: string | null;
   tracking_url: string | null;
   notes: string | null;
+  invoice_id: string | null;
   created_at: string;
   updated_at: string;
   order_items?: OrderItem[];
@@ -55,7 +58,7 @@ export const useOrders = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Order[];
+      return data as unknown as Order[];
     },
     enabled: !!user,
   });
@@ -79,7 +82,7 @@ export const useOrder = (orderId: string | undefined) => {
         .single();
       
       if (error) throw error;
-      return data as Order;
+      return data as unknown as Order;
     },
     enabled: !!user && !!orderId,
   });
