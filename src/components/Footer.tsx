@@ -55,8 +55,8 @@ const Footer = () => {
       
       <section className="py-10 sm:py-20 px-4 relative z-10">
         <div className="container mx-auto">
-          {/* Mobile layout: stacked and centered */}
-          <div className="block lg:hidden">
+          {/* Mobile layout: stacked and centered (< md) */}
+          <div className="block md:hidden">
             {/* Brand - centered on mobile */}
             <div className="text-center mb-8">
               <h3 className="text-xl font-semibold tracking-tight text-primary-foreground mb-1.5">
@@ -136,6 +136,112 @@ const Footer = () => {
             </div>
 
             {/* Social & Language - centered on mobile */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="flex items-center gap-3">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.label}
+                    className="w-10 h-10 rounded-full bg-primary-foreground/[0.05] hover:bg-primary-foreground/[0.1] border border-primary-foreground/[0.08] flex items-center justify-center transition-all duration-300 group"
+                  >
+                    <social.icon className="h-4 w-4 text-primary-foreground/50 group-hover:text-primary-foreground/70 transition-colors duration-300" />
+                  </a>
+                ))}
+              </div>
+              <div className="h-6 w-px bg-primary-foreground/10" />
+              <LanguageSwitcher variant="footer" />
+            </div>
+          </div>
+
+          {/* Tablet layout: Brand+Legal left, Newsletter+Explorar right (md to lg) */}
+          <div className="hidden md:block lg:hidden">
+            <div className="grid grid-cols-2 gap-10 mb-10">
+              {/* Left column: Brand + Legal */}
+              <div className="flex flex-col">
+                {/* Brand */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold tracking-tight text-primary-foreground mb-1.5">
+                    Frondaprima
+                  </h3>
+                  <p className="text-[10px] uppercase tracking-[0.35em] text-primary-foreground/40 font-medium">
+                    {t('footer.tagline')}
+                  </p>
+                </div>
+                
+                {/* Legal */}
+                <div>
+                  <h4 className="text-[10px] font-medium uppercase tracking-[0.3em] text-primary-foreground/35 mb-4">
+                    {t('footer.legal.title')}
+                  </h4>
+                  <ul className="space-y-2.5">
+                    {legalLinks.map((link) => (
+                      <li key={link.key}>
+                        <a
+                          href={link.href}
+                          className="text-[13px] text-primary-foreground/55 hover:text-primary-foreground/80 transition-colors duration-300"
+                        >
+                          {t(`footer.legal.${link.key}`)}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Right column: Newsletter + Explorar below */}
+              <div className="flex flex-col">
+                {/* Newsletter */}
+                <div className="mb-8">
+                  <h4 className="text-[10px] font-medium uppercase tracking-[0.3em] text-primary-foreground/35 mb-4">
+                    {t('footer.newsletter.title')}
+                  </h4>
+                  <p className="text-[13px] text-primary-foreground/50 mb-4 leading-[1.7]">
+                    {t('footer.newsletter.description')}
+                  </p>
+                  <form onSubmit={handleNewsletterSubmit} className="space-y-3">
+                    <Input
+                      type="email"
+                      placeholder={t('footer.newsletter.placeholder')}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-primary-foreground/[0.03] border-primary-foreground/[0.08] text-primary-foreground text-[13px] placeholder:text-primary-foreground/30 focus:border-moss/40 focus:ring-moss/15 h-11 rounded-lg"
+                      required
+                    />
+                    <Button
+                      type="submit"
+                      disabled={isSubscribing}
+                      className="w-full bg-moss/90 hover:bg-moss text-primary-foreground border-0 h-11 text-[13px] font-medium tracking-wide transition-all duration-300 rounded-lg"
+                    >
+                      {isSubscribing ? "..." : t('footer.newsletter.subscribe')}
+                    </Button>
+                  </form>
+                </div>
+
+                {/* Navigation/Explorar - below newsletter on tablet */}
+                <div>
+                  <h4 className="text-[10px] font-medium uppercase tracking-[0.3em] text-primary-foreground/35 mb-4">
+                    {t('footer.navigation.title')}
+                  </h4>
+                  <ul className="space-y-2.5">
+                    {navigationLinks.map((link) => (
+                      <li key={link.key}>
+                        <a
+                          href={link.href}
+                          className="text-[13px] text-primary-foreground/55 hover:text-primary-foreground/80 transition-colors duration-300"
+                        >
+                          {t(`footer.navigation.${link.key}`)}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Social & Language - centered on tablet */}
             <div className="flex items-center justify-center gap-4 mb-8">
               <div className="flex items-center gap-3">
                 {socialLinks.map((social) => (
