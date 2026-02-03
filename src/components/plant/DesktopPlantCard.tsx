@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Share2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Plant } from "@/data/plants";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { usePlantTooltips } from "@/hooks/usePlantTooltips";
+import { toast } from "sonner";
 
 interface DesktopPlantCardProps {
   plant: Plant;
@@ -23,6 +25,32 @@ const DesktopPlantCard = ({ plant }: DesktopPlantCardProps) => {
       return plant.images && plant.images[2] ? plant.images[2] : plant.images?.[0];
     }
     return plant.images && plant.images[1] ? plant.images[1] : plant.images?.[0];
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const shareUrl = `${window.location.origin}/plant/${plant.id}`;
+    const shareData = {
+      title: plant.name,
+      text: plant.commonName || plant.name,
+      url: shareUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success(t('share.linkCopied', 'Enlace copiado'));
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success(t('share.linkCopied', 'Enlace copiado'));
+      }
+    }
   };
 
   return (
@@ -125,6 +153,22 @@ const DesktopPlantCard = ({ plant }: DesktopPlantCardProps) => {
                 {plant.name}
               </span>
             </div>
+            
+            {/* Share button - visible on hover */}
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleShare}
+                  aria-label={t('share.shareProduct', 'Compartir producto')}
+                  className="absolute top-2 sm:top-3 right-2 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-card/90 text-muted-foreground hover:text-foreground hover:bg-card transition-colors shadow-md"
+                >
+                  <Share2 className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {t('share.shareProduct', 'Compartir producto')}
+              </TooltipContent>
+            </Tooltip>
             
             {/* View details button */}
             <div className="absolute bottom-3 sm:bottom-6 right-3 sm:right-6">
