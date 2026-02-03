@@ -1,5 +1,6 @@
 
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { ArrowLeft, TreePalm, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +9,7 @@ import { plants } from "@/data/plants";
 import { plantDetails } from "@/data/plantDetailData";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
-import { ProductStructuredData } from "@/components/seo";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import PlantDetailHeader from "./PlantDetailHeader";
 import PlantPhotoCarousel from "./PlantPhotoCarousel";
 import PlantImageGallery from "./PlantImageGallery";
@@ -16,9 +17,11 @@ import CareInstructions from "./CareInstructions";
 import PlantCharacteristics from "./PlantCharacteristics";
 import PlantCuriousFacts from "./PlantCuriousFacts";
 import PlantReviews from "./PlantReviews";
+import { ProductStructuredData } from "@/components/seo";
 import CartDrawer from "./CartDrawer";
 import LanguageSwitcher from "./LanguageSwitcher";
 import RelatedPlants from "./RelatedPlants";
+import RecentlyViewed from "./RecentlyViewed";
 import Footer from "./Footer";
 
 const PlantDetail = () => {
@@ -27,8 +30,15 @@ const PlantDetail = () => {
   const isHeaderVisible = useScrollDirection();
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { addToRecentlyViewed } = useRecentlyViewed();
   const plant = plants.find(p => p.id === plantId);
 
+  // Track plant view in recently viewed
+  useEffect(() => {
+    if (plantId) {
+      addToRecentlyViewed(plantId);
+    }
+  }, [plantId, addToRecentlyViewed]);
   const handleAccountClick = () => {
     if (user) {
       navigate('/account');
@@ -157,6 +167,11 @@ const PlantDetail = () => {
             {/* Related Plants Section */}
             <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
               <RelatedPlants currentPlant={plant} />
+            </div>
+
+            {/* Recently Viewed Section */}
+            <div className="animate-fade-in" style={{ animationDelay: '450ms' }}>
+              <RecentlyViewed excludePlantId={plant.id} />
             </div>
           </div>
         </div>

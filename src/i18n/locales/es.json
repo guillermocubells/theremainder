@@ -154,6 +154,7 @@
     "curiousFacts": "Datos Curiosos",
     "reviews": "Reseñas",
     "relatedPlants": "Plantas relacionadas",
+    "recentlyViewed": "Visto recientemente",
     "notFound": "Planta no encontrada",
     "height": "Altura",
     "spread": "Extensión",
@@ -388,6 +389,7 @@
   "common": {
     "loading": "Cargando...",
     "error": "Ha ocurrido un error",
+    "clear": "Limpiar",
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
