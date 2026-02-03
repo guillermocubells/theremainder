@@ -166,6 +166,69 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_flags: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          notes: string | null
+          referrer_user_id: string | null
+          related_order_id: string | null
+          related_reward_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          severity: Database["public"]["Enums"]["fraud_flag_severity"]
+          status: Database["public"]["Enums"]["fraud_flag_status"]
+          type: Database["public"]["Enums"]["fraud_flag_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          referrer_user_id?: string | null
+          related_order_id?: string | null
+          related_reward_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: Database["public"]["Enums"]["fraud_flag_severity"]
+          status?: Database["public"]["Enums"]["fraud_flag_status"]
+          type: Database["public"]["Enums"]["fraud_flag_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          referrer_user_id?: string | null
+          related_order_id?: string | null
+          related_reward_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: Database["public"]["Enums"]["fraud_flag_severity"]
+          status?: Database["public"]["Enums"]["fraud_flag_status"]
+          type?: Database["public"]["Enums"]["fraud_flag_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_flags_related_order_id_fkey"
+            columns: ["related_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fraud_flags_related_reward_id_fkey"
+            columns: ["related_reward_id"]
+            isOneToOne: false
+            referencedRelation: "referral_rewards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_records: {
         Row: {
           base_imponible: number
@@ -488,6 +551,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          client_ip: string | null
           created_at: string
           customer_type: Database["public"]["Enums"]["customer_type"] | null
           id: string
@@ -508,10 +572,12 @@ export type Database = {
           tracking_number: string | null
           tracking_url: string | null
           updated_at: string
+          user_agent: string | null
           user_id: string
           wallet_amount_used: number | null
         }
         Insert: {
+          client_ip?: string | null
           created_at?: string
           customer_type?: Database["public"]["Enums"]["customer_type"] | null
           id?: string
@@ -532,10 +598,12 @@ export type Database = {
           tracking_number?: string | null
           tracking_url?: string | null
           updated_at?: string
+          user_agent?: string | null
           user_id: string
           wallet_amount_used?: number | null
         }
         Update: {
+          client_ip?: string | null
           created_at?: string
           customer_type?: Database["public"]["Enums"]["customer_type"] | null
           id?: string
@@ -556,6 +624,7 @@ export type Database = {
           tracking_number?: string | null
           tracking_url?: string | null
           updated_at?: string
+          user_agent?: string | null
           user_id?: string
           wallet_amount_used?: number | null
         }
@@ -1040,6 +1109,8 @@ export type Database = {
           cap_applied: boolean
           created_at: string
           currency: string
+          fraud_blocked: boolean | null
+          fraud_reason: string | null
           id: string
           matured_at: string | null
           matures_at: string | null
@@ -1060,6 +1131,8 @@ export type Database = {
           cap_applied?: boolean
           created_at?: string
           currency?: string
+          fraud_blocked?: boolean | null
+          fraud_reason?: string | null
           id?: string
           matured_at?: string | null
           matures_at?: string | null
@@ -1080,6 +1153,8 @@ export type Database = {
           cap_applied?: boolean
           created_at?: string
           currency?: string
+          fraud_blocked?: boolean | null
+          fraud_reason?: string | null
           id?: string
           matured_at?: string | null
           matures_at?: string | null
@@ -1565,6 +1640,19 @@ export type Database = {
         }
         Returns: string
       }
+      check_referral_fraud: {
+        Args: {
+          p_client_ip?: string
+          p_order_id: string
+          p_referred_user_id: string
+          p_referrer_user_id: string
+          p_user_agent?: string
+        }
+        Returns: {
+          flags: Json
+          is_blocked: boolean
+        }[]
+      }
       create_invoice_from_order: {
         Args: { p_order_id: string }
         Returns: string
@@ -1628,6 +1716,16 @@ export type Database = {
       customer_type: "b2c" | "b2b"
       difficulty_level: "easy" | "intermediate" | "advanced"
       email_frequency: "instant" | "daily" | "weekly"
+      fraud_flag_severity: "low" | "medium" | "high" | "critical"
+      fraud_flag_status: "pending" | "reviewed" | "approved" | "revoked"
+      fraud_flag_type:
+        | "self_referral"
+        | "similar_email"
+        | "ip_match"
+        | "device_fingerprint"
+        | "multiple_first_orders_ip"
+        | "suspicious_amount_pattern"
+        | "wallet_abuse"
       growth_speed: "slow" | "medium" | "fast"
       humidity_level: "low" | "medium" | "high"
       invoice_status:
@@ -1798,6 +1896,17 @@ export const Constants = {
       customer_type: ["b2c", "b2b"],
       difficulty_level: ["easy", "intermediate", "advanced"],
       email_frequency: ["instant", "daily", "weekly"],
+      fraud_flag_severity: ["low", "medium", "high", "critical"],
+      fraud_flag_status: ["pending", "reviewed", "approved", "revoked"],
+      fraud_flag_type: [
+        "self_referral",
+        "similar_email",
+        "ip_match",
+        "device_fingerprint",
+        "multiple_first_orders_ip",
+        "suspicious_amount_pattern",
+        "wallet_abuse",
+      ],
       growth_speed: ["slow", "medium", "fast"],
       humidity_level: ["low", "medium", "high"],
       invoice_status: [

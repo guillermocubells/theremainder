@@ -342,6 +342,8 @@
     "orders": "Pedidos",
     "invoices": "Facturas",
     "shipping": "Envíos",
+    "referrals": "Referidos",
+    "fraud": "Antifraude",
     "settings": "Configuración"
   },
   "plantFinder": {

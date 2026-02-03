@@ -10,6 +10,8 @@ import {
   ArrowLeft,
   Package,
   FileText,
+  Users,
+  Shield,
 } from "lucide-react";
 
 const navItems = [
@@ -19,6 +21,8 @@ const navItems = [
   { path: "/admin/orders", icon: Package, label: "admin.orders" },
   { path: "/admin/invoices", icon: FileText, label: "admin.invoices" },
   { path: "/admin/shipping", icon: Truck, label: "admin.shipping" },
+  { path: "/admin/referrals", icon: Users, label: "admin.referrals" },
+  { path: "/admin/fraud", icon: Shield, label: "admin.fraud" },
   { path: "/admin/settings", icon: Settings, label: "admin.settings" },
 ];
 

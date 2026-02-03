@@ -29,6 +29,8 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminInvoices from "./pages/admin/AdminInvoices";
 import AdminShipping from "./pages/admin/AdminShipping";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminReferrals from "./pages/admin/AdminReferrals";
+import AdminFraudFlags from "./pages/admin/AdminFraudFlags";
 
 // Collection module pages
 import { 
@@ -116,6 +118,8 @@ const App = () => (
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="invoices" element={<AdminInvoices />} />
                 <Route path="shipping" element={<AdminShipping />} />
+                <Route path="referrals" element={<AdminReferrals />} />
+                <Route path="fraud" element={<AdminFraudFlags />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
               

@@ -138,6 +138,146 @@ async function getReferralSettings(supabase: AnySupabaseClient): Promise<{
 }
 
 /**
+ * Check for fraud patterns and create flags
+ */
+async function checkFraudPatterns(
+  supabase: AnySupabaseClient,
+  referrerUserId: string,
+  referredUserId: string,
+  orderId: string,
+  clientIp: string | null,
+  userAgent: string | null
+): Promise<{ isBlocked: boolean; flags: Array<{ type: string; severity: string; message: string }> }> {
+  const flags: Array<{ type: string; severity: string; message: string }> = [];
+  let isBlocked = false;
+
+  // 1. Check self-referral (CRITICAL - blocks reward)
+  if (referrerUserId === referredUserId) {
+    isBlocked = true;
+    flags.push({
+      type: 'self_referral',
+      severity: 'critical',
+      message: 'Self-referral detected'
+    });
+    
+    await supabase.from('fraud_flags').insert({
+      user_id: referredUserId,
+      referrer_user_id: referrerUserId,
+      type: 'self_referral',
+      severity: 'critical',
+      status: 'pending',
+      related_order_id: orderId,
+      metadata: { auto_blocked: true }
+    });
+    
+    log("Fraud: Self-referral blocked", { referrerUserId, referredUserId, orderId });
+  }
+
+  // 2. Check similar emails (FLAG only, don't block)
+  const { data: referrerProfile } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('user_id', referrerUserId)
+    .single();
+
+  const { data: referredProfile } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('user_id', referredUserId)
+    .single();
+
+  if (referrerProfile?.email && referredProfile?.email) {
+    const referrerEmail = referrerProfile.email.toLowerCase();
+    const referredEmail = referredProfile.email.toLowerCase();
+    
+    // Check exact match or same local part
+    const referrerLocal = referrerEmail.split('@')[0];
+    const referredLocal = referredEmail.split('@')[0];
+    
+    if (referrerEmail === referredEmail || referrerLocal === referredLocal) {
+      flags.push({
+        type: 'similar_email',
+        severity: 'medium',
+        message: 'Similar or identical emails detected'
+      });
+      
+      await supabase.from('fraud_flags').insert({
+        user_id: referredUserId,
+        referrer_user_id: referrerUserId,
+        type: 'similar_email',
+        severity: 'medium',
+        status: 'pending',
+        related_order_id: orderId,
+        metadata: { referrer_email: referrerEmail, referred_email: referredEmail }
+      });
+      
+      log("Fraud flag: Similar emails", { referrerEmail, referredEmail });
+    }
+  }
+
+  // 3. Check IP patterns (FLAG only)
+  if (clientIp) {
+    const { data: ipOrders, error: ipError } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('client_ip', clientIp)
+      .not('referrer_user_id', 'is', null)
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+    if (!ipError && ipOrders && ipOrders.length >= 3) {
+      const severity = ipOrders.length >= 5 ? 'high' : 'medium';
+      flags.push({
+        type: 'ip_match',
+        severity,
+        message: `Multiple referred orders from same IP: ${ipOrders.length} orders`
+      });
+      
+      await supabase.from('fraud_flags').insert({
+        user_id: referredUserId,
+        referrer_user_id: referrerUserId,
+        type: 'ip_match',
+        severity,
+        status: 'pending',
+        related_order_id: orderId,
+        metadata: { ip: clientIp, order_count: ipOrders.length }
+      });
+      
+      log("Fraud flag: Multiple orders from same IP", { clientIp, orderCount: ipOrders.length });
+    }
+  }
+
+  // 4. Check suspicious amount patterns (multiple capped rewards)
+  const { data: cappedRewards } = await supabase
+    .from('referral_rewards')
+    .select('id')
+    .eq('referrer_user_id', referrerUserId)
+    .eq('cap_applied', true)
+    .gte('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
+
+  if (cappedRewards && cappedRewards.length >= 3) {
+    flags.push({
+      type: 'suspicious_amount_pattern',
+      severity: 'medium',
+      message: `Multiple capped rewards for referrer: ${cappedRewards.length} times`
+    });
+    
+    await supabase.from('fraud_flags').insert({
+      user_id: referredUserId,
+      referrer_user_id: referrerUserId,
+      type: 'suspicious_amount_pattern',
+      severity: 'medium',
+      status: 'pending',
+      related_order_id: orderId,
+      metadata: { capped_count: cappedRewards.length }
+    });
+    
+    log("Fraud flag: Multiple capped rewards", { referrerUserId, cappedCount: cappedRewards.length });
+  }
+
+  return { isBlocked, flags };
+}
+
+/**
  * Process referral reward after payment success
  */
 async function processReferralReward(
@@ -145,8 +285,10 @@ async function processReferralReward(
   orderId: string,
   userId: string,
   referralCodeUsed: string | null,
-  productSubtotalEur: number
-): Promise<{ rewardCreated: boolean; rewardAmount: number | null; error?: string }> {
+  productSubtotalEur: number,
+  clientIp: string | null = null,
+  userAgent: string | null = null
+): Promise<{ rewardCreated: boolean; rewardAmount: number | null; error?: string; fraudFlags?: Array<{ type: string; severity: string; message: string }> }> {
   if (!referralCodeUsed) {
     log("No referral code used", { orderId });
     return { rewardCreated: false, rewardAmount: null };
@@ -166,13 +308,28 @@ async function processReferralReward(
 
   const referrerUserId = referralCode.user_id;
 
-  // 2. Anti-fraud: Block self-referrals
-  if (referrerUserId === userId) {
-    log("Self-referral blocked", { userId, referralCodeUsed });
-    return { rewardCreated: false, rewardAmount: null, error: "Self-referral not allowed" };
+  // 2. Run fraud checks
+  const fraudResult = await checkFraudPatterns(
+    supabase,
+    referrerUserId,
+    userId,
+    orderId,
+    clientIp,
+    userAgent
+  );
+
+  // 3. If fraud is blocked (critical), don't create reward
+  if (fraudResult.isBlocked) {
+    log("Referral blocked due to fraud", { orderId, userId, flags: fraudResult.flags });
+    return { 
+      rewardCreated: false, 
+      rewardAmount: null, 
+      error: "Blocked by anti-fraud system",
+      fraudFlags: fraudResult.flags
+    };
   }
 
-  // 3. Check if user is "new" (no prior paid orders)
+  // 4. Check if user is "new" (no prior paid orders)
   const { data: priorOrders, error: priorOrdersError } = await supabase
     .from("orders")
     .select("id")
@@ -191,7 +348,7 @@ async function processReferralReward(
     return { rewardCreated: false, rewardAmount: null, error: "Not a new user" };
   }
 
-  // 4. Check if reward already exists for this order (idempotency)
+  // 5. Check if reward already exists for this order (idempotency)
   const { data: existingReward } = await supabase
     .from("referral_rewards")
     .select("id")
@@ -203,19 +360,20 @@ async function processReferralReward(
     return { rewardCreated: false, rewardAmount: null, error: "Reward already exists" };
   }
 
-  // 5. Get referral settings
+  // 6. Get referral settings
   const settings = await getReferralSettings(supabase);
 
-  // 6. Calculate reward (only on product subtotal, excluding shipping)
+  // 7. Calculate reward (only on product subtotal, excluding shipping)
   const rewardBruto = productSubtotalEur * (settings.rewardPercentage / 100);
   const rewardFinal = Math.min(rewardBruto, settings.capEur);
   const capApplied = rewardBruto > settings.capEur;
 
-  // 7. Calculate maturity date
+  // 8. Calculate maturity date
   const maturesAt = new Date();
   maturesAt.setDate(maturesAt.getDate() + settings.pendingDays);
 
-  // 8. Create reward record
+  // 9. Create reward record (with fraud info if flags exist)
+  const hasFraudFlags = fraudResult.flags.length > 0;
   const { data: reward, error: rewardError } = await supabase
     .from("referral_rewards")
     .insert({
@@ -230,6 +388,8 @@ async function processReferralReward(
       currency: "EUR",
       payment_confirmed_at: new Date().toISOString(),
       matures_at: maturesAt.toISOString(),
+      fraud_blocked: false,
+      fraud_reason: hasFraudFlags ? `Flags detected: ${fraudResult.flags.map(f => f.type).join(', ')}` : null,
     })
     .select()
     .single();
@@ -239,7 +399,16 @@ async function processReferralReward(
     return { rewardCreated: false, rewardAmount: null, error: rewardError.message };
   }
 
-  // 9. Update referrer's pending balance
+  // 10. Link fraud flags to the reward
+  if (hasFraudFlags) {
+    await supabase
+      .from("fraud_flags")
+      .update({ related_reward_id: reward.id })
+      .eq("related_order_id", orderId)
+      .eq("user_id", userId);
+  }
+
+  // 11. Update referrer's pending balance
   const { data: walletData } = await supabase
     .from("wallets")
     .select("pending_balance")
@@ -256,7 +425,7 @@ async function processReferralReward(
       .eq("user_id", referrerUserId);
   }
 
-  // 10. Update referred user's profile
+  // 12. Update referred user's profile
   await supabase
     .from("profiles")
     .update({
@@ -273,9 +442,10 @@ async function processReferralReward(
     rewardAmount: rewardFinal,
     capApplied,
     maturesAt: maturesAt.toISOString(),
+    hasFraudFlags,
   });
 
-  return { rewardCreated: true, rewardAmount: rewardFinal };
+  return { rewardCreated: true, rewardAmount: rewardFinal, fraudFlags: fraudResult.flags };
 }
 
 /**
