@@ -116,7 +116,7 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
             onClick={handleShare}
             onTouchEnd={handleShare}
             aria-label={t('share.shareProduct', 'Compartir producto')}
-            className="absolute top-2 right-2 w-10 h-10 flex items-center justify-center rounded-full bg-card/90 text-muted-foreground active:bg-card shadow-sm"
+            className="absolute top-2 right-2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-background/95 text-muted-foreground active:bg-muted shadow-md"
           >
             <Share2 className="h-4 w-4" />
           </button>

@@ -160,7 +160,7 @@ const DesktopPlantCard = ({ plant }: DesktopPlantCardProps) => {
                 <button
                   onClick={handleShare}
                   aria-label={t('share.shareProduct', 'Compartir producto')}
-                  className="absolute top-2 sm:top-3 right-2 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-card/90 text-muted-foreground hover:text-foreground hover:bg-card transition-colors shadow-md"
+                  className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-background text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shadow-md"
                 >
                   <Share2 className="h-4 w-4" />
                 </button>
