@@ -1,7 +1,7 @@
 
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useEffect, useLayoutEffect } from "react";
-import { ArrowLeft, TreePalm, User } from "lucide-react";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { ArrowLeft, TreePalm, User, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from 'react-i18next';
@@ -32,6 +32,20 @@ const PlantDetail = () => {
   const { user } = useAuth();
   const { addToRecentlyViewed } = useRecentlyViewed();
   const plant = plants.find(p => p.id === plantId);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Track scroll position to show/hide the scroll-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Scroll to top when component mounts or plantId changes (mobile-friendly)
   useLayoutEffect(() => {
@@ -216,6 +230,17 @@ const PlantDetail = () => {
 
         {/* Footer */}
         <Footer />
+
+        {/* Scroll to Top Button - positioned to not overlap WhatsApp button (bottom-right) */}
+        {showScrollTop && (
+          <button
+            onClick={scrollToTop}
+            aria-label={t('navigation.backToTop', 'Volver arriba')}
+            className="fixed bottom-20 right-4 sm:bottom-6 sm:right-20 z-40 bg-primary text-primary-foreground p-3 rounded-full shadow-lg hover:bg-primary/90 transition-all duration-300 animate-fade-in"
+          >
+            <ChevronUp className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </TooltipProvider>
   );
