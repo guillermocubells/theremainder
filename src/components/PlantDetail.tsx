@@ -1,6 +1,6 @@
 
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { ArrowLeft, TreePalm, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,9 +33,35 @@ const PlantDetail = () => {
   const { addToRecentlyViewed } = useRecentlyViewed();
   const plant = plants.find(p => p.id === plantId);
 
-  // Scroll to top when component mounts or plantId changes
-  useEffect(() => {
-    window.scrollTo(0, 0);
+  // Scroll to top when component mounts or plantId changes (mobile-friendly)
+  useLayoutEffect(() => {
+    const prevRestoration = window.history.scrollRestoration;
+
+    // Prevent the browser from restoring previous scroll position on navigation
+    if (typeof prevRestoration === "string") {
+      window.history.scrollRestoration = "manual";
+    }
+
+    const scrollTop = () => {
+      window.scrollTo({ top: 0, left: 0 });
+      // iOS/Safari sometimes needs these as well
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    // Run immediately, then again after layout/paint to avoid "jump to middle"
+    scrollTop();
+    const raf1 = window.requestAnimationFrame(() => {
+      scrollTop();
+      window.requestAnimationFrame(scrollTop);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(raf1);
+      if (typeof prevRestoration === "string") {
+        window.history.scrollRestoration = prevRestoration;
+      }
+    };
   }, [plantId]);
 
   // Track plant view in recently viewed
