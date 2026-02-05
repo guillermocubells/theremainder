@@ -27,7 +27,7 @@ const Footer = () => {
     { key: 'contact', href: '/contact' },
     { key: 'shipping', href: '/envios-y-entregas' },
     { key: 'referrals', href: '/programa-referidos' },
-    { key: 'faq', href: '#' },
+    { key: 'faq', href: '/faq' },
   ];
 
   const legalLinks = [
