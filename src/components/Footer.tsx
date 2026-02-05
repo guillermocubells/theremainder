@@ -31,8 +31,8 @@ const Footer = () => {
   ];
 
   const legalLinks = [
-    { key: 'notice', href: '#' },
-    { key: 'termsOfSale', href: '#' },
+    { key: 'notice', href: '/aviso-legal' },
+    { key: 'termsOfSale', href: '/condiciones-venta' },
     { key: 'privacyPolicy', href: '/privacy' },
   ];
 
