@@ -308,23 +308,22 @@ serve(async (req) => {
       );
     }
 
-    // Validate the JWT token
+    // Validate the JWT token using getUser
     const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
     
-    if (claimsError || !claimsData?.claims) {
-      console.error("[recommend-plants] Invalid token:", claimsError?.message);
+    if (userError || !userData?.user) {
+      console.error("[recommend-plants] Invalid token:", userError?.message);
       return new Response(
         JSON.stringify({ error: "Unauthorized - invalid token" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
       );
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = userData.user.id;
     console.log("[recommend-plants] Authenticated user:", userId);
 
     if (!lovableApiKey) {
