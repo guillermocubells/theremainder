@@ -1,0 +1,182 @@
+{
+  "plantilla": {
+    "descripcion": "Plantilla para importación masiva de productos de plantas",
+    "version": "1.0",
+    "fecha": "2025-02-05"
+  },
+  "campos": {
+    "identificacion": {
+      "slug": "nombre-en-minusculas-con-guiones",
+      "name": "Nombre científico completo",
+      "scientific_name": "Nombre científico (puede ser igual a name)",
+      "common_name": "Nombre común en español"
+    },
+    "categorizacion": {
+      "plant_type": "palm | fern | cycad | tree | shrub | bamboo | succulent | cactus | bromeliad | other",
+      "category_slug": "palmeras | helechos-arboreos | cicadas | arbustos-ornamentales"
+    },
+    "descripciones": {
+      "short_description": "Descripción corta para listados (max 100 caracteres)",
+      "description": "Descripción larga con detalles botánicos completos",
+      "notes": "Notas internas del vendedor (no públicas)"
+    },
+    "precio_stock": {
+      "price": "Precio en euros (número, ej: 85)",
+      "sale_price": "Precio de oferta (null si no hay oferta)",
+      "stock_qty": "Cantidad disponible (número entero)",
+      "is_in_stock": "true | false",
+      "is_active": "true | false",
+      "is_featured": "true | false",
+      "display_order": "Orden de visualización (número, 0 = primero)"
+    },
+    "especificaciones": {
+      "container_size": "3 litros | 5 litros | 7 litros | 10 litros",
+      "germination_date": "Mes y año, ej: Marzo 2023",
+      "mature_height": "Altura adulta, ej: 10-15m",
+      "mature_width": "Anchura adulta, ej: 2-3m",
+      "growth_rate": "Lento | Medio | Rápido"
+    },
+    "clima_cultivo": {
+      "climate_zones": "Zonas separadas por | ej: 9a|9b|10a|10b|11a|11b",
+      "hardiness_zone": "Rango de zonas, ej: 9a-11b",
+      "min_temp_c": "Temperatura mínima en Celsius (número, ej: -5)",
+      "exposure": "full_sun | partial_shade | full_shade (separar con | si hay varias)",
+      "sun_requirement": "Soleada | Semisol | Semisombra | Sombreada",
+      "water": "low | medium | high",
+      "water_requirement": "Baja | Moderada | Alta",
+      "humidity": "low | medium | high",
+      "temperature_range": "Rango, ej: 5°C - 35°C"
+    },
+    "dificultad_rareza": {
+      "difficulty": "easy | intermediate | advanced",
+      "rarity": "common | medium | rare | very_rare"
+    },
+    "origen": {
+      "origin_country": "País de origen",
+      "origin_region": "Región específica",
+      "native_habitat": "Descripción del hábitat natural"
+    },
+    "uso": {
+      "plant_use": "indoor | outdoor | container | landscape (separar con | si hay varios)"
+    },
+    "imagenes": {
+      "images": "URLs separadas por | ej: /lovable-uploads/img1.png|/lovable-uploads/img2.png",
+      "thumbnail_url": "URL de la imagen principal"
+    },
+    "seo": {
+      "meta_title": "Título SEO (max 60 caracteres)",
+      "meta_description": "Descripción SEO (max 160 caracteres)"
+    },
+    "cuidados": {
+      "care_watering": "Instrucciones de riego",
+      "care_fertilizing": "Instrucciones de fertilización",
+      "care_pruning": "Instrucciones de poda",
+      "care_repotting": "Instrucciones de trasplante"
+    },
+    "extras": {
+      "curious_facts": "Datos curiosos separados por |",
+      "spec_familia": "Familia botánica, ej: Arecaceae",
+      "spec_genero": "Género botánico, ej: Rhopalostylis"
+    }
+  },
+  "ejemplo": {
+    "slug": "rhopalostylis-sapida",
+    "name": "Rhopalostylis sapida",
+    "scientific_name": "Rhopalostylis sapida",
+    "common_name": "Palmera Nikau",
+    "plant_type": "palm",
+    "category_slug": "palmeras",
+    "short_description": "La única palmera nativa de Nueva Zelanda",
+    "description": "Elegante palmera con tronco distintivo anillado y corona de hojas pinnadas. Originaria de Nueva Zelanda, es resistente y adaptable.",
+    "notes": "Variedad Oceana muy resistente al frío",
+    "price": 85,
+    "sale_price": null,
+    "stock_qty": 4,
+    "is_in_stock": true,
+    "is_active": true,
+    "is_featured": false,
+    "display_order": 0,
+    "container_size": "3 litros",
+    "germination_date": "Marzo 2023",
+    "mature_height": "10-15m",
+    "mature_width": "2-3m",
+    "growth_rate": "Medio",
+    "climate_zones": "9a|9b|10a|10b|11a|11b",
+    "hardiness_zone": "9a-11b",
+    "min_temp_c": -5,
+    "exposure": "partial_shade",
+    "sun_requirement": "Semisol",
+    "water": "medium",
+    "water_requirement": "Moderada",
+    "humidity": "medium",
+    "temperature_range": "5°C - 35°C",
+    "difficulty": "intermediate",
+    "rarity": "rare",
+    "origin_country": "Nueva Zelanda",
+    "origin_region": "Isla Norte",
+    "native_habitat": "Bosques subtropicales húmedos",
+    "plant_use": "outdoor|container|landscape",
+    "images": "/lovable-uploads/img1.png|/lovable-uploads/img2.png",
+    "thumbnail_url": "/lovable-uploads/img1.png",
+    "meta_title": "Rhopalostylis sapida | Palmera Nikau | Frondaprima",
+    "meta_description": "Compra Rhopalostylis sapida la única palmera nativa de Nueva Zelanda. Envío a toda España.",
+    "care_watering": "Riego moderado mantener sustrato húmedo",
+    "care_fertilizing": "Fertilizar cada 2 meses en primavera-verano",
+    "care_pruning": "Eliminar hojas secas",
+    "care_repotting": "Cada 2-3 años",
+    "curious_facts": "Es la palmera más austral del mundo|Puede vivir más de 200 años",
+    "spec_familia": "Arecaceae",
+    "spec_genero": "Rhopalostylis"
+  },
+  "productos": [
+    {
+      "slug": "",
+      "name": "",
+      "scientific_name": "",
+      "common_name": "",
+      "plant_type": "",
+      "category_slug": "",
+      "short_description": "",
+      "description": "",
+      "notes": "",
+      "price": 0,
+      "sale_price": null,
+      "stock_qty": 0,
+      "is_in_stock": true,
+      "is_active": true,
+      "is_featured": false,
+      "display_order": 0,
+      "container_size": "",
+      "germination_date": "",
+      "mature_height": "",
+      "mature_width": "",
+      "growth_rate": "",
+      "climate_zones": "",
+      "hardiness_zone": "",
+      "min_temp_c": null,
+      "exposure": "",
+      "sun_requirement": "",
+      "water": "",
+      "water_requirement": "",
+      "humidity": "",
+      "temperature_range": "",
+      "difficulty": "",
+      "rarity": "",
+      "origin_country": "",
+      "origin_region": "",
+      "native_habitat": "",
+      "plant_use": "",
+      "images": "",
+      "thumbnail_url": "",
+      "meta_title": "",
+      "meta_description": "",
+      "care_watering": "",
+      "care_fertilizing": "",
+      "care_pruning": "",
+      "care_repotting": "",
+      "curious_facts": "",
+      "spec_familia": "",
+      "spec_genero": ""
+    }
+  ]
+}
