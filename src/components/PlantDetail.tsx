@@ -33,6 +33,11 @@ const PlantDetail = () => {
   const { addToRecentlyViewed } = useRecentlyViewed();
   const plant = plants.find(p => p.id === plantId);
 
+  // Scroll to top when component mounts or plantId changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [plantId]);
+
   // Track plant view in recently viewed
   useEffect(() => {
     if (plantId) {
