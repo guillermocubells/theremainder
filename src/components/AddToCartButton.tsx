@@ -54,6 +54,22 @@ const AddToCartButton = ({
     }
   };
 
+  // Product is out of stock (maxQuantity is 0)
+  if (maxQuantity === 0) {
+    return (
+      <div className="flex items-center gap-3 sm:gap-4">
+        <Button
+          disabled
+          size="lg"
+          className="bg-muted text-muted-foreground cursor-not-allowed text-sm sm:text-base px-6 sm:px-8"
+        >
+          {t('plant.notAvailable', 'No disponible')}
+        </Button>
+      </div>
+    );
+  }
+
+  // User already has max quantity in cart
   if (availableToAdd <= 0) {
     return (
       <div className="flex items-center gap-2">
