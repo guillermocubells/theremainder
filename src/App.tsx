@@ -20,6 +20,7 @@ import Contact from "./pages/Contact";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ShippingInfo from "./pages/ShippingInfo";
 import ReferralProgram from "./pages/ReferralProgram";
+import TermsOfSale from "./pages/TermsOfSale";
 
 import { AdminLayout } from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -72,6 +73,7 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/envios-y-entregas" element={<ShippingInfo />} />
               <Route path="/programa-referidos" element={<ReferralProgram />} />
+              <Route path="/condiciones-venta" element={<TermsOfSale />} />
               
               {/* Mi Jardín - Unified Garden module */}
               <Route path="/garden" element={
