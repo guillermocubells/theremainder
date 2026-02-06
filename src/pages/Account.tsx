@@ -29,6 +29,7 @@ import AccountReferrals from '@/components/account/AccountReferrals';
 import AccountInquiries from '@/components/account/AccountInquiries';
 import MobileAccountHub from '@/components/account/MobileAccountHub';
 import MobileAccountSection from '@/components/account/MobileAccountSection';
+import ReferralBanner from '@/components/ReferralBanner';
 import { useInquiryCount } from '@/hooks/collection/useGardenInquiries';
 
 const Account = () => {
@@ -178,10 +179,15 @@ const Account = () => {
               {renderContent(activeTab)}
             </MobileAccountSection>
           ) : (
-            <MobileAccountHub 
-              onNavigate={handleMobileNavigate}
-              onLanguageChange={handleLanguageChange}
-            />
+            <>
+              <div className="mb-4">
+                <ReferralBanner />
+              </div>
+              <MobileAccountHub 
+                onNavigate={handleMobileNavigate}
+                onLanguageChange={handleLanguageChange}
+              />
+            </>
           )}
         </main>
 
@@ -215,7 +221,8 @@ const Account = () => {
           </aside>
 
           {/* Content area */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-4">
+            <ReferralBanner />
             <div className="bg-card rounded-xl shadow-sm p-6">
               {renderContent(activeTab || 'dashboard')}
             </div>
