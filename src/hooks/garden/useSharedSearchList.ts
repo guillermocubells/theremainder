@@ -139,54 +139,31 @@ export const usePublicSearchList = (slug: string) => {
   return useQuery({
     queryKey: ['public-search-list', slug],
     queryFn: async () => {
-      // Fetch the shared list
-      const { data: sharedList, error: listError } = await supabase
-        .from('shared_search_lists')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_public', true)
-        .maybeSingle();
+      // Use security definer function to fetch public list data without exposing user_id
+      const { data, error } = await supabase
+        .rpc('get_public_shared_list_by_slug' as any, { p_slug: slug });
 
-      if (listError) throw listError;
-      if (!sharedList) return null;
+      if (error) throw error;
+      if (!data) return null;
 
-      // Fetch wishlist items for this user
-      const { data: wishlistItems, error: itemsError } = await supabase
-        .from('wishlist_items')
-        .select(`
-          id,
-          name,
-          scientific_name,
-          image_url,
-          priority,
-          status,
-          notes,
-          variety_notes,
-          catalog_product_id,
-          plants:catalog_product_id (
-            id,
-            name,
-            scientific_name,
-            thumbnail_url,
-            price,
-            is_in_stock
-          )
-        `)
-        .eq('user_id', sharedList.user_id)
-        .in('status', ['wishlist', 'looking']);
-
-      if (itemsError) throw itemsError;
-
-      // Fetch stock notifications (without the plants join, use local data)
-      const { data: stockNotificationsRaw, error: stockError } = await supabase
-        .from('stock_notifications')
-        .select('id, plant_id')
-        .eq('user_id', sharedList.user_id);
-
-      if (stockError) throw stockError;
+      const result = data as {
+        sharedList: Omit<SharedSearchList, 'user_id'>;
+        wishlistItems: Array<{
+          id: string;
+          name: string;
+          scientific_name: string | null;
+          image_url: string | null;
+          priority: string;
+          status: string;
+          notes: string | null;
+          variety_notes: string | null;
+          catalog_product_id: string | null;
+        }>;
+        stockNotifications: Array<{ id: string; plant_id: string }>;
+      };
 
       // Enrich stock notifications with local plant data
-      const stockNotifications = (stockNotificationsRaw || []).map(n => {
+      const stockNotifications = (result.stockNotifications || []).map(n => {
         const localPlant = plants.find(p => p.id === n.plant_id);
         return {
           ...n,
@@ -201,8 +178,8 @@ export const usePublicSearchList = (slug: string) => {
       });
 
       return {
-        sharedList: sharedList as SharedSearchList,
-        wishlistItems: wishlistItems || [],
+        sharedList: result.sharedList as SharedSearchList,
+        wishlistItems: result.wishlistItems || [],
         stockNotifications,
       };
     },
