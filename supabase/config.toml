@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.mature-rewards]
 verify_jwt = false
+
+[functions.submit-inquiry]
+verify_jwt = false
