@@ -540,5 +540,19 @@
         "description": "Se utilizan para mostrarte anuncios relevantes y medir la efectividad de las campañas."
       }
     }
+  },
+  "recentPurchases": {
+    "title": "Compras recientes",
+    "someonePurchased": "Comprado",
+    "unitsBought": "uds. compradas",
+    "justNow": "hace un momento",
+    "oneHourAgo": "hace 1 hora",
+    "hoursAgo": "hace {{count}} horas",
+    "yesterday": "ayer",
+    "daysAgo": "hace {{count}} días"
+  },
+  "share": {
+    "shareSearch": "Compartir búsqueda",
+    "shareSearchTooltip": "Compartir esta búsqueda por WhatsApp"
   }
 }
