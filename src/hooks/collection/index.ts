@@ -4,3 +4,5 @@ export * from './usePlantLocations';
 export * from './usePlantNotes';
 export * from './usePublicSharing';
 export * from './useStockNotifications';
+export * from './usePlantSharingControls';
+export * from './useGardenInquiries';

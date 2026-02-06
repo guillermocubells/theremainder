@@ -229,6 +229,111 @@ export type Database = {
           },
         ]
       }
+      garden_inquiries: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          offer_type: string | null
+          owned_plant_id: string
+          owner_reply: string | null
+          owner_user_id: string
+          replied_at: string | null
+          shared_list_id: string | null
+          status: string
+          updated_at: string
+          viewer_email: string | null
+          viewer_identifier: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          offer_type?: string | null
+          owned_plant_id: string
+          owner_reply?: string | null
+          owner_user_id: string
+          replied_at?: string | null
+          shared_list_id?: string | null
+          status?: string
+          updated_at?: string
+          viewer_email?: string | null
+          viewer_identifier: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          offer_type?: string | null
+          owned_plant_id?: string
+          owner_reply?: string | null
+          owner_user_id?: string
+          replied_at?: string | null
+          shared_list_id?: string | null
+          status?: string
+          updated_at?: string
+          viewer_email?: string | null
+          viewer_identifier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garden_inquiries_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garden_inquiries_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garden_inquiries_shared_list_id_fkey"
+            columns: ["shared_list_id"]
+            isOneToOne: false
+            referencedRelation: "shared_search_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garden_viewer_blocks: {
+        Row: {
+          created_at: string
+          id: string
+          owner_user_id: string
+          scope: string
+          shared_list_id: string | null
+          viewer_identifier: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_user_id: string
+          scope?: string
+          shared_list_id?: string | null
+          viewer_identifier: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+          scope?: string
+          shared_list_id?: string | null
+          viewer_identifier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garden_viewer_blocks_shared_list_id_fkey"
+            columns: ["shared_list_id"]
+            isOneToOne: false
+            referencedRelation: "shared_search_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_records: {
         Row: {
           base_imponible: number
@@ -640,9 +745,12 @@ export type Database = {
       }
       owned_plants: {
         Row: {
+          allow_inquiries: boolean
+          availability_intent: string
           common_name: string | null
           created_at: string
           id: string
+          inquiry_handling_mode: string
           location_id: string | null
           location_text: string | null
           next_checkin_date: string | null
@@ -658,11 +766,15 @@ export type Database = {
           tags: string[] | null
           updated_at: string
           user_id: string
+          visibility_in_shared_lists: string
         }
         Insert: {
+          allow_inquiries?: boolean
+          availability_intent?: string
           common_name?: string | null
           created_at?: string
           id?: string
+          inquiry_handling_mode?: string
           location_id?: string | null
           location_text?: string | null
           next_checkin_date?: string | null
@@ -678,11 +790,15 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string
           user_id: string
+          visibility_in_shared_lists?: string
         }
         Update: {
+          allow_inquiries?: boolean
+          availability_intent?: string
           common_name?: string | null
           created_at?: string
           id?: string
+          inquiry_handling_mode?: string
           location_id?: string | null
           location_text?: string | null
           next_checkin_date?: string | null
@@ -698,6 +814,7 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string
           user_id?: string
+          visibility_in_shared_lists?: string
         }
         Relationships: [
           {
@@ -1243,6 +1360,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          global_inquiries_mode: string
           id: string
           is_public: boolean
           slug: string
@@ -1253,6 +1371,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          global_inquiries_mode?: string
           id?: string
           is_public?: boolean
           slug?: string
@@ -1263,6 +1382,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          global_inquiries_mode?: string
           id?: string
           is_public?: boolean
           slug?: string

@@ -14,6 +14,7 @@ import {
   Search,
   Leaf,
   Gift,
+  MessageSquare,
   LogOut
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -25,8 +26,10 @@ import AccountProfile from '@/components/account/AccountProfile';
 import AccountSecurity from '@/components/account/AccountSecurity';
 import AccountSavedSearches from '@/components/account/AccountSavedSearches';
 import AccountReferrals from '@/components/account/AccountReferrals';
+import AccountInquiries from '@/components/account/AccountInquiries';
 import MobileAccountHub from '@/components/account/MobileAccountHub';
 import MobileAccountSection from '@/components/account/MobileAccountSection';
+import { useInquiryCount } from '@/hooks/collection/useGardenInquiries';
 
 const Account = () => {
   const { t, i18n } = useTranslation();
@@ -35,7 +38,7 @@ const Account = () => {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const { data: gardenStats } = useGardenStats();
-
+  const { data: inquiryCount } = useInquiryCount();
   const menuItems = [
     { id: 'dashboard', label: t('account.dashboard'), icon: LayoutDashboard },
     { id: 'garden', label: 'Mi Jardín', icon: Leaf, badge: gardenStats?.total, href: '/garden' },
@@ -44,6 +47,7 @@ const Account = () => {
     { id: 'profile', label: t('account.profile'), icon: User },
     { id: 'security', label: t('account.security'), icon: Shield },
     { id: 'searches', label: t('account.savedSearches'), icon: Search },
+    { id: 'inquiries', label: 'Consultas', icon: MessageSquare, badge: inquiryCount },
     { id: 'referrals', label: t('referral.title', 'Referidos'), icon: Gift },
   ];
 
@@ -73,6 +77,7 @@ const Account = () => {
       case 'security': return t('account.security');
       case 'searches': return t('account.savedSearches');
       case 'referrals': return t('referral.title', 'Referidos');
+      case 'inquiries': return 'Consultas';
       default: return '';
     }
   };
@@ -93,6 +98,8 @@ const Account = () => {
         return <AccountSavedSearches />;
       case 'referrals':
         return <AccountReferrals />;
+      case 'inquiries':
+        return <AccountInquiries />;
       default:
         return <AccountDashboard onNavigate={isMobile ? handleMobileNavigate : setActiveTab} />;
     }

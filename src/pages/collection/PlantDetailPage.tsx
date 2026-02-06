@@ -44,6 +44,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import AddObservationDialog from '@/components/collection/AddObservationDialog';
+import PlantSharingControls from '@/components/collection/PlantSharingControls';
 import { cn } from '@/lib/utils';
 
 const statusColors: Record<string, string> = {
@@ -446,7 +447,16 @@ const PlantDetailPage = () => {
                         <p className="text-xs text-muted-foreground">
                           La página pública muestra solo el nombre, fotos y observaciones recientes.
                         </p>
-                      </div>
+
+                        {/* Plant-level sharing controls */}
+                        <PlantSharingControls
+                          plantId={id!}
+                          visibilityInSharedLists={(plant as any).visibility_in_shared_lists || 'hidden'}
+                          allowInquiries={(plant as any).allow_inquiries || false}
+                          availabilityIntent={(plant as any).availability_intent || 'not_open'}
+                          inquiryHandlingMode={(plant as any).inquiry_handling_mode || 'allow'}
+                        />
+                       </div>
                     </CollapsibleContent>
                   </Collapsible>
                 </div>
