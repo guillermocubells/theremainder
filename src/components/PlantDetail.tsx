@@ -23,6 +23,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import RelatedPlants from "./RelatedPlants";
 import RecentlyViewed from "./RecentlyViewed";
 import RecentlyPurchased from "./RecentlyPurchased";
+import CompleteYourOrder from "./CompleteYourOrder";
 import Footer from "./Footer";
 
 const PlantDetail = () => {
@@ -211,6 +212,11 @@ const PlantDetail = () => {
                 <PlantCuriousFacts curiousFacts={detail.curiousFacts} />
               </div>
             )}
+
+            {/* Complete Your Order - promotion block */}
+            <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '325ms' }}>
+              <CompleteYourOrder />
+            </div>
 
             {/* Related Plants Section */}
             <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '350ms' }}>

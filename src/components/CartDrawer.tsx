@@ -14,6 +14,7 @@ import { useCart, calculateTax } from "@/contexts/CartContext";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
+import CompleteYourOrder from "./CompleteYourOrder";
 
 const CartDrawer = () => {
   const { items, updateQuantity, removeFromCart, getTotalItems, getTotalPrice, clearCart, isCartOpen, setIsCartOpen } = useCart();
@@ -140,6 +141,11 @@ const CartDrawer = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Promotion block (compact in drawer) */}
+              <div className="border-t border-border pt-3 pb-1">
+                <CompleteYourOrder compact />
               </div>
 
               {/* Summary section */}

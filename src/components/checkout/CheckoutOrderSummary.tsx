@@ -5,6 +5,7 @@ import { CartItem } from "@/contexts/CartContext";
 import { ShippingQuote } from "@/hooks/useShippingQuote";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import CompleteYourOrder from "@/components/CompleteYourOrder";
 
 interface CheckoutOrderSummaryProps {
   items: CartItem[];
@@ -182,6 +183,11 @@ export function CheckoutOrderSummary({
               </p>
             </div>
           )}
+
+          {/* Promotion block */}
+          <div className="mb-4">
+            <CompleteYourOrder compact />
+          </div>
 
           {/* Secure payment info */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
