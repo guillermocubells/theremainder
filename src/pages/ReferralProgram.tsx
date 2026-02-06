@@ -48,8 +48,8 @@ const ReferralProgram = () => {
             </h2>
             <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
               <li><strong className="text-foreground">5%</strong> del valor del pedido del usuario referido</li>
-              <li>Solo en su <strong className="text-foreground">primera compra</strong></li>
-              <li>Crédito máximo por pedido: <strong className="text-foreground">100 €</strong></li>
+              <li>Solo en su <strong className="text-foreground">primera compra</strong> (mínimo 25 €)</li>
+              <li>Crédito máximo por pedido: <strong className="text-foreground">20 €</strong></li>
               <li>El crédito se acumula en tu cuenta como <strong className="text-foreground">saldo Frondaprima</strong></li>
             </ul>
           </section>
@@ -63,7 +63,7 @@ const ReferralProgram = () => {
             </h2>
             <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
               <li>El saldo puede utilizarse para <strong className="text-foreground">comprar plantas</strong> en Frondaprima</li>
-              <li>Se puede usar hasta un <strong className="text-foreground">50%</strong> del valor de los productos del carrito</li>
+              <li>Se puede usar hasta un <strong className="text-foreground">100%</strong> del valor de los productos del carrito</li>
               <li>El saldo <strong className="text-foreground">no puede utilizarse</strong> para gastos de envío</li>
               <li>El saldo no es dinero en efectivo, <strong className="text-foreground">no se puede retirar ni transferir</strong></li>
             </ul>
@@ -78,7 +78,7 @@ const ReferralProgram = () => {
             </h2>
             <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
               <li>El crédito se genera cuando el pedido del usuario referido está <strong className="text-foreground">pagado</strong></li>
-              <li>El crédito pasa a estar disponible <strong className="text-foreground">7 días después</strong>, siempre que no haya incidencias o devoluciones</li>
+              <li>El crédito pasa a estar disponible <strong className="text-foreground">14 días después</strong>, siempre que no haya incidencias o devoluciones</li>
             </ul>
           </section>
 

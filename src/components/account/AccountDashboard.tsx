@@ -7,7 +7,8 @@ import { useAddresses } from '@/hooks/useAddresses';
 import { useGardenStats } from '@/hooks/garden';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, MapPin, User, Clock, Leaf, ArrowRight, Heart, Search as SearchIcon } from 'lucide-react';
+import { Package, MapPin, User, Clock, Leaf, ArrowRight, Heart, Search as SearchIcon, Gift } from 'lucide-react';
+import { useWallet } from '@/hooks/useReferral';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -22,6 +23,7 @@ const AccountDashboard = ({ onNavigate }: AccountDashboardProps) => {
   const { data: orders } = useOrders();
   const { data: addresses } = useAddresses();
   const { data: gardenStats } = useGardenStats();
+  const { data: wallet } = useWallet();
 
   const recentOrders = orders?.slice(0, 3) || [];
   const defaultAddress = addresses?.find(a => a.is_default);
@@ -106,6 +108,27 @@ const AccountDashboard = ({ onNavigate }: AccountDashboardProps) => {
               <p className="text-lg font-semibold text-foreground">{gardenStats?.available || 0}</p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Referral Card */}
+      <Card
+        className="cursor-pointer hover:shadow-md transition-shadow border-primary/10 bg-gradient-to-r from-primary/5 to-transparent"
+        onClick={() => onNavigate('referrals')}
+      >
+        <CardContent className="p-4 flex items-center gap-4">
+          <div className="bg-primary/10 p-3 rounded-full shrink-0">
+            <Gift className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-foreground">Programa de Referidos</h3>
+            <p className="text-sm text-muted-foreground">
+              {wallet?.availableBalance
+                ? `${wallet.availableBalance.toFixed(2)} € disponibles`
+                : 'Comparte y gana crédito'}
+            </p>
+          </div>
+          <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />
         </CardContent>
       </Card>
 

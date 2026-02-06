@@ -24,6 +24,7 @@ import {
   CheckoutStep,
   STEP_ICONS,
 } from "@/components/checkout/CheckoutAccordion";
+import ReferralCodeField from "@/components/checkout/ReferralCodeField";
 
 interface ShippingForm {
   email: string;
@@ -59,6 +60,8 @@ const Checkout = () => {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("shipping");
   const [completedSteps, setCompletedSteps] = useState<CheckoutStep[]>([]);
   const [shippingCountry, setShippingCountry] = useState<string>("ES");
+  const [appliedReferralCode, setAppliedReferralCode] = useState<string | null>(null);
+  const [referrerUserId, setReferrerUserId] = useState<string | null>(null);
   const [form, setForm] = useState<ShippingForm>({
     ...INITIAL_FORM,
     email: user?.email || "",
@@ -425,6 +428,20 @@ const Checkout = () => {
                 placeholder={t("checkout.notesPlaceholder")}
                 rows={3}
               />
+              
+              {/* Referral Code Field */}
+              <ReferralCodeField
+                appliedCode={appliedReferralCode}
+                onApply={(code, userId) => {
+                  setAppliedReferralCode(code);
+                  setReferrerUserId(userId);
+                }}
+                onRemove={() => {
+                  setAppliedReferralCode(null);
+                  setReferrerUserId(null);
+                }}
+              />
+
               <StepNavigation
                 onContinue={() => handleStepContinue("notes")}
                 continueLabel={t("checkout.continueToPayment")}
