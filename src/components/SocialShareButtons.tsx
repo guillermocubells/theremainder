@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Share2, Check, Link2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { buildProductMessage, openWhatsAppShare } from "@/utils/whatsappShare";
 
 // Social icons
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -28,9 +29,14 @@ interface SocialShareButtonsProps {
   plantName: string;
   plantId: string;
   price?: number;
+  variety?: string;
+  containerSize?: string;
+  quantity?: number;
+  description?: string;
+  imageUrl?: string;
 }
 
-const SocialShareButtons = ({ plantName, plantId, price }: SocialShareButtonsProps) => {
+const SocialShareButtons = ({ plantName, plantId, price, variety, containerSize, quantity, description, imageUrl }: SocialShareButtonsProps) => {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
@@ -46,9 +52,19 @@ const SocialShareButtons = ({ plantName, plantId, price }: SocialShareButtonsPro
   };
 
   const shareOnWhatsApp = () => {
-    const url = getShareUrl();
-    const text = encodeURIComponent(`${getShareText()}\n${url}`);
-    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
+    const productUrl = getShareUrl();
+    const message = buildProductMessage({
+      name: plantName,
+      price,
+      variety,
+      containerSize,
+      quantity,
+      description,
+      imageUrl,
+      productUrl,
+      id: plantId,
+    });
+    openWhatsAppShare(message);
   };
 
   const shareOnFacebook = () => {

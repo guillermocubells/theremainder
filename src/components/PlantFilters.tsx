@@ -8,7 +8,7 @@ import { HARDINESS_ZONES, getShortZoneLabel } from "@/utils/hardinessZones";
 
 interface PlantFiltersProps {
   plants: Plant[];
-  onFilterChange: (filteredPlants: Plant[], sortKey?: string) => void;
+  onFilterChange: (filteredPlants: Plant[], sortKey?: string, filterSummary?: Record<string, string>) => void;
   isVisible: boolean;
 }
 
@@ -102,7 +102,16 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
       });
     }
 
-    onFilterChange(filtered, newFilters.sortBy);
+    // Build filter summary for sharing
+    const filterSummary: Record<string, string> = {};
+    if (newFilters.light) filterSummary['Luz'] = newFilters.light;
+    if (newFilters.water) filterSummary['Riego'] = newFilters.water;
+    if (newFilters.zone) filterSummary['Zona'] = newFilters.zone;
+    if (newFilters.location) filterSummary['Ubicación'] = newFilters.location;
+    if (newFilters.plantGroup) filterSummary['Grupo'] = newFilters.plantGroup;
+    if (newFilters.stock) filterSummary['Stock'] = newFilters.stock === 'disponible' ? 'Disponible' : 'Agotado';
+
+    onFilterChange(filtered, newFilters.sortBy, Object.keys(filterSummary).length > 0 ? filterSummary : undefined);
   }, [plants, onFilterChange]);
 
   const handleFilterChange = useCallback((key: keyof FilterState, value: string) => {
