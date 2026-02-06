@@ -1,10 +1,35 @@
 {
-  "whatsapp": {
-    "tooltip": "Need help?",
-    "greeting": "Hi! 👋 How can we help you? Ask us about plants, orders, or shipping.",
-    "placeholder": "Type your message...",
-    "defaultMessage": "Hi, I have a question about the plants",
-    "online": "Usually replies in minutes"
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "clear": "Clear",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "shippingTbd": "Shipping costs to be determined",
+    "includedTaxes": "Included taxes",
+    "totalWithTax": "Total (tax incl.)",
+    "continueShopping": "Continue shopping",
+    "backToStore": "Back to store",
+    "form": {
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Your name",
+      "phone": "Phone",
+      "phonePlaceholder": "+1 555 000 0000",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "required": "This field is required",
+      "invalidEmail": "Enter a valid email"
+    }
   },
   "header": {
     "title": "Frondaprima",
@@ -16,7 +41,6 @@
   },
   "navigation": {
     "backToCatalog": "Back to catalog",
-    "backToStore": "Back to store",
     "catalog": "Catalog"
   },
   "hero": {
@@ -31,20 +55,12 @@
     "searchAI": "E.g.: plants for zip code 28987, cold-hardy palms...",
     "categories": "Categories",
     "allCategories": "All categories",
-    "hardinessZone": "Hardiness Zone",
     "allZones": "All zones",
     "priceRange": "Price Range",
     "clearFilters": "Clear filters",
     "noResults": "No plants found with the selected filters.",
     "resultsCount": "{{count}} plant found",
     "resultsCount_plural": "{{count}} plants found",
-    "plantGroup": "Plant Group",
-    "availability": "Availability",
-    "sunExposure": "Sun Exposure",
-    "growthRate": "Growth Rate",
-    "ornamentalValue": "Ornamental Value",
-    "waterNeeds": "Water Needs",
-    "location": "Location",
     "all": "All",
     "available": "Available",
     "outOfStock": "Out of Stock",
@@ -105,12 +121,6 @@
     "reviews": "Reviews",
     "relatedPlants": "Related plants",
     "recentlyViewed": "Recently viewed",
-  "share": {
-    "share": "Share",
-    "linkCopied": "Link copied to clipboard",
-    "copyError": "Error copying link",
-    "copyLink": "Copy link"
-  },
     "notFound": "Plant not found",
     "height": "Height",
     "spread": "Spread",
@@ -126,6 +136,15 @@
     "productDetails": "Product Details",
     "germinationDate": "Germination",
     "visualReferences": "Future visual references"
+  },
+  "share": {
+    "share": "Share",
+    "shareProduct": "Share product",
+    "shareSearch": "Share search",
+    "shareSearchTooltip": "Share this search via WhatsApp",
+    "linkCopied": "Link copied to clipboard",
+    "copyError": "Error copying link",
+    "copyLink": "Copy link"
   },
   "light": {
     "title": "Light",
@@ -203,15 +222,7 @@
     "empty": "Your cart is empty",
     "emptyMessage": "Add some amazing plants to your cart",
     "explorePlants": "Explore Plants",
-    "subtotal": "Subtotal",
-    "shipping": "Shipping",
-    "shippingCalculated": "Calculated at checkout",
-    "shippingTbd": "Shipping costs to be determined",
-    "total": "Total",
-    "totalWithTax": "Total (tax incl.)",
-    "includedTaxes": "Included taxes",
     "checkout": "Proceed to checkout",
-    "continueShopping": "Continue shopping",
     "remove": "Clear cart",
     "quantity": "Quantity",
     "item": "item",
@@ -226,8 +237,6 @@
     "createYourAccount": "Create your account",
     "recoverPassword": "Recover your password",
     "setNewPassword": "Set a new password",
-    "email": "Email",
-    "emailPlaceholder": "you@email.com",
     "password": "Password",
     "passwordPlaceholder": "••••••••",
     "newPassword": "New password",
@@ -235,8 +244,6 @@
     "confirmNewPassword": "Confirm password",
     "repeatPassword": "Repeat password",
     "minCharacters": "Minimum 6 characters",
-    "fullName": "Full name",
-    "fullNamePlaceholder": "Your name",
     "forgotPassword": "Forgot your password?",
     "backToLogin": "Back to sign in",
     "sendInstructions": "Send instructions",
@@ -245,12 +252,11 @@
     "hasAccount": "Already have an account?",
     "logout": "Sign out",
     "errors": {
-      "invalidEmail": "Enter a valid email",
-      "passwordLength": "Password must be at least 6 characters",
-      "passwordMismatch": "Passwords don't match",
       "invalidCredentials": "Invalid email or password",
       "emailNotConfirmed": "Please confirm your email before signing in",
-      "userExists": "This email is already registered. Try signing in."
+      "userExists": "This email is already registered. Try signing in.",
+      "passwordLength": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords don't match"
     },
     "success": {
       "emailSent": "We've sent you a confirmation email. Please check your inbox.",
@@ -284,6 +290,17 @@
       "language": "Language",
       "languageDesc": "Change language"
     }
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "plants": "Plants",
+    "categories": "Categories",
+    "orders": "Orders",
+    "invoices": "Invoices",
+    "shipping": "Shipping",
+    "referrals": "Referrals",
+    "fraud": "Fraud Detection",
+    "settings": "Settings"
   },
   "plantFinder": {
     "title": "Find Your Ideal Plant",
@@ -334,19 +351,6 @@
     "tagline": "Experimental high-altitude botanics",
     "quoteBreak": "a way of not forgetting what few have ever touched."
   },
-  "common": {
-    "loading": "Loading...",
-    "error": "An error occurred",
-    "clear": "Clear",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "close": "Close",
-    "confirm": "Confirm",
-    "yes": "Yes",
-    "no": "No"
-  },
   "lightbox": {
     "noImages": "No images",
     "enlargedImage": "enlarged image",
@@ -368,21 +372,13 @@
   },
   "checkout": {
     "title": "Checkout",
-    "backToStore": "Back to store",
     "emptyCart": "Your cart is empty",
     "emptyCartMessage": "Add some plants before continuing",
-    "continueShopping": "Continue shopping",
     "contact": "Contact information",
-    "email": "Email",
-    "emailPlaceholder": "you@email.com",
     "shippingAddress": "Shipping address",
     "shippingDestination": "Shipping destination",
     "shippingCountry": "Shipping country",
     "selectCountry": "Select a country",
-    "fullName": "Full name",
-    "fullNamePlaceholder": "Your full name",
-    "phone": "Phone",
-    "phonePlaceholder": "+1 555 000 0000",
     "street": "Address",
     "streetPlaceholder": "Street, number...",
     "apartment": "Apt/Suite",
@@ -397,11 +393,6 @@
     "orderNotes": "Order notes",
     "notesPlaceholder": "Special instructions for delivery or your order...",
     "orderSummary": "Order summary",
-    "subtotal": "Subtotal",
-    "shipping": "Shipping",
-    "shippingTbd": "Shipping costs to be determined",
-    "total": "Total (tax incl.)",
-    "includedTaxes": "Included taxes",
     "placeOrder": "Pay with Stripe",
     "processing": "Processing...",
     "continueToPayment": "Continue to payment",
@@ -424,8 +415,6 @@
     "freeShippingProgress": "{{amount}} away from free shipping",
     "totalWeight": "Total weight: {{weight}} kg",
     "errors": {
-      "required": "This field is required",
-      "invalidEmail": "Enter a valid email",
       "fixErrors": "Please fix the form errors",
       "orderFailed": "Failed to process order. Please try again.",
       "paymentFailed": "Failed to start payment. Please try again."
@@ -454,10 +443,6 @@
     },
     "form": {
       "title": "Contact Form",
-      "name": "Name",
-      "namePlaceholder": "Your name",
-      "email": "Email",
-      "emailPlaceholder": "you@email.com",
       "orderNumber": "Order number (optional)",
       "orderNumberPlaceholder": "e.g. FP-20260001",
       "subject": "Subject",
@@ -485,6 +470,13 @@
       "message": "We've received your message and will respond within 24-48 business hours.",
       "sendAnother": "Send another message"
     }
+  },
+  "whatsapp": {
+    "tooltip": "Need help?",
+    "greeting": "Hi! 👋 How can we help you? Ask us about plants, orders, or shipping.",
+    "placeholder": "Type your message...",
+    "defaultMessage": "Hi, I have a question about the plants",
+    "online": "Usually replies in minutes"
   },
   "stockNotification": {
     "outOfStock": "This product is currently out of stock",
@@ -539,8 +531,8 @@
     "yesterday": "yesterday",
     "daysAgo": "{{count}} days ago"
   },
-  "share": {
-    "shareSearch": "Share search",
-    "shareSearchTooltip": "Share this search via WhatsApp"
+  "referral": {
+    "title": "Referrals",
+    "subtitle": "Share and earn credit"
   }
 }

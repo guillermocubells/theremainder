@@ -231,10 +231,10 @@ const Contact = () => {
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t("contact.form.name")} *</FormLabel>
+                            <FormLabel>{t("common.form.name")} *</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder={t("contact.form.namePlaceholder")} 
+                                placeholder={t("common.form.namePlaceholder")} 
                                 {...field} 
                               />
                             </FormControl>
@@ -249,11 +249,11 @@ const Contact = () => {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t("contact.form.email")} *</FormLabel>
+                            <FormLabel>{t("common.form.email")} *</FormLabel>
                             <FormControl>
                               <Input 
                                 type="email"
-                                placeholder={t("contact.form.emailPlaceholder")} 
+                                placeholder={t("common.form.emailPlaceholder")} 
                                 {...field} 
                               />
                             </FormControl>

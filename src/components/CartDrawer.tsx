@@ -152,7 +152,7 @@ const CartDrawer = () => {
               <div className="border-t border-border pt-4 space-y-3">
                 {/* Subtotal */}
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">{t('cart.subtotal')}:</span>
+                  <span className="text-muted-foreground">{t('common.subtotal')}:</span>
                   <span className="font-medium text-foreground">
                     {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                   </span>
@@ -161,14 +161,14 @@ const CartDrawer = () => {
                 {/* Shipping */}
                 <div className="flex items-center gap-2 text-sm">
                   <Truck className="h-4 w-4 text-moss" />
-                  <span className="text-moss italic">{t('cart.shippingTbd')}</span>
+                  <span className="text-moss italic">{t('common.shippingTbd')}</span>
                 </div>
 
                 <Separator className="my-2" />
 
                 {/* Total */}
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-foreground">{t('cart.totalWithTax')}:</span>
+                  <span className="font-semibold text-foreground">{t('common.totalWithTax')}:</span>
                   <span className="font-bold text-lg text-foreground">
                     {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                   </span>
@@ -176,7 +176,7 @@ const CartDrawer = () => {
 
                 {/* Included taxes */}
                 <p className="text-xs text-muted-foreground">
-                  {t('cart.includedTaxes')}:{' '}
+                  {t('common.includedTaxes')}:{' '}
                   <span className="font-medium">
                     {taxAmount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                   </span>
@@ -189,7 +189,7 @@ const CartDrawer = () => {
                       variant="default"
                       className="flex-1 bg-moss hover:bg-moss/90 text-white"
                     >
-                      {t('cart.continueShopping')}
+                      {t('common.continueShopping')}
                     </Button>
                   </SheetClose>
                   <SheetClose asChild>
