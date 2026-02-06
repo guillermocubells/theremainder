@@ -299,11 +299,6 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
                 <span className="font-medium">{t('plant.climate')}:</span> {climate}
               </span>
             )}
-            {plant.location && (
-              <span className="flex items-center gap-1">
-                <span className="font-medium">{t('plant.idealFor')}:</span> {plant.location}
-              </span>
-            )}
           </div>
         )}
 
