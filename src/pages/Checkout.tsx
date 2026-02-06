@@ -25,6 +25,7 @@ import {
   STEP_ICONS,
 } from "@/components/checkout/CheckoutAccordion";
 import ReferralCodeField from "@/components/checkout/ReferralCodeField";
+import ReferralBanner from "@/components/ReferralBanner";
 
 interface ShippingForm {
   email: string;
@@ -233,6 +234,8 @@ const Checkout = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main checkout flow */}
           <div className="flex-1 space-y-4">
+          {/* Referral banner above checkout steps */}
+          <ReferralBanner compact />
           {/* Step 1: Shipping Destination */}
           <CheckoutAccordionItem
             step={{ ...stepConfigs[0], summary: getSummary("shipping") }}
