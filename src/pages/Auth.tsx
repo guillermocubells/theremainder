@@ -17,7 +17,7 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const mode = searchParams.get('mode');
   
-  const emailSchema = z.string().email(t('auth.errors.invalidEmail'));
+  const emailSchema = z.string().email(t('common.form.invalidEmail'));
   const passwordSchema = z.string().min(6, t('auth.errors.passwordLength'));
   
   const [activeTab, setActiveTab] = useState<'login' | 'register' | 'forgot' | 'reset'>(
@@ -50,7 +50,7 @@ const Auth = () => {
     try {
       emailSchema.parse(email);
     } catch {
-      setError(t('auth.errors.invalidEmail'));
+      setError(t('common.form.invalidEmail'));
       return false;
     }
 
@@ -127,7 +127,7 @@ const Auth = () => {
     try {
       emailSchema.parse(email);
     } catch {
-      setError(t('auth.errors.invalidEmail'));
+      setError(t('common.form.invalidEmail'));
       return;
     }
 
@@ -173,7 +173,7 @@ const Auth = () => {
         <div className="container mx-auto">
           <Link to="/" className="flex items-center gap-2 text-primary hover:text-primary/80 w-fit">
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm">{t('navigation.backToStore')}</span>
+            <span className="text-sm">{t('common.backToStore')}</span>
           </Link>
         </div>
       </header>
@@ -212,13 +212,13 @@ const Auth = () => {
             {activeTab === 'forgot' ? (
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="forgot-email">{t('auth.email')}</Label>
+                  <Label htmlFor="forgot-email">{t('common.form.email')}</Label>
                   <Input
                     id="forgot-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t('auth.emailPlaceholder')}
+                    placeholder={t('common.form.emailPlaceholder')}
                     required
                   />
                 </div>
@@ -291,13 +291,13 @@ const Auth = () => {
                 <TabsContent value="login">
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email">{t('auth.email')}</Label>
+                      <Label htmlFor="login-email">{t('common.form.email')}</Label>
                       <Input
                         id="login-email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder={t('auth.emailPlaceholder')}
+                        placeholder={t('common.form.emailPlaceholder')}
                         required
                       />
                     </div>
@@ -344,23 +344,23 @@ const Auth = () => {
                 <TabsContent value="register">
                   <form onSubmit={handleRegister} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="register-name">{t('auth.fullName')}</Label>
+                      <Label htmlFor="register-name">{t('common.form.fullName')}</Label>
                       <Input
                         id="register-name"
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder={t('auth.fullNamePlaceholder')}
+                        placeholder={t('common.form.fullNamePlaceholder')}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="register-email">{t('auth.email')}</Label>
+                      <Label htmlFor="register-email">{t('common.form.email')}</Label>
                       <Input
                         id="register-email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder={t('auth.emailPlaceholder')}
+                        placeholder={t('common.form.emailPlaceholder')}
                         required
                       />
                     </div>

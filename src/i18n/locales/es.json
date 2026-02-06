@@ -1,59 +1,35 @@
 {
-  "contact": {
-    "title": "Contacta con nosotros",
-    "subtitle": "¿Tienes preguntas sobre tu pedido, nuestras plantas o necesitas asesoramiento? Estamos aquí para ayudarte.",
-    "info": {
-      "title": "Información de contacto",
-      "address": "Dirección",
-      "phone": "Teléfono",
-      "email": "Email",
-      "hours": "Horario de atención",
-      "hoursDetail": "Lunes - Viernes: 10:00 - 18:00 (CET)"
-    },
-    "faqHint": {
-      "title": "Antes de contactar:",
-      "description": "Consulta el estado de tu pedido en tu cuenta. Muchas preguntas sobre disponibilidad y envíos se responden en nuestras FAQ."
-    },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ha ocurrido un error",
+    "clear": "Limpiar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No",
+    "subtotal": "Subtotal",
+    "shipping": "Envío",
+    "shippingTbd": "Gastos de envío por determinar",
+    "includedTaxes": "Impuestos incluidos",
+    "totalWithTax": "Total (IVA incl.)",
+    "continueShopping": "Seguir comprando",
+    "backToStore": "Volver a la tienda",
     "form": {
-      "title": "Formulario de contacto",
-      "name": "Nombre",
-      "namePlaceholder": "Tu nombre",
       "email": "Email",
       "emailPlaceholder": "tu@email.com",
-      "orderNumber": "Número de pedido (opcional)",
-      "orderNumberPlaceholder": "Ej: FP-20260001",
-      "subject": "Asunto",
-      "subjectPlaceholder": "¿Sobre qué es tu consulta?",
-      "message": "Mensaje",
-      "messagePlaceholder": "Describe tu pregunta o solicitud con detalle...",
-      "acceptPrivacy": "He leído y acepto la",
-      "privacyLink": "política de privacidad",
-      "submit": "Enviar mensaje",
-      "sending": "Enviando..."
-    },
-    "gdpr": {
-      "responsible": "Responsable",
-      "purpose": "Finalidad",
-      "purposeText": "Responder a tu consulta",
-      "legitimation": "Legitimación",
-      "legitimationText": "Consentimiento y ejecución del contrato",
-      "recipients": "Destinatarios",
-      "recipientsText": "No se ceden los datos a terceros",
-      "rights": "Derechos",
-      "rightsText": "Acceder, rectificar y suprimir los datos"
-    },
-    "success": {
-      "title": "¡Mensaje enviado!",
-      "message": "Hemos recibido tu mensaje y te responderemos en 24-48 horas laborables.",
-      "sendAnother": "Enviar otro mensaje"
+      "fullName": "Nombre completo",
+      "fullNamePlaceholder": "Tu nombre",
+      "phone": "Teléfono",
+      "phonePlaceholder": "+34 600 000 000",
+      "name": "Nombre",
+      "namePlaceholder": "Tu nombre",
+      "required": "Este campo es obligatorio",
+      "invalidEmail": "Introduce un email válido"
     }
-  },
-  "whatsapp": {
-    "tooltip": "¿Necesitas ayuda?",
-    "greeting": "¡Hola! 👋 ¿En qué podemos ayudarte? Pregúntanos sobre plantas, pedidos o envíos.",
-    "placeholder": "Escribe tu mensaje...",
-    "defaultMessage": "Hola, tengo una consulta sobre las plantas",
-    "online": "Normalmente responde en minutos"
   },
   "header": {
     "title": "Frondaprima",
@@ -65,7 +41,6 @@
   },
   "navigation": {
     "backToCatalog": "Volver al catálogo",
-    "backToStore": "Volver a la tienda",
     "catalog": "Catálogo"
   },
   "hero": {
@@ -80,21 +55,12 @@
     "searchAI": "Ej: plantas para código postal 28987, palmeras para Madrid...",
     "categories": "Categorías",
     "allCategories": "Todas las categorías",
-    "hardinessZone": "Zona de Rusticidad",
     "allZones": "Todas las zonas",
     "priceRange": "Rango de Precio",
     "clearFilters": "Limpiar filtros",
-    "clear": "Limpiar",
     "noResults": "No se encontraron plantas con los filtros seleccionados.",
     "resultsCount": "{{count}} planta encontrada",
     "resultsCount_plural": "{{count}} plantas encontradas",
-    "plantGroup": "Grupo de Plantas",
-    "availability": "Disponibilidad",
-    "sunExposure": "Exposición Solar",
-    "growthRate": "Tasa de Crecimiento",
-    "ornamentalValue": "Valor Ornamental",
-    "waterNeeds": "Necesidad de Agua",
-    "location": "Ubicación",
     "all": "Todas",
     "available": "Disponible",
     "outOfStock": "Agotado",
@@ -155,12 +121,6 @@
     "reviews": "Reseñas",
     "relatedPlants": "Plantas relacionadas",
     "recentlyViewed": "Visto recientemente",
-  "share": {
-    "share": "Compartir",
-    "linkCopied": "Enlace copiado al portapapeles",
-    "copyError": "Error al copiar el enlace",
-    "copyLink": "Copiar enlace"
-  },
     "notFound": "Planta no encontrada",
     "height": "Altura",
     "spread": "Extensión",
@@ -176,6 +136,15 @@
     "productDetails": "Detalles del producto",
     "germinationDate": "Germinación",
     "visualReferences": "Referencias visuales futuras"
+  },
+  "share": {
+    "share": "Compartir",
+    "shareProduct": "Compartir producto",
+    "shareSearch": "Compartir búsqueda",
+    "shareSearchTooltip": "Compartir esta búsqueda por WhatsApp",
+    "linkCopied": "Enlace copiado al portapapeles",
+    "copyError": "Error al copiar el enlace",
+    "copyLink": "Copiar enlace"
   },
   "light": {
     "title": "Luz",
@@ -253,15 +222,7 @@
     "empty": "Tu carrito está vacío",
     "emptyMessage": "Añade algunas plantas increíbles a tu carrito",
     "explorePlants": "Explorar Plantas",
-    "subtotal": "Subtotal",
-    "shipping": "Envío",
-    "shippingCalculated": "Calculado al finalizar",
-    "shippingTbd": "Gastos de envío por determinar",
-    "total": "Total",
-    "totalWithTax": "Total (IVA incl.)",
-    "includedTaxes": "Impuestos incluidos",
     "checkout": "Finalizar compra",
-    "continueShopping": "Seguir comprando",
     "remove": "Vaciar carrito",
     "quantity": "Cantidad",
     "item": "artículo",
@@ -276,8 +237,6 @@
     "createYourAccount": "Crea tu cuenta",
     "recoverPassword": "Recupera tu contraseña",
     "setNewPassword": "Establece una nueva contraseña",
-    "email": "Email",
-    "emailPlaceholder": "tu@email.com",
     "password": "Contraseña",
     "passwordPlaceholder": "••••••••",
     "newPassword": "Nueva contraseña",
@@ -285,8 +244,6 @@
     "confirmNewPassword": "Confirmar contraseña",
     "repeatPassword": "Repite la contraseña",
     "minCharacters": "Mínimo 6 caracteres",
-    "fullName": "Nombre completo",
-    "fullNamePlaceholder": "Tu nombre",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "backToLogin": "Volver al inicio de sesión",
     "sendInstructions": "Enviar instrucciones",
@@ -295,12 +252,11 @@
     "hasAccount": "¿Ya tienes cuenta?",
     "logout": "Cerrar sesión",
     "errors": {
-      "invalidEmail": "Introduce un email válido",
-      "passwordLength": "La contraseña debe tener al menos 6 caracteres",
-      "passwordMismatch": "Las contraseñas no coinciden",
       "invalidCredentials": "Email o contraseña incorrectos",
       "emailNotConfirmed": "Por favor, confirma tu email antes de iniciar sesión",
-      "userExists": "Este email ya está registrado. Intenta iniciar sesión."
+      "userExists": "Este email ya está registrado. Intenta iniciar sesión.",
+      "passwordLength": "La contraseña debe tener al menos 6 caracteres",
+      "passwordMismatch": "Las contraseñas no coinciden"
     },
     "success": {
       "emailSent": "Te hemos enviado un email de confirmación. Por favor, revisa tu bandeja de entrada.",
@@ -395,19 +351,6 @@
     "tagline": "Botánica experimental en altura",
     "quoteBreak": "una forma de no olvidar aquello que pocos han llegado a tocar."
   },
-  "common": {
-    "loading": "Cargando...",
-    "error": "Ha ocurrido un error",
-    "clear": "Limpiar",
-    "save": "Guardar",
-    "cancel": "Cancelar",
-    "delete": "Eliminar",
-    "edit": "Editar",
-    "close": "Cerrar",
-    "confirm": "Confirmar",
-    "yes": "Sí",
-    "no": "No"
-  },
   "lightbox": {
     "noImages": "Sin imágenes",
     "enlargedImage": "imagen ampliada",
@@ -429,21 +372,13 @@
   },
   "checkout": {
     "title": "Finalizar compra",
-    "backToStore": "Volver a la tienda",
     "emptyCart": "Tu carrito está vacío",
     "emptyCartMessage": "Añade algunas plantas antes de continuar",
-    "continueShopping": "Seguir comprando",
     "contact": "Información de contacto",
-    "email": "Email",
-    "emailPlaceholder": "tu@email.com",
     "shippingAddress": "Dirección de envío",
     "shippingDestination": "Destino del envío",
     "shippingCountry": "País de envío",
     "selectCountry": "Selecciona un país",
-    "fullName": "Nombre completo",
-    "fullNamePlaceholder": "Tu nombre y apellidos",
-    "phone": "Teléfono",
-    "phonePlaceholder": "+34 600 000 000",
     "street": "Dirección",
     "streetPlaceholder": "Calle, número, piso...",
     "apartment": "Piso/Puerta",
@@ -458,11 +393,6 @@
     "orderNotes": "Notas del pedido",
     "notesPlaceholder": "Instrucciones especiales para el envío o el pedido...",
     "orderSummary": "Resumen del pedido",
-    "subtotal": "Subtotal",
-    "shipping": "Envío",
-    "shippingTbd": "Gastos de envío por determinar",
-    "total": "Total (IVA incl.)",
-    "includedTaxes": "Impuestos incluidos",
     "placeOrder": "Pagar con Stripe",
     "processing": "Procesando...",
     "continueToPayment": "Continuar al pago",
@@ -485,8 +415,6 @@
     "freeShippingProgress": "Te faltan {{amount}} para envío gratis",
     "totalWeight": "Peso total: {{weight}} kg",
     "errors": {
-      "required": "Este campo es obligatorio",
-      "invalidEmail": "Introduce un email válido",
       "fixErrors": "Por favor, corrige los errores del formulario",
       "orderFailed": "Error al procesar el pedido. Inténtalo de nuevo.",
       "paymentFailed": "Error al iniciar el pago. Inténtalo de nuevo."
@@ -497,6 +425,58 @@
       "orderNumber": "Número de pedido",
       "backToStore": "Volver a la tienda"
     }
+  },
+  "contact": {
+    "title": "Contacta con nosotros",
+    "subtitle": "¿Tienes preguntas sobre tu pedido, nuestras plantas o necesitas asesoramiento? Estamos aquí para ayudarte.",
+    "info": {
+      "title": "Información de contacto",
+      "address": "Dirección",
+      "phone": "Teléfono",
+      "email": "Email",
+      "hours": "Horario de atención",
+      "hoursDetail": "Lunes - Viernes: 10:00 - 18:00 (CET)"
+    },
+    "faqHint": {
+      "title": "Antes de contactar:",
+      "description": "Consulta el estado de tu pedido en tu cuenta. Muchas preguntas sobre disponibilidad y envíos se responden en nuestras FAQ."
+    },
+    "form": {
+      "title": "Formulario de contacto",
+      "orderNumber": "Número de pedido (opcional)",
+      "orderNumberPlaceholder": "Ej: FP-20260001",
+      "subject": "Asunto",
+      "subjectPlaceholder": "¿Sobre qué es tu consulta?",
+      "message": "Mensaje",
+      "messagePlaceholder": "Describe tu pregunta o solicitud con detalle...",
+      "acceptPrivacy": "He leído y acepto la",
+      "privacyLink": "política de privacidad",
+      "submit": "Enviar mensaje",
+      "sending": "Enviando..."
+    },
+    "gdpr": {
+      "responsible": "Responsable",
+      "purpose": "Finalidad",
+      "purposeText": "Responder a tu consulta",
+      "legitimation": "Legitimación",
+      "legitimationText": "Consentimiento y ejecución del contrato",
+      "recipients": "Destinatarios",
+      "recipientsText": "No se ceden los datos a terceros",
+      "rights": "Derechos",
+      "rightsText": "Acceder, rectificar y suprimir los datos"
+    },
+    "success": {
+      "title": "¡Mensaje enviado!",
+      "message": "Hemos recibido tu mensaje y te responderemos en 24-48 horas laborables.",
+      "sendAnother": "Enviar otro mensaje"
+    }
+  },
+  "whatsapp": {
+    "tooltip": "¿Necesitas ayuda?",
+    "greeting": "¡Hola! 👋 ¿En qué podemos ayudarte? Pregúntanos sobre plantas, pedidos o envíos.",
+    "placeholder": "Escribe tu mensaje...",
+    "defaultMessage": "Hola, tengo una consulta sobre las plantas",
+    "online": "Normalmente responde en minutos"
   },
   "stockNotification": {
     "outOfStock": "Este producto está agotado actualmente",
@@ -551,8 +531,8 @@
     "yesterday": "ayer",
     "daysAgo": "hace {{count}} días"
   },
-  "share": {
-    "shareSearch": "Compartir búsqueda",
-    "shareSearchTooltip": "Compartir esta búsqueda por WhatsApp"
+  "referral": {
+    "title": "Referidos",
+    "subtitle": "Comparte y gana crédito"
   }
 }

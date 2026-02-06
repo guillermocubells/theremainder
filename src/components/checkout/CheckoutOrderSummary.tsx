@@ -126,14 +126,14 @@ export function CheckoutOrderSummary({
           {/* Totals */}
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">{t("checkout.subtotal")}</span>
+              <span className="text-muted-foreground">{t("common.subtotal")}</span>
               <span className="text-foreground">{formatCurrency(subtotal)}</span>
             </div>
 
             <div className="flex justify-between">
               <span className="text-muted-foreground flex items-center gap-1">
                 <Truck className="h-3 w-3" />
-                {t("checkout.shipping")}
+                {t("common.shipping")}
               </span>
               <span className="text-foreground">
                 {isQuoteLoading ? (
@@ -156,7 +156,7 @@ export function CheckoutOrderSummary({
           <Separator className="my-4" />
 
           <div className="flex justify-between items-center mb-2">
-            <span className="font-semibold text-foreground">{t("checkout.total")}</span>
+            <span className="font-semibold text-foreground">{t("common.totalWithTax")}</span>
             <span className="font-bold text-xl text-foreground">
               {isQuoteLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -169,7 +169,7 @@ export function CheckoutOrderSummary({
           </div>
 
           <p className="text-xs text-muted-foreground mb-4">
-            {t("checkout.includedTaxes")}: {formatCurrency(taxAmount)}
+            {t("common.includedTaxes")}: {formatCurrency(taxAmount)}
           </p>
 
           {/* Delivery estimate */}

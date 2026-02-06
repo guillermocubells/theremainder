@@ -87,7 +87,7 @@ const Checkout = () => {
           </h1>
           <p className="text-muted-foreground mb-6">{t("checkout.emptyCartMessage")}</p>
           <Button asChild variant="default" className="bg-moss hover:bg-moss/90">
-            <Link to="/">{t("checkout.continueShopping")}</Link>
+            <Link to="/">{t("common.continueShopping")}</Link>
           </Button>
         </main>
         <Footer />
@@ -115,7 +115,7 @@ const Checkout = () => {
 
   const validateShippingStep = (): boolean => {
     if (!shippingCountry) {
-      setErrors({ country: t("checkout.errors.required") });
+      setErrors({ country: t("common.form.required") });
       return false;
     }
     if (!quote?.supported) {
@@ -129,7 +129,7 @@ const Checkout = () => {
   const validateContactStep = (): boolean => {
     const newErrors: Partial<ShippingForm> = {};
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = t("checkout.errors.invalidEmail");
+      newErrors.email = t("common.form.invalidEmail");
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -137,11 +137,11 @@ const Checkout = () => {
 
   const validateAddressStep = (): boolean => {
     const newErrors: Partial<ShippingForm> = {};
-    if (!form.fullName.trim()) newErrors.fullName = t("checkout.errors.required");
-    if (!form.street.trim()) newErrors.street = t("checkout.errors.required");
-    if (!form.postalCode.trim()) newErrors.postalCode = t("checkout.errors.required");
-    if (!form.city.trim()) newErrors.city = t("checkout.errors.required");
-    if (!form.province.trim()) newErrors.province = t("checkout.errors.required");
+    if (!form.fullName.trim()) newErrors.fullName = t("common.form.required");
+    if (!form.street.trim()) newErrors.street = t("common.form.required");
+    if (!form.postalCode.trim()) newErrors.postalCode = t("common.form.required");
+    if (!form.city.trim()) newErrors.city = t("common.form.required");
+    if (!form.province.trim()) newErrors.province = t("common.form.required");
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -224,7 +224,7 @@ const Checkout = () => {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
-          {t("checkout.backToStore")}
+          {t("common.backToStore")}
         </Link>
 
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-8">
@@ -275,13 +275,13 @@ const Checkout = () => {
           >
             <div className="space-y-4">
               <div>
-                <Label htmlFor="email">{t("checkout.email")} *</Label>
+                <Label htmlFor="email">{t("common.form.email")} *</Label>
                 <Input
                   id="email"
                   type="email"
                   value={form.email}
                   onChange={(e) => handleChange("email", e.target.value)}
-                  placeholder={t("checkout.emailPlaceholder")}
+                  placeholder={t("common.form.emailPlaceholder")}
                   className={errors.email ? "border-destructive" : ""}
                 />
                 {errors.email && (
@@ -308,12 +308,12 @@ const Checkout = () => {
           >
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <Label htmlFor="fullName">{t("checkout.fullName")} *</Label>
+                <Label htmlFor="fullName">{t("common.form.fullName")} *</Label>
                 <Input
                   id="fullName"
                   value={form.fullName}
                   onChange={(e) => handleChange("fullName", e.target.value)}
-                  placeholder={t("checkout.fullNamePlaceholder")}
+                  placeholder={t("common.form.fullNamePlaceholder")}
                   className={errors.fullName ? "border-destructive" : ""}
                 />
                 {errors.fullName && (
@@ -322,13 +322,13 @@ const Checkout = () => {
               </div>
 
               <div>
-                <Label htmlFor="phone">{t("checkout.phone")}</Label>
+                <Label htmlFor="phone">{t("common.form.phone")}</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={form.phone}
                   onChange={(e) => handleChange("phone", e.target.value)}
-                  placeholder={t("checkout.phonePlaceholder")}
+                  placeholder={t("common.form.phonePlaceholder")}
                 />
               </div>
 
