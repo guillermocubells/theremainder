@@ -22,6 +22,7 @@ import CartDrawer from "./CartDrawer";
 import LanguageSwitcher from "./LanguageSwitcher";
 import RelatedPlants from "./RelatedPlants";
 import RecentlyViewed from "./RecentlyViewed";
+import RecentlyPurchased from "./RecentlyPurchased";
 import Footer from "./Footer";
 
 const PlantDetail = () => {
@@ -224,6 +225,11 @@ const PlantDetail = () => {
             {/* Recently Viewed Section */}
             <div className="animate-fade-in" style={{ animationDelay: '450ms' }}>
               <RecentlyViewed excludePlantId={plant.id} />
+            </div>
+
+            {/* Recently Purchased – social proof */}
+            <div className="animate-fade-in" style={{ animationDelay: '500ms' }}>
+              <RecentlyPurchased currentPlant={plant} />
             </div>
           </div>
         </div>
