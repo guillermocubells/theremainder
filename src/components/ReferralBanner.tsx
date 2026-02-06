@@ -89,9 +89,9 @@ const ReferralBanner = ({ compact = false }: ReferralBannerProps) => {
   if (!referral) return null;
 
   return (
-    <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 sm:p-4">
-      <div className="flex items-start gap-3">
-        <div className="bg-primary/10 rounded-full p-1.5 mt-0.5 flex-shrink-0">
+    <div className="rounded-lg border border-primary/20 bg-primary/5 p-2 sm:p-3">
+      <div className="flex items-start gap-2">
+        <div className="bg-primary/10 rounded-full p-1 mt-0.5 flex-shrink-0">
           <Gift className="h-4 w-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
