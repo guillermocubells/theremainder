@@ -4,12 +4,15 @@ import { plants } from "@/data/plants";
 import PlantCard from "./PlantCard";
 import PlantSearchEngine from "./PlantSearchEngine";
 import { Plant } from "@/data/plants";
+import { PlantGridSkeleton } from "./PlantGridSkeleton";
 
 const PlantsGrid = () => {
   const [filteredPlants, setFilteredPlants] = useState<Plant[]>(plants);
+  const [isSearching, setIsSearching] = useState(false);
 
   const handleFilteredPlantsChange = (newFilteredPlants: Plant[]) => {
     setFilteredPlants(newFilteredPlants);
+    setIsSearching(false);
   };
 
   return (
@@ -18,16 +21,21 @@ const PlantsGrid = () => {
         <PlantSearchEngine 
           plants={plants} 
           onFilteredPlantsChange={handleFilteredPlantsChange}
+          onSearchStart={() => setIsSearching(true)}
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          {filteredPlants.map(plant => (
-            <PlantCard key={plant.id} plant={plant} />
-          ))}
-        </div>
-        {filteredPlants.length === 0 && (
+        {isSearching ? (
+          <PlantGridSkeleton count={6} />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {filteredPlants.map(plant => (
+              <PlantCard key={plant.id} plant={plant} />
+            ))}
+          </div>
+        )}
+        {!isSearching && filteredPlants.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-600 text-lg mb-2">No se encontraron plantas</p>
-            <p className="text-sm text-gray-500">Intenta con términos diferentes o desactiva la búsqueda IA</p>
+            <p className="text-muted-foreground text-lg mb-2">No se encontraron plantas</p>
+            <p className="text-sm text-muted-foreground/70">Intenta con términos diferentes o desactiva la búsqueda IA</p>
           </div>
         )}
       </div>

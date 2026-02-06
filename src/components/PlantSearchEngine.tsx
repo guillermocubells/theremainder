@@ -28,9 +28,10 @@ import { CatalogPlant } from "@/hooks/useRecommendPlants";
 interface PlantSearchEngineProps {
   plants: Plant[];
   onFilteredPlantsChange: (filteredPlants: Plant[]) => void;
+  onSearchStart?: () => void;
 }
 
-const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngineProps) => {
+const PlantSearchEngine = ({ plants, onFilteredPlantsChange, onSearchStart }: PlantSearchEngineProps) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedQuery = useDebouncedValue(searchQuery, 300);
@@ -59,7 +60,8 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
 
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value);
-  }, []);
+    if (value.trim()) onSearchStart?.();
+  }, [onSearchStart]);
 
   const clearSearch = useCallback(() => {
     setSearchQuery("");
