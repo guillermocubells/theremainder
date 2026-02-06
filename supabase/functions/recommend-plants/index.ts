@@ -143,21 +143,18 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
 
+    // Auth is optional — log user if available, but don't block recommendations
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      console.error("[recommend-plants] Missing Authorization header");
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
+    let userId = "anonymous";
+    if (authHeader?.startsWith("Bearer ")) {
+      const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, { global: { headers: { Authorization: authHeader } } });
+      const { data: userData } = await supabaseAuth.auth.getUser();
+      if (userData?.user) {
+        userId = userData.user.id;
+      }
     }
 
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, { global: { headers: { Authorization: authHeader } } });
-    const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
-    
-    if (userError || !userData?.user) {
-      console.error("[recommend-plants] Invalid token:", userError?.message);
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 });
-    }
-
-    console.log("[recommend-plants] User:", userData.user.id);
+    console.log("[recommend-plants] User:", userId);
 
     if (!lovableApiKey) throw new Error("LOVABLE_API_KEY not configured");
 
