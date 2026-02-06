@@ -1,12 +1,13 @@
 import { Helmet } from "react-helmet-async";
 import type { Plant } from "@/data/plants";
+import { STORE_BRAND, STORE_SEO, STORE_CURRENCY } from "@/config/store";
 
 interface ProductStructuredDataProps {
   plant: Plant;
   baseUrl?: string;
 }
 
-const ProductStructuredData = ({ plant, baseUrl = "https://frondaprima.lovable.app" }: ProductStructuredDataProps) => {
+const ProductStructuredData = ({ plant, baseUrl = STORE_BRAND.url }: ProductStructuredDataProps) => {
   const productUrl = `${baseUrl}/plant/${plant.id}`;
   const imageUrl = plant.images?.[0] ? `${baseUrl}${plant.images[0]}` : undefined;
   
@@ -26,20 +27,20 @@ const ProductStructuredData = ({ plant, baseUrl = "https://frondaprima.lovable.a
     sku: plant.id,
     brand: {
       "@type": "Brand",
-      name: "Frondaprima"
+      name: STORE_BRAND.name
     },
     category: plant.plantGroup || "Plantas",
     ...(plant.commonName && { alternateName: plant.commonName }),
     offers: {
       "@type": "Offer",
       url: productUrl,
-      priceCurrency: "EUR",
+      priceCurrency: STORE_CURRENCY.code,
       price: plant.price || 0,
       priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
       availability,
       seller: {
         "@type": "Organization",
-        name: "Frondaprima",
+        name: STORE_BRAND.name,
         url: baseUrl
       },
       shippingDetails: {
@@ -83,10 +84,9 @@ const ProductStructuredData = ({ plant, baseUrl = "https://frondaprima.lovable.a
   };
 
   // Meta description for SEO
-  const metaDescription = `${plant.name}${plant.commonName ? ` (${plant.commonName})` : ''} - ${plant.description}. Precio: ${plant.price}€. Compra online en Frondaprima, botánica experimental en altura.`;
+  const metaDescription = `${plant.name}${plant.commonName ? ` (${plant.commonName})` : ''} - ${plant.description}. Precio: ${plant.price}€. Compra online en ${STORE_BRAND.name}, ${STORE_BRAND.tagline.toLowerCase()}.`;
 
-  // OG Image dimensions hint
-  const ogTitle = `${plant.name}${plant.variety ? ` ${plant.variety}` : ''} | Frondaprima`;
+  const ogTitle = `${plant.name}${plant.variety ? ` ${plant.variety}` : ''} | ${STORE_BRAND.name}`;
 
   return (
     <Helmet>
@@ -100,12 +100,12 @@ const ProductStructuredData = ({ plant, baseUrl = "https://frondaprima.lovable.a
       <meta property="og:title" content={ogTitle} />
       <meta property="og:description" content={plant.description} />
       {imageUrl && <meta property="og:image" content={imageUrl} />}
-      <meta property="og:site_name" content="Frondaprima" />
-      <meta property="og:locale" content="es_ES" />
+      <meta property="og:site_name" content={STORE_BRAND.name} />
+      <meta property="og:locale" content={STORE_SEO.locale} />
       
       {/* Product-specific OG tags */}
       <meta property="product:price:amount" content={String(plant.price || 0)} />
-      <meta property="product:price:currency" content="EUR" />
+      <meta property="product:price:currency" content={STORE_CURRENCY.code} />
       <meta property="product:availability" content={plant.quantity > 0 ? "in stock" : "out of stock"} />
       {plant.plantGroup && <meta property="product:category" content={plant.plantGroup} />}
       

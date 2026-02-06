@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Cookie } from "lucide-react";
 import { CookiePreferencesDialog } from "./CookiePreferencesDialog";
+import { STORAGE_KEYS } from "@/config/store";
 
 export interface CookiePreferences {
   essential: boolean; // Always true, cannot be disabled
@@ -18,8 +19,8 @@ const DEFAULT_PREFERENCES: CookiePreferences = {
   functional: false,
 };
 
-const COOKIE_CONSENT_KEY = "frondaprima_cookie_consent";
-const COOKIE_PREFERENCES_KEY = "frondaprima_cookie_preferences";
+const COOKIE_CONSENT_KEY = STORAGE_KEYS.cookieConsent;
+const COOKIE_PREFERENCES_KEY = STORAGE_KEYS.cookiePreferences;
 
 export const getCookiePreferences = (): CookiePreferences | null => {
   const stored = localStorage.getItem(COOKIE_PREFERENCES_KEY);

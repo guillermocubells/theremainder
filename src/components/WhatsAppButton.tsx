@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { X, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { STORE_CONTACT, STORE_BRAND } from "@/config/store";
 
 // WhatsApp icon SVG
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -20,7 +21,7 @@ interface WhatsAppButtonProps {
 }
 
 const WhatsAppButton = ({ 
-  phoneNumber = "34655699978", // Spain country code + phone number
+  phoneNumber = STORE_CONTACT.whatsappNumber,
   defaultMessage 
 }: WhatsAppButtonProps) => {
   const { t } = useTranslation();
@@ -53,7 +54,7 @@ const WhatsAppButton = ({
               <WhatsAppIcon className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-white font-semibold text-sm">Frondaprima</h3>
+              <h3 className="text-white font-semibold text-sm">{STORE_BRAND.name}</h3>
               <p className="text-white/80 text-xs">{t("whatsapp.online")}</p>
             </div>
             <Button

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { STORAGE_KEYS } from "@/config/store";
 
-const STORAGE_KEY = "frondaprima_recently_viewed";
+const STORAGE_KEY = STORAGE_KEYS.recentlyViewed;
 const MAX_ITEMS = 8;
 
 export interface RecentlyViewedItem {
