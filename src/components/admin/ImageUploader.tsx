@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Upload, X, Link as LinkIcon, Loader2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 
@@ -134,13 +135,11 @@ export function ImageUploader({ images, onImagesChange }: ImageUploaderProps) {
               key={`${url}-${index}`}
               className="relative group aspect-square rounded-xl overflow-hidden bg-muted border border-border"
             >
-              <img
+              <OptimizedImage
                 src={url}
                 alt={`Imagen ${index + 1}`}
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/placeholder.svg";
-                }}
+                fallbackSrc="/placeholder.svg"
               />
 
               {/* Overlay with controls */}

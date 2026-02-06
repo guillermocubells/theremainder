@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ShoppingCart, Share2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Plant } from "@/data/plants";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { useCart } from "@/contexts/CartContext";
@@ -96,7 +97,7 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
           onTouchEnd={handleTouchEnd}
         >
           {currentImage && (
-            <img 
+            <OptimizedImage 
               src={currentImage} 
               alt={`${plant.name} - ${currentImageIndex + 1}/${allImages.length}`}
               className="w-full h-full object-cover transition-opacity duration-200"

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Share2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Plant } from "@/data/plants";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { usePlantTooltips } from "@/hooks/usePlantTooltips";
@@ -137,12 +138,13 @@ const DesktopPlantCard = ({ plant }: DesktopPlantCardProps) => {
 
           {/* Hover overlay with image */}
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col">
-            {getHoverImage() && (
+          {getHoverImage() && (
               <div className="flex-1 relative">
-                <img 
+                <OptimizedImage 
                   src={getHoverImage()} 
                   alt={`${plant.name} - ${t('plant.preview')}`}
                   className="w-full h-full object-cover"
+                  placeholder={false}
                 />
               </div>
             )}
