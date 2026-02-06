@@ -4,7 +4,7 @@ import { useCart, CartItem } from '@/contexts/CartContext';
 
 // ─── Configurable promotion settings ───
 export const PROMO_CONFIG = {
-  threshold_amount: 25,    // €25 minimum subtotal
+  threshold_amount: 20,    // €20 minimum subtotal
   discount_value: 10,      // 10% discount
   filler_max_price: 5,     // prefer items ≤ €5
   prefer_sale_items: true,  // prioritize sale / cheaper items
