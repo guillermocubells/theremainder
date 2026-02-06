@@ -19,12 +19,6 @@ const FacebookIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const XIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-  </svg>
-);
-
 interface SocialShareButtonsProps {
   plantName: string;
   plantId: string;
@@ -72,11 +66,6 @@ const SocialShareButtons = ({ plantName, plantId, price, variety, containerSize,
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank", "noopener,noreferrer");
   };
 
-  const shareOnTwitter = () => {
-    const url = encodeURIComponent(getShareUrl());
-    const text = encodeURIComponent(getShareText());
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank", "noopener,noreferrer");
-  };
 
   const copyLink = async () => {
     try {
@@ -124,19 +113,6 @@ const SocialShareButtons = ({ plantName, plantId, price, variety, containerSize,
         <TooltipContent>Facebook</TooltipContent>
       </Tooltip>
 
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={shareOnTwitter}
-            className="h-8 w-8 rounded-full hover:bg-foreground/10 transition-colors"
-          >
-            <XIcon className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>X (Twitter)</TooltipContent>
-      </Tooltip>
 
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
