@@ -59,10 +59,12 @@ const AddObservationDialog = ({
         .upload(fileName, file);
       
       if (!error) {
-        const { data: { publicUrl } } = supabase.storage
+        const { data: signedData } = await supabase.storage
           .from('collection-photos')
-          .getPublicUrl(fileName);
-        newPhotos.push(publicUrl);
+          .createSignedUrl(fileName, 60 * 60 * 24 * 365 * 10); // 10 year signed URL
+        if (signedData?.signedUrl) {
+          newPhotos.push(signedData.signedUrl);
+        }
       }
     }
     
