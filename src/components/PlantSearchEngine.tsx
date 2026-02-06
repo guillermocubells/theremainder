@@ -13,6 +13,7 @@ const WhatsAppShareIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 import { useAISearch, isCareQuery } from "@/hooks/useAISearch";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { 
   SearchInput, 
   ClimateInfoCard, 
@@ -32,23 +33,24 @@ interface PlantSearchEngineProps {
 const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngineProps) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(searchQuery, 300);
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
   const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
   const [filteredByFilters, setFilteredByFilters] = useState<Plant[]>(plants);
   const [activeFilterSummary, setActiveFilterSummary] = useState<Record<string, string> | undefined>();
   const [activeSortKey, setActiveSortKey] = useState<string | undefined>();
 
-  // Use custom AI search hook
+  // Use custom AI search hook with debounced query
   const { 
     filteredPlants, 
     detectedPostalCode, 
     climateInfo, 
     sortedByViability 
-  } = useAISearch(searchQuery, filteredByFilters, isAIPanelOpen);
+  } = useAISearch(debouncedQuery, filteredByFilters, isAIPanelOpen);
 
   // Derived state
   const hasActiveFilters = filteredByFilters.length !== plants.length;
-  const showCareAnalysis = isAIPanelOpen && searchQuery.trim() && isCareQuery(searchQuery);
+  const showCareAnalysis = isAIPanelOpen && debouncedQuery.trim() && isCareQuery(debouncedQuery);
 
   // Notify parent of filtered plants
   useEffect(() => {
@@ -180,7 +182,7 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
           </div>
 
           {/* AI Mode Info */}
-          {isAIPanelOpen && searchQuery.trim() && (
+          {isAIPanelOpen && debouncedQuery.trim() && (
             <div className="mt-4 space-y-3">
               <AISearchStatus 
                 resultsCount={filteredPlants.length} 
@@ -218,7 +220,7 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange }: PlantSearchEngine
       />
 
       {/* Viability Analysis Panel */}
-      {isAIPanelOpen && searchQuery.trim() && sortedByViability.length > 0 && (
+      {isAIPanelOpen && debouncedQuery.trim() && sortedByViability.length > 0 && (
         <ViabilityAnalysisPanel
           sortedPlants={sortedByViability}
           searchQuery={searchQuery}
