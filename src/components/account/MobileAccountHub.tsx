@@ -15,6 +15,7 @@ import {
   Leaf, 
   Bell,
   Globe,
+  Gift,
   LogOut,
   ChevronRight
 } from 'lucide-react';
@@ -89,6 +90,13 @@ const MobileAccountHub = ({ onNavigate, onLanguageChange }: MobileAccountHubProp
           icon: Search,
           action: () => onNavigate('searches'),
           description: t('account.mobileHub.searchesDesc', 'Alertas y filtros')
+        },
+        {
+          id: 'referrals',
+          label: t('referral.title', 'Referidos'),
+          icon: Gift,
+          action: () => onNavigate('referrals'),
+          description: t('referral.subtitle', 'Comparte y gana crédito')
         },
       ]
     },
