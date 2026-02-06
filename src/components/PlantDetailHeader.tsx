@@ -276,6 +276,11 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             plantName={plant.name} 
             plantId={plant.id} 
             price={plant.price} 
+            variety={plant.variety}
+            containerSize={plant.containerSize}
+            quantity={plant.quantity !== undefined ? Number(plant.quantity) : undefined}
+            description={plant.description}
+            imageUrl={plant.images?.[0]}
           />
         </div>
         
