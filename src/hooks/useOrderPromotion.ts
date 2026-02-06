@@ -1,15 +1,7 @@
 import { useMemo } from 'react';
 import { plants, Plant } from '@/data/plants';
 import { useCart, CartItem } from '@/contexts/CartContext';
-
-// ─── Configurable promotion settings ───
-export const PROMO_CONFIG = {
-  threshold_amount: 20,    // €20 minimum subtotal
-  discount_value: 10,      // 10% discount
-  filler_max_price: 5,     // prefer items ≤ €5
-  prefer_sale_items: true,  // prioritize sale / cheaper items
-  max_recommendations: 6,
-};
+import { PROMO_CONFIG } from '@/config/store';
 
 export interface PromoState {
   /** Current cart subtotal (products only) */
@@ -67,12 +59,12 @@ export function useOrderPromotion(): PromoState {
 
   return useMemo(() => {
     const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const { threshold_amount, discount_value, filler_max_price, max_recommendations } = PROMO_CONFIG;
+    const { thresholdAmount, discountPercent, fillerMaxPrice, maxRecommendations } = PROMO_CONFIG;
 
-    const missingAmount = Math.max(0, threshold_amount - subtotal);
-    const isUnlocked = subtotal >= threshold_amount;
-    const savedAmount = isUnlocked ? +(subtotal * discount_value / 100).toFixed(2) : 0;
-    const progress = Math.min(100, (subtotal / threshold_amount) * 100);
+    const missingAmount = Math.max(0, thresholdAmount - subtotal);
+    const isUnlocked = subtotal >= thresholdAmount;
+    const savedAmount = isUnlocked ? +(subtotal * discountPercent / 100).toFixed(2) : 0;
+    const progress = Math.min(100, (subtotal / thresholdAmount) * 100);
 
     // ── Build recommendations ──
     const cartIds = new Set(items.map((i) => i.plantId));
@@ -83,19 +75,19 @@ export function useOrderPromotion(): PromoState {
 
     const candidates = plants
       .filter((p) => !cartIds.has(p.id) && p.quantity > 0)
-      .map((p) => ({ plant: p, score: scorePlant(p, cartGroups, filler_max_price) }))
+      .map((p) => ({ plant: p, score: scorePlant(p, cartGroups, fillerMaxPrice) }))
       .sort((a, b) => b.score - a.score)
-      .slice(0, max_recommendations)
+      .slice(0, maxRecommendations)
       .map((c) => c.plant);
 
     return {
       subtotal,
       missingAmount,
       isUnlocked,
-      discountValue: discount_value,
+      discountValue: discountPercent,
       savedAmount,
       progress,
-      threshold: threshold_amount,
+      threshold: thresholdAmount,
       recommendations: candidates,
     };
   }, [items]);

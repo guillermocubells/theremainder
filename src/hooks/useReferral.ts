@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { STORAGE_KEYS } from "@/config/store";
 
 export interface ReferralInfo {
   code: string;
@@ -206,7 +207,7 @@ export const useReferralSettings = () => {
 };
 
 // Storage key for pending referral
-const PENDING_REFERRAL_KEY = "frondaprima_pending_referral";
+const PENDING_REFERRAL_KEY = STORAGE_KEYS.pendingReferral;
 
 /**
  * Store pending referral code from URL
