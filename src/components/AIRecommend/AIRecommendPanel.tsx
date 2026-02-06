@@ -31,7 +31,7 @@ const AIRecommendPanel = ({
 }: AIRecommendPanelProps) => {
   const { t } = useTranslation();
   const [prompt, setPrompt] = useState("");
-  const { mutate: recommend, isPending, data: result, reset } = useRecommendPlants();
+  const { mutate: recommend, isPending, data: result, reset, error: mutationError } = useRecommendPlants();
 
   // Pre-filter catalog with active filters
   const preFilteredCatalog = useMemo(() => {
@@ -192,6 +192,17 @@ const AIRecommendPanel = ({
             )}
           </div>
         </div>
+
+        {/* Error display */}
+        {mutationError && !result && (
+          <div className="text-center py-4 bg-destructive/10 rounded-lg border border-destructive/20">
+            <AlertCircle className="h-6 w-6 text-destructive mx-auto mb-2" />
+            <p className="text-sm text-destructive font-medium">Error al obtener recomendaciones</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {mutationError.message || 'Inténtalo de nuevo más tarde'}
+            </p>
+          </div>
+        )}
 
         {/* Results */}
         {result && (
