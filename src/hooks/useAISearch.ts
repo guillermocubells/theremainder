@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { Plant } from "@/data/plants";
 import { calculateViability, analyzePostalCodeClimate } from "@/utils/viabilityCalculator";
 
@@ -164,6 +164,9 @@ export const useAISearch = (
   plants: Plant[],
   isEnabled: boolean
 ): UseAISearchResult => {
+  const cacheRef = useRef(new Map<string, Plant[]>());
+  const MAX_CACHE = 50;
+
   // Detect postal code and climate from query
   const postalCode = useMemo(() => detectPostalCode(query), [query]);
   const climate = useMemo(() => 
@@ -171,20 +174,31 @@ export const useAISearch = (
     [postalCode]
   );
 
-  // Perform AI search
+  // Perform AI search with cache
   const filteredPlants = useMemo(() => {
     if (!query.trim()) return plants;
+
+    const cacheKey = `${isEnabled ? 'ai' : 'basic'}:${query}:${plants.length}`;
+    const cached = cacheRef.current.get(cacheKey);
+    if (cached) return cached;
     
+    let result: Plant[];
     if (isEnabled) {
-      return performAISearch(query, plants, postalCode, climate);
+      result = performAISearch(query, plants, postalCode, climate);
+    } else {
+      result = plants.filter(plant =>
+        plant.name.toLowerCase().includes(query.toLowerCase()) ||
+        plant.commonName.toLowerCase().includes(query.toLowerCase()) ||
+        plant.description.toLowerCase().includes(query.toLowerCase())
+      );
     }
-    
-    // Basic search fallback
-    return plants.filter(plant =>
-      plant.name.toLowerCase().includes(query.toLowerCase()) ||
-      plant.commonName.toLowerCase().includes(query.toLowerCase()) ||
-      plant.description.toLowerCase().includes(query.toLowerCase())
-    );
+
+    if (cacheRef.current.size >= MAX_CACHE) {
+      const firstKey = cacheRef.current.keys().next().value;
+      if (firstKey !== undefined) cacheRef.current.delete(firstKey);
+    }
+    cacheRef.current.set(cacheKey, result);
+    return result;
   }, [query, plants, isEnabled, postalCode, climate]);
 
   // Sort by viability when AI mode is active
