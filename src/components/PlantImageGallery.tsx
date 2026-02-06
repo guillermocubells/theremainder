@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { cn } from "@/lib/utils";
 
@@ -86,10 +87,11 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
             className="relative h-full w-full overflow-hidden rounded-xl cursor-pointer group shadow-lg"
             onClick={openLightbox}
           >
-            <img
+            <OptimizedImage
               src={displayImages[selectedIndex]}
               alt={`${plantName} - imagen ${selectedIndex + 1}`}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="eager"
             />
             {/* Zoom button */}
             <button 
@@ -118,7 +120,7 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
                     : "border-border hover:border-primary/50"
                 )}
               >
-                <img
+                <OptimizedImage
                   src={image}
                   alt={`${plantName} - miniatura ${index + 1}`}
                   className="w-full h-full object-cover"
@@ -173,11 +175,13 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
                 </>
               )}
 
-              <img
+              <OptimizedImage
                 src={displayImages[selectedIndex]}
                 alt={`${plantName} - imagen ${selectedIndex + 1}`}
                 className="w-full h-auto max-h-[80vh] object-contain rounded-lg select-none"
                 draggable={false}
+                placeholder={false}
+                loading="eager"
               />
               
               {/* Image counter */}

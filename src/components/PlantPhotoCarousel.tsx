@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { X, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -84,10 +85,11 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
             className="relative aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-xl cursor-pointer group"
             onClick={() => openLightbox()}
           >
-            <img 
+            <OptimizedImage 
               src={images[selectedIndex]} 
               alt={`${plantName} - imagen ${selectedIndex + 1}`}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="eager"
             />
             {/* Zoom button */}
             <button
@@ -116,7 +118,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
                     : "border-border hover:border-primary/50"
                 )}
               >
-                <img 
+                <OptimizedImage 
                   src={image} 
                   alt={`${plantName} - thumbnail ${index + 1}`}
                   className="w-full h-full object-cover"
@@ -171,11 +173,13 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
                 </>
               )}
 
-              <img
+              <OptimizedImage
                 src={images[selectedIndex]}
                 alt={`${plantName} - imagen ${selectedIndex + 1}`}
                 className="w-full h-auto max-h-[80vh] object-contain rounded-lg select-none"
                 draggable={false}
+                placeholder={false}
+                loading="eager"
               />
               
               {/* Image counter */}
