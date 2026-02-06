@@ -528,5 +528,19 @@
         "description": "Used to show you relevant ads and measure campaign effectiveness."
       }
     }
+  },
+  "recentPurchases": {
+    "title": "Recent purchases",
+    "someonePurchased": "Purchased",
+    "unitsBought": "units bought",
+    "justNow": "just now",
+    "oneHourAgo": "1 hour ago",
+    "hoursAgo": "{{count}} hours ago",
+    "yesterday": "yesterday",
+    "daysAgo": "{{count}} days ago"
+  },
+  "share": {
+    "shareSearch": "Share search",
+    "shareSearchTooltip": "Share this search via WhatsApp"
   }
 }

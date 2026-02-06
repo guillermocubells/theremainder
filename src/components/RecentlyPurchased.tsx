@@ -9,18 +9,18 @@ interface RecentlyPurchasedProps {
   maxItems?: number;
 }
 
-function formatRelativeTime(hoursAgo: number): string {
-  if (hoursAgo < 1) return "Hace un momento";
-  if (hoursAgo === 1) return "Hace 1 hora";
-  if (hoursAgo < 24) return `Hace ${hoursAgo} horas`;
+function formatRelativeTime(hoursAgo: number, t: ReturnType<typeof useTranslation>['t']): string {
+  if (hoursAgo < 1) return t("recentPurchases.justNow", "hace un momento");
+  if (hoursAgo === 1) return t("recentPurchases.oneHourAgo", "hace 1 hora");
+  if (hoursAgo < 24) return t("recentPurchases.hoursAgo", "hace {{count}} horas", { count: hoursAgo });
   const days = Math.floor(hoursAgo / 24);
-  if (days === 1) return "Ayer";
-  return `Hace ${days} días`;
+  if (days === 1) return t("recentPurchases.yesterday", "ayer");
+  return t("recentPurchases.daysAgo", "hace {{count}} días", { count: days });
 }
 
 function PurchaseItem({ purchase }: { purchase: RecentPurchase }) {
   const { t } = useTranslation();
-  const timeStr = formatRelativeTime(purchase.hoursAgo);
+  const timeStr = formatRelativeTime(purchase.hoursAgo, t);
 
   const sentence =
     purchase.quantity > 1
