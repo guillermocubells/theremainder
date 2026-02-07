@@ -1,9 +1,16 @@
-import { useState, useMemo, useCallback } from "react";
-import { X, Leaf, ShoppingBag, Sun, Droplets, Thermometer, MapPin, TreeDeciduous, Package, ArrowUpDown } from "lucide-react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { X, Leaf, ShoppingBag, Sun, Droplets, Thermometer, MapPin, TreeDeciduous, Package, ArrowUpDown, FolderTree } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plant } from "@/data/plants";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
 
 interface PlantFiltersProps {
   plants: Plant[];
@@ -15,9 +22,10 @@ interface FilterState {
   // Habitat filters
   light: string;
   water: string;
-  zone: string;       // USDA hardiness zone
-  climate: string;    // Climate type (tropical, mediterraneo, etc.)
+  zone: string;
+  climate: string;
   // Commercial filters
+  category: string;
   plantGroup: string;
   stock: string;
   sortBy: string;
@@ -28,6 +36,7 @@ const INITIAL_FILTERS: FilterState = {
   water: "",
   zone: "",
   climate: "",
+  category: "",
   plantGroup: "",
   stock: "",
   sortBy: ""
@@ -45,6 +54,19 @@ const WATER_OPTIONS = ['Baja', 'Moderada', 'Alta'];
 const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) => {
   const { t } = useTranslation();
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // Fetch categories from DB
+  useEffect(() => {
+    supabase
+      .from("categories")
+      .select("id, name, slug")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true })
+      .then(({ data }) => {
+        if (data) setCategories(data);
+      });
+  }, []);
 
   // Memoize derived options
   const { lightOptions, climateOptions, zoneOptions, plantGroupOptions } = useMemo(() => ({
@@ -76,6 +98,13 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
     }
 
     // Commercial filters
+    if (newFilters.category) {
+      // Category maps to plantGroup values (e.g., "Palmeras")
+      const cat = categories.find(c => c.slug === newFilters.category);
+      if (cat) {
+        filtered = filtered.filter(plant => plant.plantGroup === cat.name);
+      }
+    }
     if (newFilters.plantGroup) {
       filtered = filtered.filter(plant => plant.plantGroup === newFilters.plantGroup);
     }
@@ -111,6 +140,10 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
     if (newFilters.water) filterSummary['Riego'] = newFilters.water;
     if (newFilters.zone) filterSummary['Zona'] = newFilters.zone;
     if (newFilters.climate) filterSummary['Clima'] = newFilters.climate;
+    if (newFilters.category) {
+      const cat = categories.find(c => c.slug === newFilters.category);
+      filterSummary['Categoría'] = cat?.name || newFilters.category;
+    }
     if (newFilters.plantGroup) filterSummary['Grupo'] = newFilters.plantGroup;
     if (newFilters.stock) filterSummary['Stock'] = newFilters.stock === 'disponible' ? 'Disponible' : 'Agotado';
 
@@ -138,7 +171,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
   [filters]);
 
   const commercialFiltersCount = useMemo(() => 
-    [filters.plantGroup, filters.stock, filters.sortBy].filter(v => v !== "").length,
+    [filters.category, filters.plantGroup, filters.stock, filters.sortBy].filter(v => v !== "").length,
   [filters]);
 
   const activeFilterTags = useMemo(() => {
@@ -159,6 +192,10 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
     }
 
     // Commercial tags
+    if (filters.category) {
+      const cat = categories.find(c => c.slug === filters.category);
+      tags.push({ key: 'category', label: cat?.name || filters.category, type: 'commercial' });
+    }
     if (filters.plantGroup) {
       tags.push({ key: 'plantGroup', label: filters.plantGroup, type: 'commercial' });
     }
@@ -318,7 +355,30 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
             </div>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Category */}
+            {categories.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <FolderTree className="h-3 w-3" />
+                  Categoría
+                </label>
+                <Select 
+                  value={filters.category || "all"} 
+                  onValueChange={(v) => handleFilterChange('category', v)}
+                >
+                  <SelectTrigger className="h-9 border-border/50 bg-background/60 text-sm hover:bg-background/80 transition-colors">
+                    <SelectValue placeholder={t('filters.all')} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border border-border shadow-lg z-50">
+                    <SelectItem value="all">{t('filters.all')}</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.slug}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             {/* Plant Group */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">

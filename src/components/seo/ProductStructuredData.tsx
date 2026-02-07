@@ -9,14 +9,14 @@ interface ProductStructuredDataProps {
 
 const ProductStructuredData = ({ plant, baseUrl = STORE_BRAND.url }: ProductStructuredDataProps) => {
   const productUrl = `${baseUrl}/plant/${plant.id}`;
-  const imageUrl = plant.images?.[0] ? `${baseUrl}${plant.images[0]}` : undefined;
+  const imageUrl = plant.images?.[0] 
+    ? (plant.images[0].startsWith("http") ? plant.images[0] : `${baseUrl}${plant.images[0]}`)
+    : undefined;
   
-  // Determine availability based on quantity
   const availability = plant.quantity > 0 
     ? "https://schema.org/InStock" 
     : "https://schema.org/OutOfStock";
   
-  // Build JSON-LD structured data for Product schema
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -66,7 +66,6 @@ const ProductStructuredData = ({ plant, baseUrl = STORE_BRAND.url }: ProductStru
         }
       }
     },
-    // Additional product attributes
     ...(plant.containerSize && {
       additionalProperty: [
         {
@@ -74,12 +73,12 @@ const ProductStructuredData = ({ plant, baseUrl = STORE_BRAND.url }: ProductStru
           name: "Tamaño del contenedor",
           value: plant.containerSize
         },
-        ...(plant.hardinessZones ? [{
+        ...(plant.hardinessZones?.length ? [{
           "@type": "PropertyValue",
           name: "Zonas de rusticidad",
           value: plant.hardinessZones.join(", ")
         }] : []),
-        ...(plant.climateZones ? [{
+        ...(plant.climateZones?.length ? [{
           "@type": "PropertyValue",
           name: "Zonas climáticas",
           value: plant.climateZones.join(", ")
@@ -88,16 +87,30 @@ const ProductStructuredData = ({ plant, baseUrl = STORE_BRAND.url }: ProductStru
     })
   };
 
-  // Meta description for SEO
-  const metaDescription = `${plant.name}${plant.commonName ? ` (${plant.commonName})` : ''} - ${plant.description}. Precio: ${plant.price}€. Compra online en ${STORE_BRAND.name}, ${STORE_BRAND.tagline.toLowerCase()}.`;
+  // SEO meta — truncate description to 160 chars
+  const rawDesc = `${plant.name}${plant.commonName ? ` (${plant.commonName})` : ''} - ${plant.description}. Precio: ${plant.price}€. Compra online en ${STORE_BRAND.name}.`;
+  const metaDescription = rawDesc.length > 160 ? rawDesc.slice(0, 157) + "…" : rawDesc;
 
   const ogTitle = `${plant.name}${plant.variety ? ` ${plant.variety}` : ''} | ${STORE_BRAND.name}`;
+  const truncatedTitle = ogTitle.length > 60 ? ogTitle.slice(0, 57) + "…" : ogTitle;
+
+  // Keywords from plant attributes
+  const keywords = [
+    plant.name,
+    plant.commonName,
+    plant.plantGroup,
+    plant.variety,
+    "comprar online",
+    STORE_BRAND.name,
+  ].filter(Boolean).join(", ");
 
   return (
     <Helmet>
       {/* Primary Meta Tags */}
-      <title>{ogTitle}</title>
+      <title>{truncatedTitle}</title>
       <meta name="description" content={metaDescription} />
+      <meta name="keywords" content={keywords} />
+      <meta name="robots" content="index, follow" />
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content="product" />
