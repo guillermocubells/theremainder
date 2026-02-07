@@ -14,7 +14,6 @@ export interface RecommendFilters {
   plant_use?: string[];
   rarity?: 'low' | 'medium' | 'high';
   price_max?: number;
-  is_in_stock?: boolean;
 }
 
 export interface CatalogPlant {
@@ -31,9 +30,8 @@ export interface CatalogPlant {
   plant_use?: string[] | null;
   rarity?: string | null;
   difficulty?: string | null;
-  is_in_stock?: boolean | null;
   price?: number;
-  thumbnail_url?: string | null;
+  images?: string[] | null;
 }
 
 export interface RecommendInput {

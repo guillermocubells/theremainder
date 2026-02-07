@@ -56,10 +56,6 @@ export function PlantFormDialog({
     stock: "0",
     container_size: "",
     germination_date: "",
-    sun_requirement: "",
-    water_requirement: "",
-    temperature_range: "",
-    hardiness_zone: "",
     growth_rate: "",
     mature_height: "",
     mature_width: "",
@@ -69,7 +65,6 @@ export function PlantFormDialog({
     is_active: true,
     is_featured: false,
     images: [] as string[],
-    thumbnail_url: "",
   });
 
   useEffect(() => {
@@ -88,10 +83,6 @@ export function PlantFormDialog({
           stock: plant.stock?.toString() || "0",
           container_size: plant.container_size || "",
           germination_date: plant.germination_date || "",
-          sun_requirement: plant.sun_requirement || "",
-          water_requirement: plant.water_requirement || "",
-          temperature_range: plant.temperature_range || "",
-          hardiness_zone: plant.hardiness_zone || "",
           growth_rate: plant.growth_rate || "",
           mature_height: plant.mature_height || "",
           mature_width: plant.mature_width || "",
@@ -101,7 +92,6 @@ export function PlantFormDialog({
           is_active: plant.is_active ?? true,
           is_featured: plant.is_featured ?? false,
           images: plant.images || [],
-          thumbnail_url: plant.thumbnail_url || "",
         });
       } else {
         setFormData({
@@ -116,10 +106,6 @@ export function PlantFormDialog({
           stock: "0",
           container_size: "",
           germination_date: "",
-          sun_requirement: "",
-          water_requirement: "",
-          temperature_range: "",
-          hardiness_zone: "",
           growth_rate: "",
           mature_height: "",
           mature_width: "",
@@ -129,7 +115,6 @@ export function PlantFormDialog({
           is_active: true,
           is_featured: false,
           images: [],
-          thumbnail_url: "",
         });
       }
     }
@@ -176,13 +161,9 @@ export function PlantFormDialog({
         category_id: formData.category_id || null,
         price: parseFloat(formData.price) || 0,
         sale_price: formData.sale_price ? parseFloat(formData.sale_price) : null,
-        stock: parseInt(formData.stock) || 0,
+        stock_qty: parseInt(formData.stock) || 0,
         container_size: formData.container_size || null,
         germination_date: formData.germination_date || null,
-        sun_requirement: formData.sun_requirement || null,
-        water_requirement: formData.water_requirement || null,
-        temperature_range: formData.temperature_range || null,
-        hardiness_zone: formData.hardiness_zone || null,
         growth_rate: formData.growth_rate || null,
         mature_height: formData.mature_height || null,
         mature_width: formData.mature_width || null,
@@ -192,7 +173,6 @@ export function PlantFormDialog({
         is_active: formData.is_active,
         is_featured: formData.is_featured,
         images: formData.images,
-        thumbnail_url: formData.thumbnail_url || formData.images[0] || null,
       };
 
       if (plant) {
@@ -224,7 +204,6 @@ export function PlantFormDialog({
     setFormData((prev) => ({
       ...prev,
       images: urls,
-      thumbnail_url: prev.thumbnail_url || urls[0] || "",
     }));
   };
 
@@ -389,67 +368,7 @@ export function PlantFormDialog({
               </TabsContent>
 
               <TabsContent value="details" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="sun_requirement">Requisitos de sol</Label>
-                    <Select
-                      value={formData.sun_requirement}
-                      onValueChange={(v) => handleChange("sun_requirement", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="full_sun">Pleno sol</SelectItem>
-                        <SelectItem value="partial_shade">
-                          Semisombra
-                        </SelectItem>
-                        <SelectItem value="full_shade">Sombra</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="water_requirement">Requisitos de agua</Label>
-                    <Select
-                      value={formData.water_requirement}
-                      onValueChange={(v) => handleChange("water_requirement", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Bajo</SelectItem>
-                        <SelectItem value="moderate">Moderado</SelectItem>
-                        <SelectItem value="high">Alto</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="temperature_range">Rango temperatura</Label>
-                    <Input
-                      id="temperature_range"
-                      value={formData.temperature_range}
-                      onChange={(e) =>
-                        handleChange("temperature_range", e.target.value)
-                      }
-                      placeholder="ej: -5°C a 35°C"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="hardiness_zone">Zona de rusticidad</Label>
-                    <Input
-                      id="hardiness_zone"
-                      value={formData.hardiness_zone}
-                      onChange={(e) =>
-                        handleChange("hardiness_zone", e.target.value)
-                      }
-                      placeholder="ej: 8-11"
-                    />
-                  </div>
-                </div>
+                {/* Removed: sun_requirement, water_requirement, temperature_range, hardiness_zone — use exposure, water, min_temp_c, climate_zones instead */}
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
@@ -549,24 +468,9 @@ export function PlantFormDialog({
                 />
 
                 {formData.images.length > 0 && (
-                  <div>
-                    <Label>Imagen principal (thumbnail)</Label>
-                    <Select
-                      value={formData.thumbnail_url}
-                      onValueChange={(v) => handleChange("thumbnail_url", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona la imagen principal" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {formData.images.map((url, index) => (
-                          <SelectItem key={url} value={url}>
-                            Imagen {index + 1}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    La primera imagen se usa como imagen principal.
+                  </p>
                 )}
               </TabsContent>
             </Tabs>

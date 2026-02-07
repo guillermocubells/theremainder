@@ -73,7 +73,7 @@ export const WishlistCard = ({ item }: WishlistCardProps) => {
     }
   };
 
-  const imageUrl = item.image_url || item.plants?.thumbnail_url || '/placeholder.svg';
+  const imageUrl = item.image_url || item.plants?.images?.[0] || '/placeholder.svg';
   const isFromCatalog = !!item.catalog_product_id;
   const isInStock = item.plants?.stock_qty && item.plants.stock_qty > 0;
 

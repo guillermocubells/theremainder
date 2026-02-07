@@ -20,9 +20,9 @@ interface CatalogPlant {
   plant_use?: string[] | null;
   rarity?: string | null;
   difficulty?: string | null;
-  is_in_stock?: boolean | null;
   price?: number;
-  thumbnail_url?: string | null;
+  images?: string[] | null;
+  stock_qty?: number;
 }
 
 interface ViabilityFactors {
@@ -199,8 +199,8 @@ serve(async (req) => {
     if (catalog_subset?.length > 0) {
       catalog = catalog_subset;
     } else {
-      let dbQuery = supabase.from("plants").select("id, name, scientific_name, plant_type, exposure, growth_rate, climate_zones, min_temp_c, water, humidity, plant_use, rarity, difficulty, is_in_stock, price, thumbnail_url").eq("is_active", true);
-      if (filters?.is_in_stock !== false) dbQuery = dbQuery.eq("is_in_stock", true);
+      let dbQuery = supabase.from("plants").select("id, name, scientific_name, plant_type, exposure, growth_rate, climate_zones, min_temp_c, water, humidity, plant_use, rarity, difficulty, price, images, stock_qty").eq("is_active", true);
+      dbQuery = dbQuery.gt("stock_qty", 0);
       const { data: plants, error: dbError } = await dbQuery;
       if (dbError) throw new Error("Failed to fetch catalog");
       catalog = (plants || []) as CatalogPlant[];

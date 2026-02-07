@@ -59,7 +59,6 @@ const AIRecommendPanel = ({
       plant_use: normalizeArrayFilter(filters.plant_use),
       rarity: filters.rarity,
       price_max: filters.price_max,
-      is_in_stock: filters.is_in_stock,
     };
   };
 

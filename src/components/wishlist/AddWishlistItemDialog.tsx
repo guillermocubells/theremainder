@@ -24,7 +24,7 @@ interface CatalogPlant {
   id: string;
   name: string;
   scientific_name: string | null;
-  thumbnail_url: string | null;
+  images: string[] | null;
   price: number;
 }
 
@@ -61,7 +61,7 @@ export const AddWishlistItemDialog = ({ open, onOpenChange }: AddWishlistItemDia
     try {
       const { data, error } = await supabase
         .from('plants')
-        .select('id, name, scientific_name, thumbnail_url, price')
+        .select('id, name, scientific_name, images, price')
         .eq('is_active', true)
         .order('name');
       
@@ -98,7 +98,7 @@ export const AddWishlistItemDialog = ({ open, onOpenChange }: AddWishlistItemDia
       source_preference: sourcePreference,
       provider_name: sourcePreference === 'specific' ? providerName : null,
       provider_url: sourcePreference === 'specific' ? providerUrl : null,
-      image_url: tab === 'catalog' && selectedPlant ? selectedPlant.thumbnail_url : null,
+      image_url: tab === 'catalog' && selectedPlant ? selectedPlant.images?.[0] || null : null,
       notes: notes || null,
       notify_availability: notifyAvailability,
       notify_price_drop: notifyPriceDrop,
@@ -185,9 +185,9 @@ export const AddWishlistItemDialog = ({ open, onOpenChange }: AddWishlistItemDia
                               )}
                             />
                             <div className="flex items-center gap-2">
-                              {plant.thumbnail_url && (
+                              {plant.images?.[0] && (
                                 <img 
-                                  src={plant.thumbnail_url} 
+                                  src={plant.images[0]} 
                                   alt={plant.name}
                                   className="w-8 h-8 rounded object-cover"
                                 />
@@ -210,9 +210,9 @@ export const AddWishlistItemDialog = ({ open, onOpenChange }: AddWishlistItemDia
 
             {selectedPlant && (
               <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                {selectedPlant.thumbnail_url && (
+                {selectedPlant.images?.[0] && (
                   <img 
-                    src={selectedPlant.thumbnail_url} 
+                    src={selectedPlant.images[0]} 
                     alt={selectedPlant.name}
                     className="w-16 h-16 rounded object-cover"
                   />

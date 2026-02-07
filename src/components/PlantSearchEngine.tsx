@@ -108,9 +108,7 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange, onSearchStart }: Pl
     plant_use: p.location ? [p.location] : null,
     rarity: null,
     difficulty: null,
-    is_in_stock: (p.quantity || 0) > 0,
     price: p.price,
-    thumbnail_url: p.images?.[0] || null,
   }));
 
   return (

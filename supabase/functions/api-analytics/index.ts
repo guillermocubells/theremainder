@@ -103,7 +103,7 @@ serve(async (req: Request) => {
         .from("plants")
         .select("id", { count: "exact", head: true })
         .eq("is_active", true)
-        .eq("is_in_stock", false);
+        .eq("stock_qty", 0);
 
       // Stock notifications (demand indicator)
       const { count: stockNotifications } = await adminSupabase

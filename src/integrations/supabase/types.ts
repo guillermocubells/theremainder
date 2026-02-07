@@ -1048,13 +1048,11 @@ export type Database = {
           exposure: string[] | null
           germination_date: string | null
           growth_rate: string | null
-          hardiness_zone: string | null
           humidity: Database["public"]["Enums"]["humidity_level"] | null
           id: string
           images: string[] | null
           is_active: boolean
           is_featured: boolean
-          is_in_stock: boolean | null
           mature_height: string | null
           mature_width: string | null
           meta_description: string | null
@@ -1075,12 +1073,8 @@ export type Database = {
           slug: string
           specifications: Json | null
           stock_qty: number
-          sun_requirement: string | null
-          temperature_range: string | null
-          thumbnail_url: string | null
           updated_at: string
           water: Database["public"]["Enums"]["water_level"] | null
-          water_requirement: string | null
         }
         Insert: {
           care_instructions?: Json | null
@@ -1096,13 +1090,11 @@ export type Database = {
           exposure?: string[] | null
           germination_date?: string | null
           growth_rate?: string | null
-          hardiness_zone?: string | null
           humidity?: Database["public"]["Enums"]["humidity_level"] | null
           id?: string
           images?: string[] | null
           is_active?: boolean
           is_featured?: boolean
-          is_in_stock?: boolean | null
           mature_height?: string | null
           mature_width?: string | null
           meta_description?: string | null
@@ -1123,12 +1115,8 @@ export type Database = {
           slug: string
           specifications?: Json | null
           stock_qty?: number
-          sun_requirement?: string | null
-          temperature_range?: string | null
-          thumbnail_url?: string | null
           updated_at?: string
           water?: Database["public"]["Enums"]["water_level"] | null
-          water_requirement?: string | null
         }
         Update: {
           care_instructions?: Json | null
@@ -1144,13 +1132,11 @@ export type Database = {
           exposure?: string[] | null
           germination_date?: string | null
           growth_rate?: string | null
-          hardiness_zone?: string | null
           humidity?: Database["public"]["Enums"]["humidity_level"] | null
           id?: string
           images?: string[] | null
           is_active?: boolean
           is_featured?: boolean
-          is_in_stock?: boolean | null
           mature_height?: string | null
           mature_width?: string | null
           meta_description?: string | null
@@ -1171,12 +1157,8 @@ export type Database = {
           slug?: string
           specifications?: Json | null
           stock_qty?: number
-          sun_requirement?: string | null
-          temperature_range?: string | null
-          thumbnail_url?: string | null
           updated_at?: string
           water?: Database["public"]["Enums"]["water_level"] | null
-          water_requirement?: string | null
         }
         Relationships: [
           {
