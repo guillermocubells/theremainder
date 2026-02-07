@@ -251,7 +251,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             >
               <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground border border-border cursor-default capitalize">
                 <CloudSun className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span>Zona climática: {plant.climateZones.join(' · ')}</span>
+                <span>Clima: {plant.climateZones.join(' · ')}</span>
               </div>
             </ResponsiveTooltip>
           )}
