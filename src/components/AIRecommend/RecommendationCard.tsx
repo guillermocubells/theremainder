@@ -11,6 +11,7 @@ import { PlantRecommendation, CatalogPlant } from "@/hooks/useRecommendPlants";
 import { useCatalogFavorite } from "@/hooks/wishlist";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import ViabilityFactorsTable from "./ViabilityFactorsTable";
 
 interface RecommendationCardProps {
@@ -37,6 +38,7 @@ const RecommendationCard = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isViabilityOpen, setIsViabilityOpen] = useState(false);
+  const { formatPrice } = useCurrency();
   
   const { isFavorite, isToggling, toggleFavorite } = useCatalogFavorite(plant?.id || '');
   
@@ -123,7 +125,7 @@ const RecommendationCard = ({
               </div>
               {plant.price !== undefined && (
                 <span className="font-bold text-primary text-sm whitespace-nowrap">
-                  {plant.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                  {formatPrice(plant.price)}
                 </span>
               )}
             </div>

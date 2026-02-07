@@ -7,6 +7,7 @@ import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Plant } from "@/data/plants";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { useCart } from "@/contexts/CartContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { useImageCarousel } from "@/hooks/useImageCarousel";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ interface MobilePlantCardProps {
 const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
   const { t } = useTranslation();
   const { addToCart, getItemQuantity } = useCart();
+  const { formatPrice } = useCurrency();
   const lightInfo = getLightInfo(plant.light);
   const growthInfo = getGrowthInfo(plant.growthRate);
   const LightIcon = lightInfo.icon;
@@ -142,7 +144,7 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
           {plant.price !== undefined && (
             <div className="absolute bottom-2 left-2">
               <span className="bg-card/95 text-foreground text-sm font-bold px-2.5 py-1 rounded-lg shadow-sm">
-                {plant.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                {formatPrice(plant.price)}
               </span>
             </div>
           )}

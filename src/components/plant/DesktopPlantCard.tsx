@@ -7,6 +7,7 @@ import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Plant } from "@/data/plants";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { usePlantTooltips } from "@/hooks/usePlantTooltips";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "sonner";
 
 interface DesktopPlantCardProps {
@@ -16,6 +17,7 @@ interface DesktopPlantCardProps {
 const DesktopPlantCard = ({ plant }: DesktopPlantCardProps) => {
   const { t } = useTranslation();
   const { getLightTooltip, getGrowthTooltip } = usePlantTooltips();
+  const { formatPrice } = useCurrency();
   const lightInfo = getLightInfo(plant.light);
   const growthInfo = getGrowthInfo(plant.growthRate);
   const LightIcon = lightInfo.icon;
@@ -93,7 +95,7 @@ const DesktopPlantCard = ({ plant }: DesktopPlantCardProps) => {
           </CardDescription>
           {plant.price !== undefined && (
             <p className="text-primary font-semibold text-xs sm:text-sm mt-1">
-              {plant.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+              {formatPrice(plant.price)}
             </p>
           )}
         </CardHeader>

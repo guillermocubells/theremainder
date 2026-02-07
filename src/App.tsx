@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { STORE_CONTACT } from "@/config/store";
 import { CookieConsentBanner } from "@/components/cookies";
@@ -55,6 +56,7 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <CurrencyProvider>
         <CartProvider>
           <TooltipProvider>
           <Toaster />
@@ -139,6 +141,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </CartProvider>
+      </CurrencyProvider>
     </AuthProvider>
   </QueryClientProvider>
   </HelmetProvider>

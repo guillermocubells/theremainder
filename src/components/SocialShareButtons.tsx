@@ -5,6 +5,7 @@ import { Share2, Check, Link2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { buildProductMessage, openWhatsAppShare } from "@/utils/whatsappShare";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 // Social icons
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -33,6 +34,7 @@ interface SocialShareButtonsProps {
 const SocialShareButtons = ({ plantName, plantId, price, variety, containerSize, quantity, description, imageUrl }: SocialShareButtonsProps) => {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
+  const { formatPrice } = useCurrency();
 
   const getShareUrl = () => {
     return `${window.location.origin}/plant/${plantId}`;
@@ -40,7 +42,7 @@ const SocialShareButtons = ({ plantName, plantId, price, variety, containerSize,
 
   const getShareText = () => {
     const priceText = price 
-      ? ` - ${price.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}`
+      ? ` - ${formatPrice(price)}`
       : "";
     return `${plantName}${priceText} | Frondaprima`;
   };

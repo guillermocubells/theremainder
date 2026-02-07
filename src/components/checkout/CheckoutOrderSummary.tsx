@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { ShoppingBag, Truck, Lock, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { CartItem } from "@/contexts/CartContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { ShippingQuote } from "@/hooks/useShippingQuote";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -20,13 +21,7 @@ export function CheckoutOrderSummary({
 }: CheckoutOrderSummaryProps) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const formatCurrency = (euros: number) => {
-    return euros.toLocaleString("es-ES", {
-      style: "currency",
-      currency: "EUR",
-    });
-  };
+  const { formatPrice } = useCurrency();
 
   // Calculate subtotal from frontend items (for display before quote loads)
   const frontendSubtotal = items.reduce(
@@ -63,9 +58,9 @@ export function CheckoutOrderSummary({
             {isQuoteLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : total !== null ? (
-              formatCurrency(total)
+              formatPrice(total)
             ) : (
-              formatCurrency(subtotal)
+              formatPrice(subtotal)
             )}
           </span>
           {isExpanded ? (
@@ -108,14 +103,14 @@ export function CheckoutOrderSummary({
                     {item.name}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {item.quantity} × {formatCurrency(item.price)}
+                    {item.quantity} × {formatPrice(item.price)}
                   </p>
                   {item.containerSize && (
                     <p className="text-xs text-muted-foreground">{item.containerSize}</p>
                   )}
                 </div>
                 <p className="text-sm font-medium text-foreground">
-                  {formatCurrency(item.price * item.quantity)}
+                  {formatPrice(item.price * item.quantity)}
                 </p>
               </div>
             ))}
@@ -127,7 +122,7 @@ export function CheckoutOrderSummary({
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("common.subtotal")}</span>
-              <span className="text-foreground">{formatCurrency(subtotal)}</span>
+              <span className="text-foreground">{formatPrice(subtotal)}</span>
             </div>
 
             <div className="flex justify-between">
@@ -142,7 +137,7 @@ export function CheckoutOrderSummary({
                   shippingCost === 0 ? (
                     <span className="text-moss font-medium">{t("checkout.free")}</span>
                   ) : (
-                    formatCurrency(shippingCost)
+                    formatPrice(shippingCost)
                   )
                 ) : (
                   <span className="text-muted-foreground italic text-xs">
@@ -161,15 +156,15 @@ export function CheckoutOrderSummary({
               {isQuoteLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : total !== null ? (
-                formatCurrency(total)
+                formatPrice(total)
               ) : (
-                formatCurrency(subtotal)
+                formatPrice(subtotal)
               )}
             </span>
           </div>
 
           <p className="text-xs text-muted-foreground mb-4">
-            {t("common.includedTaxes")}: {formatCurrency(taxAmount)}
+            {t("common.includedTaxes")}: {formatPrice(taxAmount)}
           </p>
 
           {/* Delivery estimate */}

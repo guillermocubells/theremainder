@@ -11,6 +11,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { useCart, calculateTax } from "@/contexts/CartContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
@@ -23,6 +24,7 @@ const CartDrawer = () => {
   const totalPrice = getTotalPrice();
   const taxAmount = calculateTax(totalPrice);
   const { t } = useTranslation();
+  const { formatPrice } = useCurrency();
 
   return (
     <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
@@ -97,7 +99,7 @@ const CartDrawer = () => {
                       </Link>
                       
                       <p className="text-sm text-muted-foreground mt-0.5">
-                        {item.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                        {formatPrice(item.price)}
                       </p>
 
                       {item.containerSize && (
@@ -154,7 +156,7 @@ const CartDrawer = () => {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">{t('common.subtotal')}:</span>
                   <span className="font-medium text-foreground">
-                    {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                    {formatPrice(totalPrice)}
                   </span>
                 </div>
 
@@ -170,7 +172,7 @@ const CartDrawer = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-foreground">{t('common.totalWithTax')}:</span>
                   <span className="font-bold text-lg text-foreground">
-                    {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                    {formatPrice(totalPrice)}
                   </span>
                 </div>
 
@@ -178,7 +180,7 @@ const CartDrawer = () => {
                 <p className="text-xs text-muted-foreground">
                   {t('common.includedTaxes')}:{' '}
                   <span className="font-medium">
-                    {taxAmount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                    {formatPrice(taxAmount)}
                   </span>
                 </p>
 
