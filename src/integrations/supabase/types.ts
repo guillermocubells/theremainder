@@ -1827,6 +1827,10 @@ export type Database = {
       generate_plant_serial_code: { Args: never; Returns: string }
       generate_plant_slug: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      get_public_shared_list_by_slug: {
+        Args: { p_slug: string }
+        Returns: Json
+      }
       get_referral_setting: { Args: { setting_key: string }; Returns: Json }
       has_role: {
         Args: {
