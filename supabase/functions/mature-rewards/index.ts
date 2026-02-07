@@ -15,9 +15,31 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Authentication: Only allow calls from service role (cron/scheduler)
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    console.error("[MATURE-REWARDS] Missing authorization header");
+    return new Response(
+      JSON.stringify({ success: false, error: "Unauthorized" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+    );
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+  // Only accept service role key — this function should not be callable by regular users
+  if (token !== serviceRoleKey) {
+    console.error("[MATURE-REWARDS] Invalid authorization — not service role");
+    return new Response(
+      JSON.stringify({ success: false, error: "Forbidden" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+    );
+  }
+
   const supabaseAdmin = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    serviceRoleKey
   );
 
   try {
