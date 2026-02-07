@@ -6,7 +6,7 @@
 // ─── Brand ───
 export const STORE_BRAND = {
   name: "The Remainder",
-  tagline: "Botánica experimental en altura",
+  tagline: "Plantas de altura. Germinadas y compartidas una vez",
   legalName: "The Remainder",
   url: "https://frondaprima.lovable.app",
 } as const;
