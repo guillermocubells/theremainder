@@ -2,19 +2,23 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   "Content-Type": "application/json",
 };
 
 interface EmailRequest {
-  type: "stock_available" | "order_shipped" | "order_delivered" | "welcome";
+  type: "stock_available" | "order_shipped" | "order_delivered" | "welcome" | "order_confirmed";
   to: string;
   data: Record<string, unknown>;
 }
 
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(amount);
+}
+
 // Email templates
-const templates = {
-  stock_available: (data: Record<string, unknown>) => ({
+const templates: Record<string, (data: Record<string, unknown>) => { subject: string; html: string }> = {
+  stock_available: (data) => ({
     subject: `¡${data.plant_name} ya está disponible!`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -33,7 +37,7 @@ const templates = {
     `,
   }),
 
-  order_shipped: (data: Record<string, unknown>) => ({
+  order_shipped: (data) => ({
     subject: `Tu pedido ${data.order_number} ha sido enviado`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -51,7 +55,7 @@ const templates = {
     `,
   }),
 
-  order_delivered: (data: Record<string, unknown>) => ({
+  order_delivered: (data) => ({
     subject: `Tu pedido ${data.order_number} ha sido entregado`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -66,8 +70,8 @@ const templates = {
     `,
   }),
 
-  welcome: (data: Record<string, unknown>) => ({
-     subject: "Bienvenido a The Remainder 🌿",
+  welcome: (data) => ({
+    subject: "Bienvenido a The Remainder 🌿",
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #1a472a;">¡Bienvenido a The Remainder!</h1>
@@ -84,6 +88,73 @@ const templates = {
       </div>
     `,
   }),
+
+  order_confirmed: (data) => {
+    const items = (data.items as Array<{ product_name: string; quantity: number; unit_price: number }>) || [];
+    const itemsHTML = items.map(item => `
+      <tr>
+        <td style="padding: 8px 12px; border-bottom: 1px solid #eee;">${item.product_name}</td>
+        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrency(item.unit_price * item.quantity)}</td>
+      </tr>
+    `).join("");
+
+    return {
+      subject: `Confirmación de pedido ${data.order_number} — The Remainder`,
+      html: `
+        <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #1a472a;">¡Gracias por tu compra! 🌿</h1>
+          <p>Hemos recibido tu pedido <strong>${data.order_number}</strong> correctamente.</p>
+          
+          ${data.invoice_number ? `
+          <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1a472a;">
+            <p style="margin: 0; font-weight: 600; color: #1a472a;">📄 Factura: ${data.invoice_number}</p>
+            <p style="margin: 8px 0 0 0; font-size: 13px; color: #666;">
+              Podrás descargar tu factura en cualquier momento desde tu cuenta.
+            </p>
+          </div>
+          ` : ''}
+
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <thead>
+              <tr style="background: #f9fafb;">
+                <th style="padding: 8px 12px; text-align: left; font-weight: 600;">Producto</th>
+                <th style="padding: 8px 12px; text-align: center; font-weight: 600;">Cant.</th>
+                <th style="padding: 8px 12px; text-align: right; font-weight: 600;">Importe</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHTML}
+            </tbody>
+          </table>
+
+          ${data.shipping_cost && Number(data.shipping_cost) > 0 ? `
+          <div style="display: flex; justify-content: space-between; padding: 8px 12px; color: #666;">
+            <span>Gastos de envío</span>
+            <span>${formatCurrency(Number(data.shipping_cost))}</span>
+          </div>
+          ` : ''}
+
+          <div style="display: flex; justify-content: space-between; padding: 12px; font-size: 18px; font-weight: bold; border-top: 2px solid #1a472a; margin-top: 8px;">
+            <span>Total</span>
+            <span style="color: #1a472a;">${formatCurrency(Number(data.total_amount))}</span>
+          </div>
+
+          <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 24px 0;">
+            <h3 style="margin: 0 0 8px 0; font-size: 14px; color: #333;">Dirección de envío</h3>
+            <p style="margin: 0; color: #666; font-size: 13px;">${data.shipping_name || ''}</p>
+            <p style="margin: 0; color: #666; font-size: 13px;">${data.shipping_address || ''}</p>
+          </div>
+
+          <a href="${data.account_url || 'https://theremainder.lovable.app/account'}" style="display: inline-block; background: #1a472a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Ver mis pedidos</a>
+
+          <p style="margin-top: 30px; color: #888; font-size: 12px;">
+            Recibirás un email cuando tu pedido sea enviado.
+          </p>
+        </div>
+      `,
+    };
+  },
 };
 
 serve(async (req: Request) => {

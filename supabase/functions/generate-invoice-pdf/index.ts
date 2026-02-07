@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface InvoiceItem {
@@ -19,6 +19,7 @@ interface Invoice {
   invoice_number: string;
   invoice_type: "standard" | "rectificativa";
   customer_type: "b2c" | "b2b";
+  user_id: string;
   rectifies_invoice_number: string | null;
   rectification_reason: string | null;
   seller_name: string;
@@ -85,7 +86,6 @@ function generateSpanishInvoiceHTML(invoice: Invoice): string {
     )
     .join("");
 
-  // Add shipping as separate line if exists
   const shippingLineHTML = invoice.shipping_cost > 0 ? `
     <tr>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Gastos de envío</td>
@@ -117,8 +117,6 @@ function generateSpanishInvoiceHTML(invoice: Invoice): string {
 
   const invoiceTypeLabel = isRectificativa ? "FACTURA RECTIFICATIVA" : "FACTURA";
   const customerTypeLabel = isB2B ? "B2B" : "B2C";
-
-  // Header color based on type
   const headerColor = isRectificativa ? "#dc2626" : "#4a7c59";
 
   return `
@@ -143,21 +141,14 @@ function generateSpanishInvoiceHTML(invoice: Invoice): string {
     .invoice-info { text-align: right; }
     .invoice-number { font-size: 20px; font-weight: bold; }
     .invoice-type-badge { 
-      display: inline-block; 
-      padding: 4px 12px; 
-      border-radius: 4px; 
-      font-size: 12px; 
-      font-weight: 600;
-      margin-top: 8px;
+      display: inline-block; padding: 4px 12px; border-radius: 4px; 
+      font-size: 12px; font-weight: 600; margin-top: 8px;
       background: ${isRectificativa ? '#fee2e2' : '#dcfce7'}; 
       color: ${isRectificativa ? '#991b1b' : '#166534'};
     }
     .customer-type-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 600;
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 10px; font-weight: 600;
       background: ${isB2B ? '#dbeafe' : '#f3e8ff'};
       color: ${isB2B ? '#1e40af' : '#7c3aed'};
       margin-left: 8px;
@@ -168,20 +159,14 @@ function generateSpanishInvoiceHTML(invoice: Invoice): string {
     .party p { margin-bottom: 4px; }
     .party .tax-id { font-weight: 600; color: #374151; }
     .rectification-notice {
-      background: #fef3c7;
-      border: 1px solid #f59e0b;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 24px;
+      background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px;
+      padding: 16px; margin-bottom: 24px;
     }
     .rectification-notice h4 { color: #92400e; margin-bottom: 8px; }
     .rectification-notice p { color: #78350f; font-size: 13px; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
     th { 
-      background: #f9fafb; 
-      padding: 12px; 
-      text-align: left; 
-      font-weight: 600;
+      background: #f9fafb; padding: 12px; text-align: left; font-weight: 600;
       border-bottom: 2px solid #e5e7eb;
     }
     th:nth-child(2), th:nth-child(3), th:nth-child(4) { text-align: center; }
@@ -191,13 +176,7 @@ function generateSpanishInvoiceHTML(invoice: Invoice): string {
     .totals-row.subtotal { border-top: 1px solid #e5e7eb; margin-top: 8px; padding-top: 16px; }
     .totals-row.tax { color: #6b7280; }
     .totals-row.total { border-top: 2px solid #1f2937; font-size: 18px; font-weight: bold; margin-top: 8px; padding-top: 16px; }
-    .status { 
-      display: inline-block; 
-      padding: 4px 12px; 
-      border-radius: 4px; 
-      font-size: 12px; 
-      font-weight: 600;
-    }
+    .status { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; }
     .status-issued { background: #dcfce7; color: #166534; }
     .status-cancelled, .status-void { background: #fee2e2; color: #991b1b; }
     .status-refunded { background: #fed7aa; color: #9a3412; }
@@ -205,10 +184,28 @@ function generateSpanishInvoiceHTML(invoice: Invoice): string {
     .footer { margin-top: 60px; text-align: center; color: #6b7280; font-size: 12px; border-top: 1px solid #e5e7eb; padding-top: 20px; }
     .legal-notice { font-size: 11px; color: #9ca3af; margin-top: 20px; text-align: center; }
     .hash-info { font-size: 10px; color: #9ca3af; margin-top: 10px; font-family: monospace; word-break: break-all; }
+    .print-bar { text-align: center; padding: 16px; background: #f3f4f6; margin-bottom: 20px; border-radius: 8px; }
+    .print-bar button {
+      background: ${headerColor}; color: white; border: none; padding: 10px 24px;
+      border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .print-bar button:hover { opacity: 0.9; }
+    .print-bar p { font-size: 12px; color: #6b7280; margin-top: 8px; }
+    @media print {
+      .print-bar { display: none !important; }
+      body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .container { padding: 20px; max-width: 100%; }
+      @page { size: A4; margin: 15mm; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="print-bar">
+      <button onclick="window.print()">📄 Guardar como PDF</button>
+      <p>Usa Ctrl+P o Cmd+P y selecciona "Guardar como PDF"</p>
+    </div>
+
     <div class="header">
       <div>
         <div class="logo">🌿 ${escapeHtml(invoice.seller_name)}</div>
@@ -320,25 +317,13 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    // Verify admin access
+    // Verify user
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data: userData } = await supabaseClient.auth.getUser(token);
     
     if (!userData.user) {
       throw new Error("No autorizado");
-    }
-
-    // Check admin role
-    const { data: roleData } = await supabaseClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userData.user.id)
-      .eq("role", "admin")
-      .single();
-
-    if (!roleData) {
-      throw new Error("Acceso denegado: se requiere rol de administrador");
     }
 
     const { invoiceId } = await req.json();
@@ -363,13 +348,31 @@ serve(async (req) => {
       throw new Error("Factura no encontrada");
     }
 
-    // Generate Spanish-compliant HTML
+    // Allow access if user is the invoice owner OR an admin
+    const isOwner = invoice.user_id === userData.user.id;
+
+    if (!isOwner) {
+      const { data: roleData } = await supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userData.user.id)
+        .eq("role", "admin")
+        .single();
+
+      if (!roleData) {
+        throw new Error("No tienes acceso a esta factura");
+      }
+    }
+
+    // Generate Spanish-compliant HTML invoice
     const html = generateSpanishInvoiceHTML(invoice as Invoice);
 
-    // Convert HTML to base64
+    // Encode HTML as base64
     const encoder = new TextEncoder();
     const htmlBytes = encoder.encode(html);
     const base64 = btoa(String.fromCharCode(...htmlBytes));
+
+    console.log(`Invoice ${invoice.invoice_number} generated for user ${userData.user.id} (owner: ${isOwner})`);
 
     return new Response(
       JSON.stringify({ 
@@ -383,13 +386,13 @@ serve(async (req) => {
       }
     );
   } catch (error: unknown) {
-    console.error("Error generating invoice PDF:", error);
+    console.error("Error generating invoice:", error);
     const errorMessage = error instanceof Error ? error.message : "Error desconocido";
     return new Response(
       JSON.stringify({ error: errorMessage }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
+        status: error instanceof Error && error.message.includes("autorizado") ? 403 : 500,
       }
     );
   }
