@@ -5,7 +5,8 @@ import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { ExternalLink, Thermometer, ChevronDown, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatHardinessZones, getZoneCountLabel } from "@/utils/hardinessZones";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { formatHardinessZones, getZoneCountLabel, getZoneTemperatureRange } from "@/utils/hardinessZones";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AddToCartButton from "./AddToCartButton";
 import StockNotificationButton from "./StockNotificationButton";
@@ -254,21 +255,44 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           )}
 
           {plant.hardinessZones && plant.hardinessZones.length > 0 && (
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
+            <Popover>
+              <PopoverTrigger asChild>
                 <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-accent text-accent-foreground border border-border cursor-help">
                   <Thermometer className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>{formatHardinessZones(plant.hardinessZones)}</span>
                 </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="start" className="text-left max-w-xs">
-                <div>
-                  <p className="font-semibold">{t('hardiness.title')}</p>
-                  <p className="text-xs sm:text-sm">{getZoneCountLabel(plant.hardinessZones)}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{t('hardiness.tooltip')}</p>
+              </PopoverTrigger>
+              <PopoverContent side="bottom" align="start" className="text-left max-w-sm w-auto p-3">
+                <div className="space-y-2">
+                  <p className="font-semibold text-sm">{t('hardiness.title')}</p>
+                  <p className="text-xs text-muted-foreground">{t('hardiness.suitableIntro')}</p>
+                  <div className="space-y-2.5 pt-1">
+                    {plant.hardinessZones.map((zoneCode) => {
+                      const range = getZoneTemperatureRange(zoneCode);
+                      const desc = t(`hardiness.zoneDescriptions.${zoneCode.toLowerCase()}`, '');
+                      return (
+                        <div key={zoneCode} className="space-y-0.5">
+                          <p className="text-xs font-medium text-foreground">
+                            <span className="font-bold">{t('hardiness.zoneLabel', 'Zona')} {zoneCode.toUpperCase()}</span>
+                            {range && (
+                              <span className="text-muted-foreground font-normal">
+                                {' → '}{t('hardiness.minTemp')}{' '}
+                                {range.fromTemp !== null ? `${range.fromTemp}°C` : ''}
+                                {range.fromTemp !== null && range.toTemp !== null ? ` ${t('hardiness.and')} ` : ''}
+                                {range.toTemp !== null ? `${range.toTemp > 0 ? '+' : ''}${range.toTemp}°C` : ''}
+                              </span>
+                            )}
+                          </p>
+                          {desc && (
+                            <p className="text-xs text-muted-foreground pl-3">{desc}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </TooltipContent>
-            </Tooltip>
+              </PopoverContent>
+            </Popover>
           )}
         </div>
         
