@@ -5,7 +5,7 @@ import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
 import { ExternalLink, Thermometer, ChevronDown, Heart, MapPin, CloudSun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ResponsiveTooltip } from "@/components/ui/responsive-tooltip";
 import { formatHardinessZones, getZoneCountLabel, getZoneTemperatureRange } from "@/utils/hardinessZones";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AddToCartButton from "./AddToCartButton";
@@ -211,65 +211,56 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
 
         {/* Tags - now responsive */}
         <div className="flex flex-wrap gap-2 sm:gap-3">
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium cursor-default ${lightInfo.color}`}>
-                <LightIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span>{lightInfo.text}</span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" align="start" className="text-left">
+          <ResponsiveTooltip
+            content={
               <div>
                 <p className="font-semibold">{t('light.title')}</p>
                 <p className="text-xs sm:text-sm">{getLightTooltip(plant.light)}</p>
               </div>
-            </TooltipContent>
-          </Tooltip>
+            }
+          >
+            <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium cursor-default ${lightInfo.color}`}>
+              <LightIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span>{lightInfo.text}</span>
+            </div>
+          </ResponsiveTooltip>
 
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium cursor-default ${growthInfo.color}`}>
-                <GrowthIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span>{growthInfo.text}</span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" align="start" className="text-left">
+          <ResponsiveTooltip
+            content={
               <div>
                 <p className="font-semibold">{t('growth.title')}</p>
                 <p className="text-xs sm:text-sm">{getGrowthTooltip(plant.growthRate)}</p>
               </div>
-            </TooltipContent>
-          </Tooltip>
-
-
-
+            }
+          >
+            <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium cursor-default ${growthInfo.color}`}>
+              <GrowthIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span>{growthInfo.text}</span>
+            </div>
+          </ResponsiveTooltip>
 
           {/* Climate Zones badge */}
           {plant.climateZones && plant.climateZones.length > 0 && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground border border-border cursor-default capitalize">
-                  <CloudSun className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Clima: {plant.climateZones.join(', ')}</span>
+            <ResponsiveTooltip
+              content={
+                <div>
+                  <p className="font-semibold text-sm">Zona climática</p>
+                  <p className="text-xs text-muted-foreground">Tipo de clima donde esta planta prospera naturalmente.</p>
                 </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="start" className="text-left max-w-xs">
-                <p className="font-semibold text-sm">Zona climática</p>
-                <p className="text-xs text-muted-foreground">Tipo de clima donde esta planta prospera naturalmente.</p>
-              </TooltipContent>
-            </Tooltip>
+              }
+            >
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground border border-border cursor-default capitalize">
+                <CloudSun className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span>Clima: {plant.climateZones.join(', ')}</span>
+              </div>
+            </ResponsiveTooltip>
           )}
 
           {/* USDA Hardiness Zones badge */}
           {plant.hardinessZones && plant.hardinessZones.length > 0 && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-accent text-accent-foreground border border-border cursor-default">
-                  <Thermometer className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>{formatHardinessZones(plant.hardinessZones)}</span>
-                </div>
-              </PopoverTrigger>
-              <PopoverContent side="bottom" align="start" className="text-left max-w-sm w-auto p-3">
+            <ResponsiveTooltip
+              contentClassName="text-left max-w-sm w-auto p-3"
+              content={
                 <div className="space-y-2">
                   <p className="font-semibold text-sm">{t('hardiness.title')}</p>
                   <p className="text-xs text-muted-foreground">{t('hardiness.suitableIntro')}</p>
@@ -298,8 +289,13 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
                     })}
                   </div>
                 </div>
-              </PopoverContent>
-            </Popover>
+              }
+            >
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-accent text-accent-foreground border border-border cursor-default">
+                <Thermometer className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span>{formatHardinessZones(plant.hardinessZones)}</span>
+              </div>
+            </ResponsiveTooltip>
           )}
         </div>
         
