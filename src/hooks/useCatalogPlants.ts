@@ -17,16 +17,22 @@ const mapWater = (w: string | null): Plant["waterNeeds"] => {
 
 /**
  * Maps database exposure array to a single UI light string
+ * DB stores: sol, semisol, sombra, semisombra
  */
 const mapLight = (exposure: string[] | null): string => {
   if (!exposure || exposure.length === 0) return "Semisol";
   const first = exposure[0];
   switch (first) {
+    case "sol": return "Soleada";
+    case "semisol": return "Semisol";
+    case "sombra": return "Sombreada";
+    case "semisombra": return "Semisombra";
+    // Legacy English values
     case "full_sun": return "Soleada";
     case "partial_shade": return "Semisol";
     case "shade": return "Sombreada";
     case "full_shade": return "Sombreada";
-    default: return "Semisol";
+    default: return first; // Pass through unknown values
   }
 };
 
@@ -45,6 +51,7 @@ const mapGrowthRate = (g: string | null): string => {
 
 /**
  * Maps database plant_type to plantGroup
+ * DB enum: palm, fern, cycad, tree, shrub, succulent, grass, other
  */
 const mapPlantGroup = (t: string | null): Plant["plantGroup"] => {
   if (!t) return undefined;
@@ -54,6 +61,20 @@ const mapPlantGroup = (t: string | null): Plant["plantGroup"] => {
     case "cycad": return "Cícadas";
     case "tree": return "Árboles ornamentales";
     case "shrub": return "Arbustos ornamentales";
+    case "succulent": return "Suculentas";
+    case "grass": return "Hierbas";
+    case "bamboo": return "Bambús";
+    case "bromeliad": return "Bromeliáceas";
+    case "heliconia": return "Heliconias";
+    case "strelitzia": return "Estrelicias";
+    case "ginger": return "Jengibres";
+    case "banana": return "Plátanos";
+    case "agave": return "Agaves y yucas";
+    case "aroid": return "Aráceas";
+    case "cactus": return "Cactus";
+    case "conifer": return "Coníferas";
+    case "perennial": return "Perennes";
+    case "other": return undefined;
     default: return undefined;
   }
 };
@@ -85,11 +106,11 @@ function dbToPlant(row: Record<string, unknown>): Plant {
   return {
     id: row.slug as string,
     name: row.name as string,
-    variety: "",
+    variety: (row.variety as string) || "",
     quantity: (row.stock_qty as number) ?? 0,
     commonName: (row.common_name as string) || (row.name as string),
     description: (row.short_description as string) || (row.description as string) || "",
-    link: "",
+    link: (row.reference_url as string) || "",
     location: (row.origin_country as string) || "",
     light: mapLight(row.exposure as string[] | null),
     growthRate: mapGrowthRate(row.growth_rate as string | null),
@@ -102,7 +123,7 @@ function dbToPlant(row: Record<string, unknown>): Plant {
     plantGroup: mapPlantGroup(row.plant_type as string | null),
     containerSize: (row.container_size as string) || undefined,
     germinationDate: (row.germination_date as string) || undefined,
-    weightGrams: undefined,
+    weightGrams: (row.weight_grams as number) || undefined,
   };
 }
 

@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plant } from "@/data/plants";
-import { HARDINESS_ZONES, getShortZoneLabel } from "@/utils/hardinessZones";
 
 interface PlantFiltersProps {
   plants: Plant[];
@@ -48,9 +47,11 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
 
   // Memoize derived options
-  const { lightOptions, locationOptions } = useMemo(() => ({
-    lightOptions: Array.from(new Set(plants.map(p => p.light))).sort(),
-    locationOptions: Array.from(new Set(plants.map(p => p.location))).sort()
+  const { lightOptions, locationOptions, zoneOptions, plantGroupOptions } = useMemo(() => ({
+    lightOptions: Array.from(new Set(plants.map(p => p.light).filter(Boolean))).sort(),
+    locationOptions: Array.from(new Set(plants.map(p => p.location).filter(Boolean))).sort(),
+    zoneOptions: Array.from(new Set(plants.flatMap(p => p.hardinessZones || []))).sort(),
+    plantGroupOptions: Array.from(new Set(plants.map(p => p.plantGroup).filter(Boolean) as string[])).sort()
   }), [plants]);
 
   const applyFilters = useCallback((newFilters: FilterState) => {
@@ -149,7 +150,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
       tags.push({ key: 'water', label: `${t('filters.water')}: ${filters.water}`, type: 'habitat' });
     }
     if (filters.zone) {
-      tags.push({ key: 'zone', label: getShortZoneLabel(filters.zone), type: 'habitat' });
+      tags.push({ key: 'zone', label: filters.zone, type: 'habitat' });
     }
     if (filters.location) {
       tags.push({ key: 'location', label: filters.location, type: 'habitat' });
@@ -263,8 +264,8 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
                 </SelectTrigger>
                 <SelectContent className="bg-card border border-border shadow-lg z-50 max-h-[280px]">
                   <SelectItem value="all">{t('filters.all')}</SelectItem>
-                  {HARDINESS_ZONES.map((z) => (
-                    <SelectItem key={z.code} value={z.code}>{z.label}</SelectItem>
+                  {zoneOptions.map((z) => (
+                    <SelectItem key={z} value={z} className="capitalize">{z}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -331,7 +332,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
                 </SelectTrigger>
                 <SelectContent className="bg-card border border-border shadow-lg z-50 max-h-[280px]">
                   <SelectItem value="all">{t('filters.all')}</SelectItem>
-                  {PLANT_GROUP_OPTIONS.map((option) => (
+                  {plantGroupOptions.map((option) => (
                     <SelectItem key={option} value={option}>{option}</SelectItem>
                   ))}
                 </SelectContent>
