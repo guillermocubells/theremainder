@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { usePublicSearchList } from '@/hooks/garden/useSharedSearchList';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -195,8 +196,23 @@ const SharedSearchListPage = () => {
     }
   };
 
+  const listTitle = sharedList.title || 'Lista de búsqueda';
+  const pageTitle = `${listTitle} | The Remainder`;
+  const pageDescription = sharedList.description || `${uniqueItems.length} plantas en búsqueda — lista compartida en The Remainder.`;
+  const pageUrl = `https://theremainder.lovable.app/garden/shared/${slug}`;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={pageUrl} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={pageUrl} />
+        <meta property="og:type" content="website" />
+        <meta name="robots" content="noindex, follow" />
+      </Helmet>
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-6">
