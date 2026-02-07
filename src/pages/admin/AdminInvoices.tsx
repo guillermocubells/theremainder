@@ -202,20 +202,14 @@ export default function AdminInvoices() {
 
       if (error) throw error;
 
-      // Create blob and download
-      const blob = new Blob([Uint8Array.from(atob(data.pdf), c => c.charCodeAt(0))], {
-        type: "text/html",
-      });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${invoice.invoice_number}.html`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Decode base64 HTML and open in new tab for print-to-PDF
+      const htmlContent = atob(data.pdf);
+      const blob = new Blob([htmlContent], { type: "text/html; charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
 
-      toast.success("Factura descargada");
+      toast.success("Factura abierta — usa Ctrl+P para guardar como PDF");
     } catch (error) {
       console.error("Error downloading PDF:", error);
       toast.error("Error al descargar la factura");
