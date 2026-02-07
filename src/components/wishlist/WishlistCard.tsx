@@ -114,7 +114,7 @@ export const WishlistCard = ({ item }: WishlistCardProps) => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate(`/account/wishlist/${item.id}`)}>
+                    <DropdownMenuItem onClick={() => navigate(`/garden`)}>
                       <Edit className="h-4 w-4 mr-2" />
                       Editar
                     </DropdownMenuItem>
@@ -199,7 +199,7 @@ export const WishlistCard = ({ item }: WishlistCardProps) => {
                   size="sm"
                   variant="link"
                   className="h-auto p-0 text-xs text-primary"
-                  onClick={() => navigate(`/collection/plant/${item.acquired_owned_plant_id}`)}
+                  onClick={() => navigate(`/garden/plant/${item.acquired_owned_plant_id}`)}
                 >
                   Ver en mi colección →
                 </Button>

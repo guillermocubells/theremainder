@@ -267,7 +267,7 @@ const CollectionDashboard = () => {
             )}
             
             <div className="mt-4">
-              <Link to="/collection/locations">
+              <Link to="/garden/locations">
                 <Button variant="outline" className="w-full">
                   <MapPin className="h-4 w-4 mr-2" />
                   Gestionar ubicaciones

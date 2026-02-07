@@ -88,7 +88,7 @@ export const KanbanPlantCard = ({ item }: KanbanPlantCardProps) => {
 
   const handleCardClick = () => {
     if (item.sourceType === 'owned') {
-      navigate(`/collection/plant/${item.sourceId}`);
+      navigate(`/garden/plant/${item.sourceId}`);
     } else if (item.sourceType === 'stock_notification') {
       navigate(`/plant/${item.sourceId}`);
     } else if (item.wishlistData?.catalogProductId) {

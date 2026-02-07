@@ -86,7 +86,7 @@ const LocationsPage = () => {
       <main className="flex-1 container mx-auto px-4 py-8">
         {/* Back link */}
         <Link
-          to="/collection"
+          to="/garden"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
           <ArrowLeft className="h-4 w-4" />

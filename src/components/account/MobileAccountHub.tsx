@@ -121,7 +121,7 @@ const MobileAccountHub = ({ onNavigate, onLanguageChange }: MobileAccountHubProp
           id: 'notifications',
           label: t('account.mobileHub.notifications', 'Notificaciones'),
           icon: Bell,
-          href: '/account/wishlist/notifications',
+          href: '/garden',
           description: t('account.mobileHub.notificationsDesc', 'Alertas de disponibilidad')
         },
         {
