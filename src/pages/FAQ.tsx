@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { STORE_BRAND } from "@/config/store";
 import {
   Accordion,
   AccordionContent,
@@ -132,10 +133,10 @@ const FAQ = () => {
   return (
     <>
       <Helmet>
-        <title>Preguntas Frecuentes (FAQ) | Fronda Prima</title>
+        <title>{`${t('faq.title', 'Preguntas Frecuentes (FAQ)')} | ${STORE_BRAND.name}`}</title>
         <meta
           name="description"
-          content="Encuentra respuestas a las preguntas más frecuentes sobre pedidos, envíos, cuidados de plantas, pagos y devoluciones en Fronda Prima."
+          content={t('faq.metaDescription', `Encuentra respuestas a las preguntas más frecuentes sobre pedidos, envíos, cuidados de plantas, pagos y devoluciones en ${STORE_BRAND.name}.`)}
         />
       </Helmet>
 
