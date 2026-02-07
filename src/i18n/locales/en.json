@@ -41,7 +41,8 @@
   },
   "navigation": {
     "backToCatalog": "Back to catalog",
-    "catalog": "Catalog"
+    "catalog": "Catalog",
+    "backToTop": "Back to top"
   },
   "hero": {
     "title": "Plants Selected at Altitude",
@@ -94,6 +95,7 @@
     "commercialBlock": {
       "title": "Choose your specimen",
       "description": "Select from species compatible with your environment",
+      "category": "Category",
       "plantGroup": "Plant group",
       "availability": "Availability",
       "sortBy": "Sort by",
