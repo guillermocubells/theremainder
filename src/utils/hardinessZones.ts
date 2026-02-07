@@ -45,7 +45,7 @@ export const getZoneLabel = (code: string): string => {
 
 // Get short zone label (just the zone code formatted)
 export const getShortZoneLabel = (code: string): string => {
-  return `Zona ${toTitleCase(code)}`;
+  return `Zona de rusticidad: ${toTitleCase(code)}`;
 };
 
 // Convert text to title case (proper case)
@@ -67,7 +67,7 @@ export const formatHardinessZones = (zones: string[] | undefined): string => {
     return a.localeCompare(b);
   });
   
-  return `Zonas ${toTitleCase(sorted[0])}–${toTitleCase(sorted[sorted.length - 1])}`;
+  return `Zona de rusticidad: ${toTitleCase(sorted[0])}–${toTitleCase(sorted[sorted.length - 1])}`;
 };
 
 // Get zone count label
