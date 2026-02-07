@@ -164,7 +164,7 @@ export const WishlistCard = ({ item }: WishlistCardProps) => {
                 {getSourceIcon() && (
                   <Badge variant="outline" className="text-xs">
                     {getSourceIcon()}
-                    {item.source_preference === 'frondaprima' ? 'Frondaprima' : item.provider_name}
+                    {item.source_preference === 'frondaprima' ? 'The Remainder' : item.provider_name}
                   </Badge>
                 )}
               </div>

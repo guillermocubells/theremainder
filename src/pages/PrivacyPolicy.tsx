@@ -42,7 +42,7 @@ const PrivacyPolicy = () => {
                 <li><strong className="text-foreground">Domicilio:</strong> Paseo del Perú 66, San Sebastián de los Reyes, 28707, Madrid, España</li>
                 <li><strong className="text-foreground">Correo electrónico:</strong> guillermocubells@gmail.com</li>
                 <li><strong className="text-foreground">Teléfono:</strong> +34 655 699 978</li>
-                <li><strong className="text-foreground">Sitio web:</strong> https://www.frondaprima.es</li>
+                <li><strong className="text-foreground">Sitio web:</strong> https://www.theremainder.es</li>
                 <li><strong className="text-foreground">Delegado de Protección de Datos (DPO):</strong> No designado.</li>
               </ul>
             </div>

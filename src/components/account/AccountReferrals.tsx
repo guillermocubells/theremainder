@@ -75,8 +75,8 @@ const AccountReferrals = () => {
     if (!referralInfo?.link) return;
     const text =
       lang === "es"
-        ? `¡Descubre Frondaprima! Plantas exóticas seleccionadas en altitud. Usa mi enlace: ${referralInfo.link}`
-        : `Discover Frondaprima! Exotic plants selected at altitude. Use my link: ${referralInfo.link}`;
+        ? `¡Descubre The Remainder! Plantas exóticas seleccionadas en altitud. Usa mi enlace: ${referralInfo.link}`
+        : `Discover The Remainder! Exotic plants selected at altitude. Use my link: ${referralInfo.link}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
@@ -84,12 +84,12 @@ const AccountReferrals = () => {
     if (!referralInfo?.link) return;
     const subject =
       lang === "es"
-        ? "Te recomiendo Frondaprima"
-        : "I recommend Frondaprima";
+        ? "Te recomiendo The Remainder"
+        : "I recommend The Remainder";
     const body =
       lang === "es"
-        ? `¡Hola! Te recomiendo Frondaprima, una tienda de plantas exóticas de altitud. Usa mi enlace para tu primera compra: ${referralInfo.link}`
-        : `Hi! I recommend Frondaprima, an exotic altitude plant shop. Use my link for your first purchase: ${referralInfo.link}`;
+        ? `¡Hola! Te recomiendo The Remainder, una tienda de plantas exóticas de altitud. Usa mi enlace para tu primera compra: ${referralInfo.link}`
+        : `Hi! I recommend The Remainder, an exotic altitude plant shop. Use my link for your first purchase: ${referralInfo.link}`;
     window.open(
       `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
     );
@@ -104,7 +104,7 @@ const AccountReferrals = () => {
         <p className="text-muted-foreground text-sm mt-1">
           {t(
             "referral.subtitle",
-            "Comparte Frondaprima y gana crédito en futuras compras"
+            "Comparte The Remainder y gana crédito en futuras compras"
           )}
         </p>
       </div>

@@ -29,7 +29,7 @@ const emptyStates: Record<GardenFilter, {
   in_collection: {
     icon: Leaf,
     title: 'Tu colección está vacía',
-    description: 'Aquí aparecerán las plantas que compres en FrondaPrima automáticamente, o puedes añadir cualquier planta externa que ya tengas.',
+    description: 'Aquí aparecerán las plantas que compres en The Remainder automáticamente, o puedes añadir cualquier planta externa que ya tengas.',
     action: 'add',
   },
   archived: {

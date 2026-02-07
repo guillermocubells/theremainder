@@ -28,7 +28,7 @@ const templates = {
         </div>
         <a href="${data.plant_url}" style="display: inline-block; background: #1a472a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Ver planta</a>
         <p style="margin-top: 30px; color: #888; font-size: 12px;">
-          Recibiste este email porque te suscribiste a notificaciones de stock en FrondaPrima.
+          Recibiste este email porque te suscribiste a notificaciones de stock en The Remainder.
         </p>
       </div>
     `,
@@ -68,10 +68,10 @@ const templates = {
   }),
 
   welcome: (data: Record<string, unknown>) => ({
-    subject: "Bienvenido a FrondaPrima 🌿",
+     subject: "Bienvenido a The Remainder 🌿",
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #1a472a;">¡Bienvenido a FrondaPrima!</h1>
+        <h1 style="color: #1a472a;">¡Bienvenido a The Remainder!</h1>
         <p>Hola ${data.name || 'amante de las plantas'},</p>
         <p>Gracias por unirte a nuestra comunidad de entusiastas de plantas exóticas.</p>
         <h2 style="color: #333;">¿Qué puedes hacer ahora?</h2>
@@ -132,7 +132,7 @@ serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "FrondaPrima <noreply@frondaprima.com>",
+        from: "The Remainder <noreply@theremainder.com>",
         to: [to],
         subject,
         html,

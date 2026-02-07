@@ -187,7 +187,7 @@ const Auth = () => {
                 <TreePalm className="h-8 w-8 text-primary-foreground" />
               </div>
             </div>
-            <CardTitle className="text-2xl text-foreground">Frondaprima</CardTitle>
+            <CardTitle className="text-2xl text-foreground">The Remainder</CardTitle>
             <CardDescription>
               {activeTab === 'login' && t('auth.accessAccount')}
               {activeTab === 'register' && t('auth.createYourAccount')}

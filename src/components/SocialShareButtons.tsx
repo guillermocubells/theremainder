@@ -44,7 +44,7 @@ const SocialShareButtons = ({ plantName, plantId, price, variety, containerSize,
     const priceText = price 
       ? ` - ${formatPrice(price)}`
       : "";
-    return `${plantName}${priceText} | Frondaprima`;
+    return `${plantName}${priceText} | The Remainder`;
   };
 
   const shareOnWhatsApp = () => {

@@ -97,7 +97,7 @@ const Contact = () => {
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="Ubicación Frondaprima"
+                  title="Ubicación The Remainder"
                   className="w-full h-full"
                 />
               </div>
@@ -121,7 +121,7 @@ const Contact = () => {
                         {t("contact.info.address")}
                       </p>
                       <p className="text-muted-foreground text-sm">
-                        Frondaprima<br />
+                        The Remainder<br />
                         Calle del Jardín Botánico, 15<br />
                         28014 Madrid, España
                       </p>
@@ -156,10 +156,10 @@ const Contact = () => {
                         {t("contact.info.email")}
                       </p>
                       <a 
-                        href="mailto:info@frondaprima.com" 
-                        className="text-muted-foreground text-sm hover:text-moss transition-colors"
-                      >
-                        info@frondaprima.com
+                         href="mailto:info@theremainder.com" 
+                         className="text-muted-foreground text-sm hover:text-moss transition-colors"
+                       >
+                         info@theremainder.com
                       </a>
                     </div>
                   </div>
@@ -319,7 +319,7 @@ const Contact = () => {
 
                       {/* GDPR Info */}
                       <div className="bg-muted/50 rounded-lg p-4 text-xs text-muted-foreground space-y-1">
-                        <p><strong className="text-foreground">{t("contact.gdpr.responsible")}:</strong> Frondaprima S.L.</p>
+                        <p><strong className="text-foreground">{t("contact.gdpr.responsible")}:</strong> The Remainder S.L.</p>
                         <p><strong className="text-foreground">{t("contact.gdpr.purpose")}:</strong> {t("contact.gdpr.purposeText")}</p>
                         <p><strong className="text-foreground">{t("contact.gdpr.legitimation")}:</strong> {t("contact.gdpr.legitimationText")}</p>
                         <p><strong className="text-foreground">{t("contact.gdpr.recipients")}:</strong> {t("contact.gdpr.recipientsText")}</p>

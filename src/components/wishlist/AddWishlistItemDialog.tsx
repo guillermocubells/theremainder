@@ -287,7 +287,7 @@ export const AddWishlistItemDialog = ({ open, onOpenChange }: AddWishlistItemDia
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="any">Cualquiera</SelectItem>
-                  <SelectItem value="frondaprima">Solo Frondaprima</SelectItem>
+                  <SelectItem value="frondaprima">Solo The Remainder</SelectItem>
                   <SelectItem value="specific">Proveedor específico</SelectItem>
                 </SelectContent>
               </Select>

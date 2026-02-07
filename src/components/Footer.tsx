@@ -38,8 +38,8 @@ const Footer = () => {
 
   const socialLinks = [
     { icon: Instagram, href: 'https://www.instagram.com/frondaprima/', label: 'Instagram' },
-    { icon: MessageCircle, href: 'https://wa.me/34655699978?text=Hola%2C%20tengo%20una%20consulta%20sobre%20Frondaprima', label: 'WhatsApp' },
-    { icon: Mail, href: 'mailto:guillermocubells@gmail.com?subject=Consulta%20desde%20Frondaprima', label: 'Email' },
+    { icon: MessageCircle, href: 'https://wa.me/34655699978?text=Hola%2C%20tengo%20una%20consulta%20sobre%20The%20Remainder', label: 'WhatsApp' },
+    { icon: Mail, href: 'mailto:guillermocubells@gmail.com?subject=Consulta%20desde%20The%20Remainder', label: 'Email' },
   ];
 
   return (
@@ -63,7 +63,7 @@ const Footer = () => {
             {/* Brand - centered on mobile */}
             <div className="text-center mb-8">
               <h3 className="text-xl font-semibold tracking-tight text-primary-foreground mb-1.5">
-                Frondaprima
+                The Remainder
               </h3>
               <p className="text-[10px] uppercase tracking-[0.35em] text-primary-foreground/40 font-medium">
                 {t('footer.tagline')}
@@ -169,7 +169,7 @@ const Footer = () => {
               {/* Left: Brand + Social icons */}
               <div>
                 <h3 className="text-xl font-semibold tracking-tight text-primary-foreground mb-1.5">
-                  Frondaprima
+                  The Remainder
                 </h3>
                 <p className="text-[10px] uppercase tracking-[0.35em] text-primary-foreground/40 font-medium mb-6">
                   {t('footer.tagline')}
@@ -274,7 +274,7 @@ const Footer = () => {
             <div>
               <div className="mb-5">
                 <h3 className="text-xl font-semibold tracking-tight text-primary-foreground mb-1.5">
-                  Frondaprima
+                  The Remainder
                 </h3>
                 <p className="text-[10px] uppercase tracking-[0.35em] text-primary-foreground/40 font-medium">
                   {t('footer.tagline')}
@@ -379,7 +379,7 @@ const Footer = () => {
           <div className="border-t border-primary-foreground/[0.06] pt-6 sm:pt-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] tracking-wide text-primary-foreground/30">
               <div className="flex items-center gap-2">
-                <span className="font-medium">© {new Date().getFullYear()} Frondaprima</span>
+                <span className="font-medium">© {new Date().getFullYear()} The Remainder</span>
               </div>
               <div className="hidden lg:flex items-center gap-4">
                 <LanguageSwitcher variant="footer" />

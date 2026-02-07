@@ -9,10 +9,10 @@ const ReferralProgram = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Programa de Referidos | Frondaprima</title>
+        <title>Programa de Referidos | The Remainder</title>
         <meta 
           name="description" 
-          content="Comparte Frondaprima y gana crédito. Descubre cómo funciona nuestro programa de referidos." 
+          content="Comparte The Remainder y gana crédito. Descubre cómo funciona nuestro programa de referidos." 
         />
         <link rel="canonical" href="https://frondaprima.lovable.app/programa-referidos" />
       </Helmet>
@@ -50,7 +50,7 @@ const ReferralProgram = () => {
               <li><strong className="text-foreground">5%</strong> {t('referralProgram.sections.what_li1', 'del valor del pedido del usuario referido')}</li>
               <li>{t('referralProgram.sections.what_li2', 'Solo en su primera compra (mínimo 25 €)')}</li>
               <li>{t('referralProgram.sections.what_li3', 'Crédito máximo por pedido: 20 €')}</li>
-              <li>{t('referralProgram.sections.what_li4', 'El crédito se acumula en tu cuenta como saldo Frondaprima')}</li>
+              <li>{t('referralProgram.sections.what_li4', 'El crédito se acumula en tu cuenta como saldo The Remainder')}</li>
             </ul>
           </section>
 
