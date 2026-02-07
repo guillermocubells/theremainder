@@ -1049,6 +1049,7 @@ export type Database = {
           family: string | null
           germination_date: string | null
           growth_rate: string | null
+          hardiness_zones: string[] | null
           humidity: Database["public"]["Enums"]["humidity_level"] | null
           id: string
           image_alt_text: string | null
@@ -1096,6 +1097,7 @@ export type Database = {
           family?: string | null
           germination_date?: string | null
           growth_rate?: string | null
+          hardiness_zones?: string[] | null
           humidity?: Database["public"]["Enums"]["humidity_level"] | null
           id?: string
           image_alt_text?: string | null
@@ -1143,6 +1145,7 @@ export type Database = {
           family?: string | null
           germination_date?: string | null
           growth_rate?: string | null
+          hardiness_zones?: string[] | null
           humidity?: Database["public"]["Enums"]["humidity_level"] | null
           id?: string
           image_alt_text?: string | null
