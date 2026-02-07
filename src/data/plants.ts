@@ -181,30 +181,4 @@ export const plants: Plant[] = [{
     "/lovable-uploads/7276866f-a573-4959-99df-ecc5c91546f9.png",
     "/lovable-uploads/3576febc-43a5-46d0-a625-0c5e00fa5a62.png"
   ]
-}, {
-  id: "basselinia-favieri",
-  name: "Basselinia favieri",
-  variety: "",
-  quantity: 2,
-  commonName: "Palmera de Nueva Caledonia",
-  description: "Palmera tropical elegante de Nueva Caledonia con hojas pinnadas distintivas",
-  link: "https://www.palmpedia.net/wiki/Basselinia_favieri",
-  location: "Baleares",
-  light: "Semisombra",
-  growthRate: "Lento",
-  notes: "De crecimiento muy lento necesita una cobertura de joven. No resiste heladas y necesita un clima mas favorable de árboles que le pueda proteger de las heladas",
-  price: 140,
-  hardinessZones: ["10a", "10b", "11a", "11b"],
-  ornamentalValue: 'Único',
-  waterNeeds: 'Alta',
-  plantGroup: 'Palmeras',
-  containerSize: '3 litros',
-  germinationDate: 'Julio 2023',
-  weightGrams: 2500,
-  images: [
-    "/lovable-uploads/a89e97f5-5824-4441-93f5-09cd6f7b3afb.png",
-    "/lovable-uploads/bae0e819-14d7-4c16-84d0-87cb8b7d7dfc.png",
-    "/lovable-uploads/0ca7c12d-1bcf-4050-af0c-5350aae3a5bb.png",
-    "/lovable-uploads/71a2e414-3fff-4838-8607-6af82cb39f25.png"
-  ]
 }];
