@@ -146,23 +146,6 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange, onSearchStart }: Pl
                 )}
               </Button>
 
-              {/* WhatsApp Share Search Button */}
-              {(searchQuery.trim() || hasActiveFilters) && (
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleShareSearch}
-                      className="shrink-0 h-8 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm gap-1.5 border-border bg-background hover:bg-[#25D366]/10 hover:text-[#25D366] hover:border-[#25D366]/30"
-                    >
-                      <WhatsAppShareIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span className="hidden sm:inline">{t('share.shareSearch', 'Compartir búsqueda')}</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{t('share.shareSearchTooltip', 'Compartir esta búsqueda por WhatsApp')}</TooltipContent>
-                </Tooltip>
-              )}
               {/* AI Recommender Button */}
               <Button
                 variant={isAIPanelOpen ? "default" : "outline"}
