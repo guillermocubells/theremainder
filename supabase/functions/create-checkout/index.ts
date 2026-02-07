@@ -354,7 +354,7 @@ serve(async (req) => {
     }
 
     // Get origin for URLs
-    const origin = req.headers.get("origin") || "https://wedding-gift-botanicals.lovable.app";
+    const origin = req.headers.get("origin") || "https://theremainder.lovable.app";
 
     // Helper for absolute image URLs
     const getAbsoluteImageUrl = (imageUrl: string | undefined): string[] | undefined => {
