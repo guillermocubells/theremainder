@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Separator } from "@/components/ui/separator";
+import { STORE_CONTACT } from "@/config/store";
 
 const TermsOfSale = () => {
   return (
@@ -228,7 +229,7 @@ const TermsOfSale = () => {
                 📧 <a href="mailto:guillermocubells@gmail.com" className="text-primary hover:underline">guillermocubells@gmail.com</a>
               </p>
               <p className="text-muted-foreground mt-1">
-                📱 <a href="https://wa.me/34655699978" className="text-primary hover:underline">+34 655 699 978</a> (WhatsApp)
+                📱 <a href={`https://wa.me/${STORE_CONTACT.whatsappNumber}`} className="text-primary hover:underline">{STORE_CONTACT.whatsappDisplay}</a> (WhatsApp)
               </p>
             </div>
           </section>

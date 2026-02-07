@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { CurrencySelector } from "./CurrencySelector";
+import { STORE_CONTACT, STORE_BRAND } from "@/config/store";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -38,7 +39,7 @@ const Footer = () => {
 
   const socialLinks = [
     { icon: Instagram, href: 'https://www.instagram.com/frondaprima/', label: 'Instagram' },
-    { icon: MessageCircle, href: 'https://wa.me/34655699978?text=Hola%2C%20tengo%20una%20consulta%20sobre%20The%20Remainder', label: 'WhatsApp' },
+    { icon: MessageCircle, href: `https://wa.me/${STORE_CONTACT.whatsappNumber}?text=${encodeURIComponent(`Hola, tengo una consulta sobre ${STORE_BRAND.name}`)}`, label: 'WhatsApp' },
     { icon: Mail, href: 'mailto:guillermocubells@gmail.com?subject=Consulta%20desde%20The%20Remainder', label: 'Email' },
   ];
 
