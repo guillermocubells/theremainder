@@ -6,6 +6,20 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import i18n from "@/i18n";
 
 // ── Mocks ────────────────────────────────────────────────
+
+// Mock CurrencyContext
+vi.mock("@/contexts/CurrencyContext", () => ({
+  useCurrency: () => ({
+    currency: "EUR",
+    setCurrency: vi.fn(),
+    availableCurrencies: ["EUR"],
+    convert: (amount: number) => amount,
+    formatPrice: (amount: number) => `${amount.toFixed(2)} €`,
+    isReady: true,
+  }),
+  CurrencyProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 // Mock Supabase client
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
