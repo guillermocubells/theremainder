@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Pencil, Trash2, Loader2, Calculator } from "lucide-react";
 import { toast } from "sonner";
 
 interface ShippingZone {
@@ -44,6 +46,167 @@ interface ShippingZone {
   is_active: boolean;
 }
 
+interface FormErrors {
+  country_code?: string;
+  country_name?: string;
+  base_cost?: string;
+  per_item_cost?: string;
+  free_shipping_threshold?: string;
+  delivery_days_min?: string;
+  delivery_days_max?: string;
+}
+
+function validateForm(
+  data: typeof INITIAL_FORM,
+  existingCodes: string[],
+  editingCode: string | null
+): FormErrors {
+  const errors: FormErrors = {};
+
+  // Country code
+  const code = data.country_code.trim().toUpperCase();
+  if (!code) {
+    errors.country_code = "El código ISO es obligatorio";
+  } else if (!/^[A-Z]{2}$/.test(code)) {
+    errors.country_code = "Debe ser un código ISO de 2 letras (ej: ES)";
+  } else if (
+    existingCodes.includes(code) &&
+    code !== editingCode
+  ) {
+    errors.country_code = "Ya existe una zona para este código de país";
+  }
+
+  // Country name
+  if (!data.country_name.trim()) {
+    errors.country_name = "El nombre del país es obligatorio";
+  }
+
+  // Base cost
+  const baseCost = parseFloat(data.base_cost);
+  if (isNaN(baseCost) || baseCost < 0) {
+    errors.base_cost = "Debe ser un número ≥ 0";
+  }
+
+  // Per item cost
+  const perItem = parseFloat(data.per_item_cost);
+  if (isNaN(perItem) || perItem < 0) {
+    errors.per_item_cost = "Debe ser un número ≥ 0";
+  }
+
+  // Free shipping threshold
+  if (data.free_shipping_threshold.trim()) {
+    const threshold = parseFloat(data.free_shipping_threshold);
+    if (isNaN(threshold) || threshold <= 0) {
+      errors.free_shipping_threshold = "Debe ser un número > 0 o dejarlo vacío";
+    }
+  }
+
+  // Delivery days
+  const dMin = parseInt(data.delivery_days_min);
+  const dMax = parseInt(data.delivery_days_max);
+  if (isNaN(dMin) || dMin < 1) {
+    errors.delivery_days_min = "Debe ser al menos 1";
+  }
+  if (isNaN(dMax) || dMax < 1) {
+    errors.delivery_days_max = "Debe ser al menos 1";
+  }
+  if (!isNaN(dMin) && !isNaN(dMax) && dMax < dMin) {
+    errors.delivery_days_max = "No puede ser menor que el mínimo";
+  }
+
+  return errors;
+}
+
+const INITIAL_FORM = {
+  country_code: "",
+  country_name: "",
+  base_cost: "0",
+  per_item_cost: "0",
+  free_shipping_threshold: "",
+  delivery_days_min: "3",
+  delivery_days_max: "7",
+  is_active: true,
+};
+
+/** Live preview of shipping cost for the current form values */
+function ShippingPreviewCalc({ formData }: { formData: typeof INITIAL_FORM }) {
+  const [qty, setQty] = useState("1");
+  const [subtotal, setSubtotal] = useState("50");
+
+  const result = useMemo(() => {
+    const baseCost = parseFloat(formData.base_cost) || 0;
+    const perItem = parseFloat(formData.per_item_cost) || 0;
+    const threshold = formData.free_shipping_threshold
+      ? parseFloat(formData.free_shipping_threshold)
+      : null;
+    const items = parseInt(qty) || 1;
+    const sub = parseFloat(subtotal) || 0;
+
+    const isFree = threshold !== null && sub >= threshold;
+    const cost = isFree ? 0 : baseCost + perItem * items;
+
+    return { cost, isFree, total: sub + cost };
+  }, [formData.base_cost, formData.per_item_cost, formData.free_shipping_threshold, qty, subtotal]);
+
+  return (
+    <Card className="border-dashed border-primary/30">
+      <CardHeader className="py-3 px-4">
+        <CardTitle className="text-sm flex items-center gap-2 text-primary">
+          <Calculator className="h-4 w-4" />
+          Vista previa de coste
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-4 pt-0 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Nº ítems</Label>
+            <Input
+              type="number"
+              min="1"
+              value={qty}
+              onChange={(e) => setQty(e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Subtotal (€)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={subtotal}
+              onChange={(e) => setSubtotal(e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+        </div>
+        <Separator />
+        <div className="text-sm space-y-1">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Envío:</span>
+            <span className="font-medium">
+              {result.isFree ? (
+                <Badge variant="default" className="bg-primary text-xs">Gratis</Badge>
+              ) : (
+                `${result.cost.toFixed(2)} €`
+              )}
+            </span>
+          </div>
+          <div className="flex justify-between font-semibold">
+            <span>Total:</span>
+            <span>{result.total.toFixed(2)} €</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="text-xs text-destructive mt-1">{message}</p>;
+}
+
 export default function AdminShipping() {
   const [zones, setZones] = useState<ShippingZone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,16 +214,14 @@ export default function AdminShipping() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingZone, setEditingZone] = useState<ShippingZone | null>(null);
   const [deletingZone, setDeletingZone] = useState<ShippingZone | null>(null);
-  const [formData, setFormData] = useState({
-    country_code: "",
-    country_name: "",
-    base_cost: "0",
-    per_item_cost: "0",
-    free_shipping_threshold: "",
-    delivery_days_min: "3",
-    delivery_days_max: "7",
-    is_active: true,
-  });
+  const [formData, setFormData] = useState(INITIAL_FORM);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState(false);
+
+  const existingCodes = useMemo(
+    () => zones.map((z) => z.country_code),
+    [zones]
+  );
 
   const fetchZones = async () => {
     setIsLoading(true);
@@ -84,7 +245,17 @@ export default function AdminShipping() {
     fetchZones();
   }, []);
 
+  // Re-validate on every form change after first submit attempt
+  useEffect(() => {
+    if (!touched) return;
+    setErrors(
+      validateForm(formData, existingCodes, editingZone?.country_code ?? null)
+    );
+  }, [formData, touched, existingCodes, editingZone]);
+
   const handleOpenForm = (zone?: ShippingZone) => {
+    setTouched(false);
+    setErrors({});
     if (zone) {
       setEditingZone(zone);
       setFormData({
@@ -99,31 +270,33 @@ export default function AdminShipping() {
       });
     } else {
       setEditingZone(null);
-      setFormData({
-        country_code: "",
-        country_name: "",
-        base_cost: "0",
-        per_item_cost: "0",
-        free_shipping_threshold: "",
-        delivery_days_min: "3",
-        delivery_days_max: "7",
-        is_active: true,
-      });
+      setFormData({ ...INITIAL_FORM });
     }
     setIsFormOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTouched(true);
+
+    const validationErrors = validateForm(
+      formData,
+      existingCodes,
+      editingZone?.country_code ?? null
+    );
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) return;
+
     setIsSubmitting(true);
 
     try {
       const payload = {
-        country_code: formData.country_code.toUpperCase(),
-        country_name: formData.country_name,
+        country_code: formData.country_code.trim().toUpperCase(),
+        country_name: formData.country_name.trim(),
         base_cost: parseFloat(formData.base_cost) || 0,
         per_item_cost: parseFloat(formData.per_item_cost) || 0,
-        free_shipping_threshold: formData.free_shipping_threshold
+        free_shipping_threshold: formData.free_shipping_threshold.trim()
           ? parseFloat(formData.free_shipping_threshold)
           : null,
         delivery_days_min: parseInt(formData.delivery_days_min) || 3,
@@ -190,7 +363,7 @@ export default function AdminShipping() {
         </div>
         <Button
           onClick={() => handleOpenForm()}
-          className="bg-moss hover:bg-moss/90"
+          className="bg-primary hover:bg-primary/90"
         >
           <Plus className="h-4 w-4 mr-2" />
           Nueva Zona
@@ -200,7 +373,7 @@ export default function AdminShipping() {
       <div className="bg-card border border-border rounded-xl">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-moss" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : zones.length === 0 ? (
           <div className="text-center py-12">
@@ -237,7 +410,7 @@ export default function AdminShipping() {
                   </TableCell>
                   <TableCell>
                     {zone.is_active ? (
-                      <Badge variant="default" className="bg-moss">
+                      <Badge variant="default" className="bg-primary">
                         Activa
                       </Badge>
                     ) : (
@@ -272,7 +445,7 @@ export default function AdminShipping() {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
               {editingZone ? "Editar Zona de Envío" : "Nueva Zona de Envío"}
@@ -290,8 +463,9 @@ export default function AdminShipping() {
                     setFormData((prev) => ({ ...prev, country_name: e.target.value }))
                   }
                   placeholder="España"
-                  required
+                  className={errors.country_name ? "border-destructive" : ""}
                 />
+                <FieldError message={errors.country_name} />
               </div>
               <div>
                 <Label htmlFor="country_code">Código ISO *</Label>
@@ -306,8 +480,9 @@ export default function AdminShipping() {
                   }
                   placeholder="ES"
                   maxLength={2}
-                  required
+                  className={errors.country_code ? "border-destructive" : ""}
                 />
+                <FieldError message={errors.country_code} />
               </div>
             </div>
 
@@ -323,7 +498,9 @@ export default function AdminShipping() {
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, base_cost: e.target.value }))
                   }
+                  className={errors.base_cost ? "border-destructive" : ""}
                 />
+                <FieldError message={errors.base_cost} />
               </div>
               <div>
                 <Label htmlFor="per_item_cost">Coste por ítem (€)</Label>
@@ -336,7 +513,9 @@ export default function AdminShipping() {
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, per_item_cost: e.target.value }))
                   }
+                  className={errors.per_item_cost ? "border-destructive" : ""}
                 />
+                <FieldError message={errors.per_item_cost} />
               </div>
             </div>
 
@@ -355,7 +534,9 @@ export default function AdminShipping() {
                   }))
                 }
                 placeholder="Dejar vacío si no aplica"
+                className={errors.free_shipping_threshold ? "border-destructive" : ""}
               />
+              <FieldError message={errors.free_shipping_threshold} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -372,7 +553,9 @@ export default function AdminShipping() {
                       delivery_days_min: e.target.value,
                     }))
                   }
+                  className={errors.delivery_days_min ? "border-destructive" : ""}
                 />
+                <FieldError message={errors.delivery_days_min} />
               </div>
               <div>
                 <Label htmlFor="delivery_days_max">Días máximo</Label>
@@ -387,7 +570,9 @@ export default function AdminShipping() {
                       delivery_days_max: e.target.value,
                     }))
                   }
+                  className={errors.delivery_days_max ? "border-destructive" : ""}
                 />
+                <FieldError message={errors.delivery_days_max} />
               </div>
             </div>
 
@@ -402,6 +587,9 @@ export default function AdminShipping() {
               <Label htmlFor="is_active">Zona activa</Label>
             </div>
 
+            {/* Shipping preview calculator */}
+            <ShippingPreviewCalc formData={formData} />
+
             <div className="flex justify-end gap-3 pt-4">
               <Button
                 type="button"
@@ -413,7 +601,7 @@ export default function AdminShipping() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-moss hover:bg-moss/90"
+                className="bg-primary hover:bg-primary/90"
               >
                 {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {editingZone ? "Guardar" : "Crear"}
