@@ -22,7 +22,7 @@ const ShippingInfo = () => {
           name="description" 
           content="Información sobre preparación, envíos, plazos de entrega, devoluciones y costes de pago." 
         />
-        <link rel="canonical" href="https://frondaprima.lovable.app/envios-y-entregas" />
+        <link rel="canonical" href="https://theremainder.lovable.app/envios-y-entregas" />
       </Helmet>
       
       <Header />
