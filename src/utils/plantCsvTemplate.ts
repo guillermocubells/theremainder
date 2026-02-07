@@ -144,7 +144,7 @@ const EXAMPLE_ROW = [
   'Bosques subtropicales húmedos',
   'outdoor|container|landscape',
   '/lovable-uploads/imagen1.png|/lovable-uploads/imagen2.png',
-  'Rhopalostylis sapida | Palmera Nikau | Frondaprima',
+  'Rhopalostylis sapida | Palmera Nikau | The Remainder',
   'Compra Rhopalostylis sapida, la única palmera nativa de Nueva Zelanda. Envío a toda España.',
   'Riego moderado, mantener sustrato húmedo',
   'Fertilizar cada 2 meses en primavera-verano',
@@ -182,7 +182,7 @@ export function downloadPlantCsvTemplate(): void {
   
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'plantilla_productos_frondaprima.csv';
+  link.download = 'plantilla_productos_theremainder.csv';
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -244,7 +244,7 @@ export const PLANT_JSON_TEMPLATE = {
   images: ["/lovable-uploads/imagen1.png", "/lovable-uploads/imagen2.png"],
   
   "// SEO": "---",
-  meta_title: "Nombre | Nombre Común | Frondaprima (max 60 chars)",
+  meta_title: "Nombre | Nombre Común | The Remainder (max 60 chars)",
   meta_description: "Descripción para buscadores (max 160 chars)",
   
   "// CONTENIDO ENRIQUECIDO": "---",

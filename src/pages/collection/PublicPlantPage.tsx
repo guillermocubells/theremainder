@@ -140,7 +140,7 @@ const PublicPlantPage = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Fronda Prima
+              The Remainder
             </a>
           </p>
         </div>

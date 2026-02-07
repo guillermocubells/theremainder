@@ -170,14 +170,14 @@ export const PlantItemCard = ({ item }: PlantItemCardProps) => {
   const getSourceLabel = () => {
     if (item.sourceType === 'wishlist') {
       if (item.wishlistData?.sourcePreference === 'frondaprima') {
-        return 'Catálogo FrondaPrima';
+        return 'Catálogo The Remainder';
       } else if (item.wishlistData?.providerName) {
         return item.wishlistData.providerName;
       } else {
         return 'Planta externa';
       }
     } else if (item.sourceType === 'stock_notification') {
-      return 'Catálogo FrondaPrima';
+      return 'Catálogo The Remainder';
     }
     return null;
   };

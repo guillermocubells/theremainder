@@ -121,14 +121,14 @@ serve(async (req: Request) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "FrondaPrima <noreply@frondaprima.com>",
+            from: "The Remainder <noreply@theremainder.com>",
             to: [subscriber.email],
             subject: `¡${plant_name} ya está disponible! 🌿`,
             html: `
               <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; background: #faf8f5; padding: 0;">
                 <!-- Header -->
                 <div style="background: #1a472a; padding: 24px; text-align: center;">
-                  <h1 style="color: #fff; margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.05em;">FRONDAPRIMA</h1>
+                  <h1 style="color: #fff; margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.05em;">THE REMAINDER</h1>
                 </div>
                 
                 <!-- Content -->
@@ -168,7 +168,7 @@ serve(async (req: Request) => {
                 <!-- Footer -->
                 <div style="padding: 20px 24px; border-top: 1px solid #e5e5e5; text-align: center;">
                   <p style="color: #999; font-size: 12px; margin: 0; line-height: 1.5;">
-                    Recibiste este email porque te suscribiste a notificaciones de stock en FrondaPrima.<br/>
+                    Recibiste este email porque te suscribiste a notificaciones de stock en The Remainder.<br/>
                     Las unidades son limitadas, ¡no te lo pierdas!
                   </p>
                 </div>

@@ -17,7 +17,7 @@ const ShippingInfo = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Envíos y entregas | Frondaprima</title>
+        <title>Envíos y entregas | The Remainder</title>
         <meta 
           name="description" 
           content="Información sobre preparación, envíos, plazos de entrega, devoluciones y costes de pago." 

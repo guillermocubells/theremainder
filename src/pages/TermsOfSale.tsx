@@ -31,7 +31,7 @@ const TermsOfSale = () => {
                 <li><strong className="text-foreground">Domicilio:</strong> Paseo del Perú 66, San Sebastián de los Reyes, 28707, Madrid, España</li>
                 <li><strong className="text-foreground">Correo electrónico:</strong> guillermocubells@gmail.com</li>
                 <li><strong className="text-foreground">Teléfono:</strong> +34 655 699 978</li>
-                <li><strong className="text-foreground">Sitio web:</strong> https://www.frondaprima.es</li>
+                <li><strong className="text-foreground">Sitio web:</strong> https://www.theremainder.es</li>
               </ul>
             </div>
 
@@ -43,7 +43,7 @@ const TermsOfSale = () => {
                 2. Ámbito de aplicación
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                Las presentes Condiciones Generales de Venta regulan la relación contractual entre el comprador (en adelante, EL CLIENTE) y Guillermo Martínez Cubells Mengotti (en adelante, LA EMPRESA) para la adquisición de productos a través del sitio web www.frondaprima.es.
+                Las presentes Condiciones Generales de Venta regulan la relación contractual entre el comprador (en adelante, EL CLIENTE) y Guillermo Martínez Cubells Mengotti (en adelante, LA EMPRESA) para la adquisición de productos a través del sitio web www.theremainder.es.
               </p>
               <p className="text-muted-foreground leading-relaxed mt-3">
                 La realización de un pedido implica la aceptación íntegra de estas condiciones.
