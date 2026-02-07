@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.update-exchange-rates]
 verify_jwt = false
+
+[functions.sitemap]
+verify_jwt = false
+
+[functions.generate-invoice-pdf]
+verify_jwt = false
