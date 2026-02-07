@@ -76,3 +76,10 @@ export const getZoneCountLabel = (zones: string[] | undefined): string => {
   if (zones.length === 1) return '1 zona de rusticidad';
   return `${zones.length} zonas de rusticidad`;
 };
+
+// Get zone detail with temperature range
+export const getZoneTemperatureRange = (code: string): { fromTemp: number | null; toTemp: number | null } | null => {
+  const zone = HARDINESS_ZONES.find(z => z.code === code.toLowerCase());
+  if (!zone) return null;
+  return { fromTemp: zone.fromTemp, toTemp: zone.toTemp };
+};
