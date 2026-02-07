@@ -20,7 +20,6 @@ export interface PlantCsvRow {
   price: number;
   sale_price: number | null;
   stock_qty: number;
-  is_in_stock: boolean;
   is_active: boolean;
   is_featured: boolean;
   display_order: number;
@@ -34,14 +33,10 @@ export interface PlantCsvRow {
   
   // Clima y Cultivo
   climate_zones: string;
-  hardiness_zone: string;
   min_temp_c: number | null;
   exposure: string;
-  sun_requirement: string;
   water: string;
-  water_requirement: string;
   humidity: string;
-  temperature_range: string;
   
   // Dificultad y Rareza
   difficulty: string;
@@ -57,7 +52,6 @@ export interface PlantCsvRow {
   
   // Imágenes
   images: string;
-  thumbnail_url: string;
   
   // SEO
   meta_title: string;
@@ -86,7 +80,6 @@ const CSV_HEADERS = [
   'price',
   'sale_price',
   'stock_qty',
-  'is_in_stock (true|false)',
   'is_active (true|false)',
   'is_featured (true|false)',
   'display_order',
@@ -96,14 +89,10 @@ const CSV_HEADERS = [
   'mature_width',
   'growth_rate (Lento|Medio|Rápido)',
   'climate_zones (separar con |)',
-  'hardiness_zone',
   'min_temp_c',
   'exposure (full_sun|partial_shade|full_shade - separar con |)',
-  'sun_requirement',
   'water (low|medium|high)',
-  'water_requirement',
   'humidity (low|medium|high)',
-  'temperature_range',
   'difficulty (easy|intermediate|advanced)',
   'rarity (common|medium|rare|very_rare)',
   'origin_country',
@@ -111,7 +100,6 @@ const CSV_HEADERS = [
   'native_habitat',
   'plant_use (indoor|outdoor|container|landscape - separar con |)',
   'images (URLs separadas con |)',
-  'thumbnail_url',
   'meta_title',
   'meta_description',
   'care_instructions_watering',
@@ -137,7 +125,6 @@ const EXAMPLE_ROW = [
   '',
   '4',
   'true',
-  'true',
   'false',
   '0',
   '3 litros',
@@ -146,14 +133,10 @@ const EXAMPLE_ROW = [
   '2-3m',
   'Medio',
   '9a|9b|10a|10b|11a|11b',
-  '9a-11b',
   '-5',
   'partial_shade',
-  'Semisol',
   'medium',
-  'Moderada',
   'medium',
-  '5°C - 35°C',
   'intermediate',
   'rare',
   'Nueva Zelanda',
@@ -161,7 +144,6 @@ const EXAMPLE_ROW = [
   'Bosques subtropicales húmedos',
   'outdoor|container|landscape',
   '/lovable-uploads/imagen1.png|/lovable-uploads/imagen2.png',
-  '/lovable-uploads/imagen1.png',
   'Rhopalostylis sapida | Palmera Nikau | Frondaprima',
   'Compra Rhopalostylis sapida, la única palmera nativa de Nueva Zelanda. Envío a toda España.',
   'Riego moderado, mantener sustrato húmedo',
@@ -228,7 +210,6 @@ export const PLANT_JSON_TEMPLATE = {
   price: 85.00,
   sale_price: null,
   stock_qty: 4,
-  is_in_stock: true,
   is_active: true,
   is_featured: false,
   display_order: 0,
@@ -242,14 +223,10 @@ export const PLANT_JSON_TEMPLATE = {
   
   "// CLIMA Y CULTIVO": "---",
   climate_zones: ["9a", "9b", "10a", "10b", "11a", "11b"],
-  hardiness_zone: "9a-11b",
   min_temp_c: -5,
   exposure: ["full_sun", "partial_shade", "full_shade"],
-  sun_requirement: "Soleada | Semisol | Semisombra | Sombreada",
   water: "low | medium | high",
-  water_requirement: "Baja | Moderada | Alta",
   humidity: "low | medium | high",
-  temperature_range: "5°C - 35°C",
   
   "// DIFICULTAD Y RAREZA": "---",
   difficulty: "easy | intermediate | advanced",
@@ -265,7 +242,6 @@ export const PLANT_JSON_TEMPLATE = {
   
   "// IMÁGENES": "---",
   images: ["/lovable-uploads/imagen1.png", "/lovable-uploads/imagen2.png"],
-  thumbnail_url: "/lovable-uploads/imagen1.png",
   
   "// SEO": "---",
   meta_title: "Nombre | Nombre Común | Frondaprima (max 60 chars)",

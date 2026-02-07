@@ -52,7 +52,7 @@ const RecommendationCard = ({
     toggleFavorite({
       name: plant.name,
       scientificName: plant.scientific_name || undefined,
-      imageUrl: plant.thumbnail_url || undefined,
+      imageUrl: plant.images?.[0] || undefined,
       price: plant.price,
     });
   };
@@ -79,9 +79,9 @@ const RecommendationCard = ({
         <div className="flex flex-col sm:flex-row">
           {/* Image Section */}
           <div className="relative w-full sm:w-40 h-40 sm:h-auto flex-shrink-0">
-            {plant.thumbnail_url ? (
+            {plant.images?.[0] ? (
               <img 
-                src={plant.thumbnail_url} 
+                src={plant.images[0]} 
                 alt={plant.name}
                 className="w-full h-full object-cover"
               />

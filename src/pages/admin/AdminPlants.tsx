@@ -33,7 +33,7 @@ interface Plant {
   stock_qty: number;
   is_active: boolean;
   is_featured: boolean;
-  thumbnail_url: string | null;
+  images: string[] | null;
   category_id: string | null;
   categories?: { name: string } | null;
 }
@@ -159,9 +159,9 @@ export default function AdminPlants() {
               {filteredPlants.map((plant) => (
                 <TableRow key={plant.id}>
                   <TableCell>
-                    {plant.thumbnail_url ? (
+                    {plant.images?.[0] ? (
                       <img
-                        src={plant.thumbnail_url}
+                        src={plant.images[0]}
                         alt={plant.name}
                         className="w-12 h-12 object-cover rounded-lg"
                       />

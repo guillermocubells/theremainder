@@ -52,10 +52,10 @@ serve(async (req: Request) => {
         .from("plants")
         .select(`
           id, name, scientific_name, slug, short_description, 
-          price, sale_price, is_in_stock, stock_qty,
+          price, sale_price, stock_qty,
           plant_type, difficulty, climate_zones, exposure,
           water, humidity, growth_rate, min_temp_c,
-          thumbnail_url, images,
+          images,
           categories (id, name, slug)
         `)
         .eq("is_active", true)
@@ -73,7 +73,7 @@ serve(async (req: Request) => {
       if (filters.plant_type) query = query.eq("plant_type", filters.plant_type);
       if (filters.min_price) query = query.gte("price", filters.min_price);
       if (filters.max_price) query = query.lte("price", filters.max_price);
-      if (filters.in_stock) query = query.eq("is_in_stock", true);
+      if (filters.in_stock) query = query.gt("stock_qty", 0);
       if (filters.difficulty) query = query.eq("difficulty", filters.difficulty);
       if (filters.climate_zone) query = query.contains("climate_zones", [filters.climate_zone]);
 

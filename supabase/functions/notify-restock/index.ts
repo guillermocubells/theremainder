@@ -15,7 +15,7 @@ interface RestockPayload {
   new_stock_qty: number;
   price: number;
   scientific_name?: string;
-  thumbnail_url?: string;
+  thumbnail_url?: string; // kept for backward compat with DB trigger payload
 }
 
 serve(async (req: Request) => {

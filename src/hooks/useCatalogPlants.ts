@@ -80,11 +80,7 @@ const mapOrnamental = (r: string | null): Plant["ornamentalValue"] => {
  * Converts a DB plant row into the frontend Plant interface
  */
 function dbToPlant(row: Record<string, unknown>): Plant {
-  const images = (row.images as string[] | null) || [];
-  const thumbnail = row.thumbnail_url as string | null;
-  const allImages = thumbnail && !images.includes(thumbnail)
-    ? [thumbnail, ...images]
-    : images.length > 0 ? images : [];
+  const allImages = (row.images as string[] | null) || [];
 
   return {
     id: row.slug as string,
