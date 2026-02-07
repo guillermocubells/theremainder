@@ -297,8 +297,10 @@
     "success": {
       "emailSent": "Te hemos enviado un email de confirmación. Por favor, revisa tu bandeja de entrada.",
       "passwordResetSent": "Te hemos enviado un email con instrucciones para restablecer tu contraseña.",
-      "passwordUpdated": "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión."
-    }
+      "passwordUpdated": "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión.",
+      "verificationResent": "Email de verificación reenviado. Revisa tu bandeja de entrada."
+    },
+    "resendVerification": "Reenviar email de verificación"
   },
   "account": {
     "title": "Mi cuenta",

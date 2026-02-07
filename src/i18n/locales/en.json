@@ -297,8 +297,10 @@
     "success": {
       "emailSent": "We've sent you a confirmation email. Please check your inbox.",
       "passwordResetSent": "We've sent you an email with instructions to reset your password.",
-      "passwordUpdated": "Your password has been updated. You can now sign in."
-    }
+      "passwordUpdated": "Your password has been updated. You can now sign in.",
+      "verificationResent": "Verification email resent. Please check your inbox."
+    },
+    "resendVerification": "Resend verification email"
   },
   "account": {
     "title": "My account",
