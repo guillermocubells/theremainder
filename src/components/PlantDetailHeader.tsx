@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
-import { ExternalLink, Thermometer, ChevronDown, Heart, MapPin } from "lucide-react";
+import { ExternalLink, Thermometer, ChevronDown, Heart, MapPin, CloudSun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -262,8 +262,8 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground border border-border cursor-default capitalize">
-                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>{plant.climateZones.join(', ')}</span>
+                  <CloudSun className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span>Clima: {plant.climateZones.join(', ')}</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom" align="start" className="text-left max-w-xs">
