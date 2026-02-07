@@ -250,53 +250,51 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
               }
             >
               <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground border border-border cursor-default capitalize">
-                <CloudSun className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span>Clima: {plant.climateZones.join(', ')}</span>
+                <CloudSun className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span>Zona climática: {plant.climateZones.join(' · ')}</span>
               </div>
             </ResponsiveTooltip>
           )}
 
           {/* USDA Hardiness Zones badge */}
-          {plant.hardinessZones && plant.hardinessZones.length > 0 && (
-            <ResponsiveTooltip
-              contentClassName="text-left max-w-sm w-auto p-3"
-              content={
-                <div className="space-y-2">
-                  <p className="font-semibold text-sm">{t('hardiness.title')}</p>
-                  <p className="text-xs text-muted-foreground">{t('hardiness.suitableIntro')}</p>
-                  <div className="space-y-2.5 pt-1">
-                    {plant.hardinessZones.map((zoneCode) => {
-                      const range = getZoneTemperatureRange(zoneCode);
-                      const desc = t(`hardiness.zoneDescriptions.${zoneCode.toLowerCase()}`, '');
-                      return (
-                        <div key={zoneCode} className="space-y-0.5">
-                          <p className="text-xs font-medium text-foreground">
-                            <span className="font-bold">{t('hardiness.zoneLabel', 'Zona')} {zoneCode.toUpperCase()}</span>
-                            {range && (
-                              <span className="text-muted-foreground font-normal">
-                                {' → '}{t('hardiness.minTemp')}{' '}
-                                {range.fromTemp !== null ? `${range.fromTemp}°C` : ''}
-                                {range.fromTemp !== null && range.toTemp !== null ? ` ${t('hardiness.and')} ` : ''}
-                                {range.toTemp !== null ? `${range.toTemp > 0 ? '+' : ''}${range.toTemp}°C` : ''}
-                              </span>
-                            )}
+          {plant.hardinessZones && plant.hardinessZones.length > 0 && (() => {
+            const sorted = [...plant.hardinessZones].sort((a, b) => {
+              const numA = parseInt(a); const numB = parseInt(b);
+              if (numA !== numB) return numA - numB;
+              return a.localeCompare(b);
+            });
+            return (
+              <ResponsiveTooltip
+                contentClassName="text-left max-w-sm w-auto p-3"
+                content={
+                  <div className="space-y-2">
+                    <p className="font-semibold text-sm">Zona de rusticidad (USDA)</p>
+                    <p className="text-xs text-muted-foreground">Temperatura mínima que tolera esta planta:</p>
+                    <div className="space-y-1.5 pt-1">
+                      {sorted.map((zoneCode) => {
+                        const range = getZoneTemperatureRange(zoneCode);
+                        return (
+                          <p key={zoneCode} className="text-xs font-medium text-foreground">
+                            <span className="font-bold">{zoneCode.toUpperCase()}</span>
+                            <span className="text-muted-foreground font-normal">
+                              {range
+                                ? `: ${range.fromTemp !== null ? `${range.fromTemp}°C` : '< −53.9°C'} a ${range.toTemp !== null ? `${range.toTemp}°C` : '> 18.3°C'}`
+                                : ': rango no disponible'}
+                            </span>
                           </p>
-                          {desc && (
-                            <p className="text-xs text-muted-foreground pl-3">{desc}</p>
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
+                }
+              >
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-accent text-accent-foreground border border-border cursor-default">
+                  <Thermometer className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Zona de rusticidad: {sorted.map(z => z.toUpperCase()).join(' · ')}</span>
                 </div>
-              }
-            >
-              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-accent text-accent-foreground border border-border cursor-default">
-                <Thermometer className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span>{formatHardinessZones(plant.hardinessZones)}</span>
-              </div>
-            </ResponsiveTooltip>
-          )}
+              </ResponsiveTooltip>
+            );
+          })()}
         </div>
         
         {/* Social share buttons */}
