@@ -1,6 +1,7 @@
-import { ShoppingCart, Minus, Plus, Trash2, Check, Truck } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, Check, Truck, Gift } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
+import { SHIPPING_ZONES } from "@/utils/shippingCalculator";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -160,11 +161,41 @@ const CartDrawer = () => {
                   </span>
                 </div>
 
-                {/* Shipping */}
-                <div className="flex items-center gap-2 text-sm">
-                  <Truck className="h-4 w-4 text-moss" />
-                  <span className="text-moss italic">{t('common.shippingTbd')}</span>
-                </div>
+                {/* Free shipping progress - based on Spain zone (default) */}
+                {(() => {
+                  const spainZone = SHIPPING_ZONES.find(z => z.id === "spain");
+                  if (!spainZone || spainZone.freeShippingThresholdCents === null) return null;
+                  const thresholdEur = spainZone.freeShippingThresholdCents / 100;
+                  const remaining = thresholdEur - totalPrice;
+                  const progress = Math.min(100, (totalPrice / thresholdEur) * 100);
+                  
+                  if (remaining <= 0) {
+                    return (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Gift className="h-4 w-4 text-moss" />
+                        <span className="text-moss font-medium">{t('cart.freeShippingUnlocked', '¡Envío gratis desbloqueado!')}</span>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Truck className="h-4 w-4 text-moss" />
+                        <span className="text-muted-foreground">
+                          {t('cart.freeShippingRemaining', 'Te faltan {{amount}} para envío gratis (España)')
+                            .replace('{{amount}}', formatPrice(remaining))}
+                        </span>
+                      </div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-moss rounded-full transition-all duration-500"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <Separator className="my-2" />
 
