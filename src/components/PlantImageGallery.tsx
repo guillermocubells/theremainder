@@ -84,13 +84,13 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
         {/* Main Image - grows to fill available space */}
         <div className="relative flex-1 min-h-0 mb-3">
           <div 
-            className="relative h-full w-full overflow-hidden rounded-xl cursor-pointer group shadow-lg"
+            className="relative h-full w-full overflow-hidden rounded-xl cursor-pointer group shadow-lg bg-muted flex items-center justify-center"
             onClick={openLightbox}
           >
             <OptimizedImage
               src={displayImages[selectedIndex]}
               alt={`${plantName} - imagen ${selectedIndex + 1}`}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
               loading="eager"
             />
             {/* Zoom button */}
