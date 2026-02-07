@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { usePublicPlant } from '@/hooks/collection/usePublicSharing';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,8 +56,24 @@ const PublicPlantPage = () => {
     );
   }
 
+  const pageTitle = `${plant.nickname}${plant.scientific_name ? ` (${plant.scientific_name})` : ''} | The Remainder`;
+  const pageDescription = `Ficha de ${plant.nickname}${plant.scientific_name ? `, ${plant.scientific_name}` : ''} — colección de plantas en The Remainder.`;
+  const pageUrl = `https://theremainder.lovable.app/p/${slug}`;
+  const ogImage = plant.photos?.[0];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white py-8">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={pageUrl} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={pageUrl} />
+        <meta property="og:type" content="article" />
+        {ogImage && <meta property="og:image" content={ogImage} />}
+        <meta name="robots" content="noindex, follow" />
+      </Helmet>
       <div className="container max-w-2xl mx-auto px-4">
         {/* Header with logo */}
         <div className="text-center mb-8">
