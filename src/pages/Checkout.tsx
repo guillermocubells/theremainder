@@ -465,6 +465,8 @@ const Checkout = () => {
               items={items}
               shippingCountry={shippingCountry}
               shippingForm={form}
+              referralCode={appliedReferralCode}
+              referrerUserId={referrerUserId}
             />
             </CheckoutAccordionItem>
           </div>

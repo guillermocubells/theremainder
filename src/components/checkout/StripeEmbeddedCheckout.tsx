@@ -26,6 +26,8 @@ interface StripeEmbeddedCheckoutProps {
   items: CartItem[];
   shippingCountry: string;
   shippingForm: ShippingForm;
+  referralCode?: string | null;
+  referrerUserId?: string | null;
 }
 
 interface CheckoutData {
@@ -38,6 +40,7 @@ export function StripeEmbeddedCheckout({
   items,
   shippingCountry,
   shippingForm,
+  referralCode,
 }: StripeEmbeddedCheckoutProps) {
   const { i18n, t } = useTranslation();
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
@@ -67,6 +70,7 @@ export function StripeEmbeddedCheckout({
               country: COUNTRY_NAMES[shippingCountry] || shippingCountry,
             },
             locale: i18n.language,
+            referralCode: referralCode || undefined,
           },
         });
 
