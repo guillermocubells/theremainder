@@ -1858,7 +1858,12 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       customer_type: "b2c" | "b2b"
-      difficulty_level: "easy" | "intermediate" | "advanced"
+      difficulty_level:
+        | "easy"
+        | "intermediate"
+        | "advanced"
+        | "beginner"
+        | "expert"
       email_frequency: "instant" | "daily" | "weekly"
       fraud_flag_severity: "low" | "medium" | "high" | "critical"
       fraud_flag_status: "pending" | "reviewed" | "approved" | "revoked"
@@ -1891,8 +1896,24 @@ export type Database = {
         | "failed"
         | "refunded"
       plant_status: "alive" | "dormant" | "sick" | "removed"
-      plant_type: "palm" | "fern" | "tree" | "cycad" | "shrub" | "other"
-      rarity_level: "low" | "medium" | "high"
+      plant_type:
+        | "palm"
+        | "fern"
+        | "tree"
+        | "cycad"
+        | "shrub"
+        | "other"
+        | "succulent"
+        | "grass"
+      rarity_level:
+        | "low"
+        | "medium"
+        | "high"
+        | "rare"
+        | "common"
+        | "uncommon"
+        | "very_rare"
+        | "extremely_rare"
       referral_reward_status:
         | "pending"
         | "available"
@@ -2038,7 +2059,13 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       customer_type: ["b2c", "b2b"],
-      difficulty_level: ["easy", "intermediate", "advanced"],
+      difficulty_level: [
+        "easy",
+        "intermediate",
+        "advanced",
+        "beginner",
+        "expert",
+      ],
       email_frequency: ["instant", "daily", "weekly"],
       fraud_flag_severity: ["low", "medium", "high", "critical"],
       fraud_flag_status: ["pending", "reviewed", "approved", "revoked"],
@@ -2074,8 +2101,26 @@ export const Constants = {
         "refunded",
       ],
       plant_status: ["alive", "dormant", "sick", "removed"],
-      plant_type: ["palm", "fern", "tree", "cycad", "shrub", "other"],
-      rarity_level: ["low", "medium", "high"],
+      plant_type: [
+        "palm",
+        "fern",
+        "tree",
+        "cycad",
+        "shrub",
+        "other",
+        "succulent",
+        "grass",
+      ],
+      rarity_level: [
+        "low",
+        "medium",
+        "high",
+        "rare",
+        "common",
+        "uncommon",
+        "very_rare",
+        "extremely_rare",
+      ],
       referral_reward_status: [
         "pending",
         "available",
