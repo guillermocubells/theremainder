@@ -13,12 +13,13 @@ export interface Plant {
   price?: number;
   images?: string[];
   hardinessZones?: string[]; // USDA hardiness zones with sub-zones (e.g., ["8a", "8b", "9a"])
+  climateZones?: string[]; // Climate type zones (e.g., ["tropical", "mediterraneo", "atlantico"])
   ornamentalValue?: 'Convencional' | 'Bonito' | 'Hermoso' | 'Impresionante' | 'Único';
   waterNeeds?: 'Baja' | 'Moderada' | 'Alta';
   plantGroup?: 'Palmeras' | 'Helechos arbóreos' | 'Cícadas' | 'Árboles ornamentales' | 'Arbustos ornamentales' | 'Bambús' | 'Hierbas' | 'Bromeliáceas' | 'Heliconias' | 'Estrelicias' | 'Jengibres' | 'Plátanos' | 'Agaves y yucas' | 'Aráceas' | 'Suculentas' | 'Cactus' | 'Coníferas' | 'Perennes';
-  containerSize?: string; // e.g., "3 litros", "5 litros", "10 litros"
-  germinationDate?: string; // e.g., "Marzo 2024"
-  weightGrams?: number; // Weight in grams for shipping calculation
+  containerSize?: string;
+  germinationDate?: string;
+  weightGrams?: number;
 }
 
 // Re-export helper functions from hardinessZones utility
@@ -38,6 +39,7 @@ export const plants: Plant[] = [{
   notes: "Tremendamente resistente al frío de las montañas del sudeste asiático. A nivel paisajistico combina muy bien si se planta en grupos",
   price: 75,
   hardinessZones: ["10a", "10b", "11a", "11b"],
+  climateZones: ["subtropical", "tropical"],
   ornamentalValue: 'Hermoso',
   waterNeeds: 'Alta',
   plantGroup: 'Palmeras',
@@ -64,6 +66,7 @@ export const plants: Plant[] = [{
   notes: "Pendiente de producción. Mi idea es daros varias especies con diferentes alturas pero no tengo del todo claro que va a salir adelante",
   price: 65,
   hardinessZones: ["9a", "9b", "10a", "10b", "11a", "11b"],
+  climateZones: ["subtropical", "atlantico"],
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Alta',
   plantGroup: 'Helechos arbóreos',
@@ -91,6 +94,7 @@ export const plants: Plant[] = [{
   notes: "My parecidas a las Cyatheas pero con tronco más robusto y ancho. Pendiente de producción. Mi idea es daros varias especies con diferentes alturas pero no tengo del todo claro que va a salir adelante",
   price: 70,
   hardinessZones: ["8a", "8b", "9a", "9b", "10a", "10b"],
+  climateZones: ["atlantico", "mediterraneo"],
   ornamentalValue: 'Impresionante',
   waterNeeds: 'Alta',
   plantGroup: 'Helechos arbóreos',
@@ -118,6 +122,7 @@ export const plants: Plant[] = [{
   notes: "Especie no clasificada probablemente extinta en habitat",
   price: 130,
   hardinessZones: ["8a", "8b", "9a", "9b", "10a", "10b", "11a", "11b"],
+  climateZones: ["subtropical", "tropical"],
   ornamentalValue: 'Único',
   waterNeeds: 'Baja',
   plantGroup: 'Cícadas',
@@ -143,6 +148,7 @@ export const plants: Plant[] = [{
   notes: "Espectacular magnolia compacta. De Yunnan una rareza y una belleza para un lugar del jardín con orientación oeste o este",
   price: 90,
   hardinessZones: ["7a", "7b", "8a", "8b", "9a", "9b"],
+  climateZones: ["atlantico", "mediterraneo"],
   ornamentalValue: 'Hermoso',
   waterNeeds: 'Moderada',
   plantGroup: 'Arbustos ornamentales',
@@ -169,6 +175,7 @@ export const plants: Plant[] = [{
   notes: "Muy resistente al frío estamos hablando de hasta -10c algo muy alto para una palmera",
   price: 55,
   hardinessZones: ["8a", "8b"],
+  climateZones: ["atlantico", "continental"],
   ornamentalValue: 'Bonito',
   waterNeeds: 'Moderada',
   plantGroup: 'Palmeras',

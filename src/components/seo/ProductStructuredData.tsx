@@ -78,6 +78,11 @@ const ProductStructuredData = ({ plant, baseUrl = STORE_BRAND.url }: ProductStru
           "@type": "PropertyValue",
           name: "Zonas de rusticidad",
           value: plant.hardinessZones.join(", ")
+        }] : []),
+        ...(plant.climateZones ? [{
+          "@type": "PropertyValue",
+          name: "Zonas climáticas",
+          value: plant.climateZones.join(", ")
         }] : [])
       ]
     })

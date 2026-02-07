@@ -15,8 +15,8 @@ interface FilterState {
   // Habitat filters
   light: string;
   water: string;
-  zone: string;
-  location: string;
+  zone: string;       // USDA hardiness zone
+  climate: string;    // Climate type (tropical, mediterraneo, etc.)
   // Commercial filters
   plantGroup: string;
   stock: string;
@@ -27,7 +27,7 @@ const INITIAL_FILTERS: FilterState = {
   light: "",
   water: "",
   zone: "",
-  location: "",
+  climate: "",
   plantGroup: "",
   stock: "",
   sortBy: ""
@@ -47,9 +47,9 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
 
   // Memoize derived options
-  const { lightOptions, locationOptions, zoneOptions, plantGroupOptions } = useMemo(() => ({
+  const { lightOptions, climateOptions, zoneOptions, plantGroupOptions } = useMemo(() => ({
     lightOptions: Array.from(new Set(plants.map(p => p.light).filter(Boolean))).sort(),
-    locationOptions: Array.from(new Set(plants.map(p => p.location).filter(Boolean))).sort(),
+    climateOptions: Array.from(new Set(plants.flatMap(p => p.climateZones || []))).sort(),
     zoneOptions: Array.from(new Set(plants.flatMap(p => p.hardinessZones || []))).sort(),
     plantGroupOptions: Array.from(new Set(plants.map(p => p.plantGroup).filter(Boolean) as string[])).sort()
   }), [plants]);
@@ -69,8 +69,10 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
         plant.hardinessZones && plant.hardinessZones.includes(newFilters.zone)
       );
     }
-    if (newFilters.location) {
-      filtered = filtered.filter(plant => plant.location === newFilters.location);
+    if (newFilters.climate) {
+      filtered = filtered.filter(plant => 
+        plant.climateZones && plant.climateZones.includes(newFilters.climate)
+      );
     }
 
     // Commercial filters
@@ -108,7 +110,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
     if (newFilters.light) filterSummary['Luz'] = newFilters.light;
     if (newFilters.water) filterSummary['Riego'] = newFilters.water;
     if (newFilters.zone) filterSummary['Zona'] = newFilters.zone;
-    if (newFilters.location) filterSummary['Ubicación'] = newFilters.location;
+    if (newFilters.climate) filterSummary['Clima'] = newFilters.climate;
     if (newFilters.plantGroup) filterSummary['Grupo'] = newFilters.plantGroup;
     if (newFilters.stock) filterSummary['Stock'] = newFilters.stock === 'disponible' ? 'Disponible' : 'Agotado';
 
@@ -132,7 +134,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
   [filters]);
 
   const habitatFiltersCount = useMemo(() => 
-    [filters.light, filters.water, filters.zone, filters.location].filter(v => v !== "").length,
+    [filters.light, filters.water, filters.zone, filters.climate].filter(v => v !== "").length,
   [filters]);
 
   const commercialFiltersCount = useMemo(() => 
@@ -152,8 +154,8 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
     if (filters.zone) {
       tags.push({ key: 'zone', label: filters.zone, type: 'habitat' });
     }
-    if (filters.location) {
-      tags.push({ key: 'location', label: filters.location, type: 'habitat' });
+    if (filters.climate) {
+      tags.push({ key: 'climate', label: filters.climate, type: 'habitat' });
     }
 
     // Commercial tags
@@ -271,23 +273,23 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
               </Select>
             </div>
 
-            {/* Climate/Location */}
+            {/* Climate Zone */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <MapPin className="h-3 w-3" />
                 {t('filters.habitatBlock.climate')}
               </label>
               <Select 
-                value={filters.location || "all"} 
-                onValueChange={(v) => handleFilterChange('location', v)}
+                value={filters.climate || "all"} 
+                onValueChange={(v) => handleFilterChange('climate', v)}
               >
                 <SelectTrigger className="h-9 border-border/50 bg-background/60 text-sm hover:bg-background/80 transition-colors">
                   <SelectValue placeholder={t('filters.all')} />
                 </SelectTrigger>
                 <SelectContent className="bg-card border border-border shadow-lg z-50">
                   <SelectItem value="all">{t('filters.all')}</SelectItem>
-                  {locationOptions.map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  {climateOptions.map((option) => (
+                    <SelectItem key={option} value={option} className="capitalize">{option}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
