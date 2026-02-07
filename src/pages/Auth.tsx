@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,8 +30,10 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showResendVerification, setShowResendVerification] = useState(false);
 
   const { signIn, signUp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
@@ -47,11 +50,14 @@ const Auth = () => {
   const validateForm = () => {
     setError(null);
     
-    try {
-      emailSchema.parse(email);
-    } catch {
-      setError(t('common.form.invalidEmail'));
-      return false;
+    // Reset tab only needs password validation (user arrives via magic link)
+    if (activeTab !== 'reset') {
+      try {
+        emailSchema.parse(email);
+      } catch {
+        setError(t('common.form.invalidEmail'));
+        return false;
+      }
     }
 
     if (activeTab === 'login' || activeTab === 'register' || activeTab === 'reset') {
@@ -63,17 +69,31 @@ const Auth = () => {
       }
     }
 
-    if (activeTab === 'register' && password !== confirmPassword) {
-      setError(t('auth.errors.passwordMismatch'));
-      return false;
-    }
-
-    if (activeTab === 'reset' && password !== confirmPassword) {
+    if ((activeTab === 'register' || activeTab === 'reset') && password !== confirmPassword) {
       setError(t('auth.errors.passwordMismatch'));
       return false;
     }
 
     return true;
+  };
+
+  const handleResendVerification = async () => {
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/` },
+      });
+      if (error) throw error;
+      setSuccess(t('auth.success.verificationResent'));
+      setError(null);
+      setShowResendVerification(false);
+    } catch (err: any) {
+      setError(err.message || 'Error resending verification email');
+    } finally {
+      setResending(false);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -82,6 +102,7 @@ const Auth = () => {
 
     setLoading(true);
     setError(null);
+    setShowResendVerification(false);
 
     const { error } = await signIn(email, password);
     
@@ -90,6 +111,7 @@ const Auth = () => {
         setError(t('auth.errors.invalidCredentials'));
       } else if (error.message.includes('Email not confirmed')) {
         setError(t('auth.errors.emailNotConfirmed'));
+        setShowResendVerification(true);
       } else {
         setError(error.message);
       }
@@ -199,7 +221,22 @@ const Auth = () => {
           <CardContent>
             {error && (
               <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  {error}
+                  {showResendVerification && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      className="ml-1 h-auto p-0 text-destructive-foreground underline"
+                      onClick={handleResendVerification}
+                      disabled={resending}
+                    >
+                      {resending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                      {t('auth.resendVerification')}
+                    </Button>
+                  )}
+                </AlertDescription>
               </Alert>
             )}
 
