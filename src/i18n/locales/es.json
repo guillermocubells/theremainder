@@ -808,5 +808,126 @@
     "SK": "Eslovaquia",
     "SI": "Eslovenia",
     "LU": "Luxemburgo"
+  },
+  "plantFinder": {
+    "title": "Encuentra tu planta ideal",
+    "resultsSrOnly": "Resultados",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "viewResults": "Ver resultados",
+    "questions": {
+      "plantGroup": {
+        "title": "¿Qué tipo de planta buscas?",
+        "subtitle": "Elige la categoría que mejor se adapte a tus necesidades",
+        "palmeras": "Palmeras",
+        "helechos": "Helechos arbóreos",
+        "cicadas": "Cícadas",
+        "arboles": "Árboles",
+        "arbustos": "Arbustos",
+        "tropical": "Tropical",
+        "easy": "Quiero algo fácil"
+      },
+      "location": {
+        "title": "¿Dónde la plantarás?",
+        "subtitle": "El lugar determina las condiciones de luz y espacio",
+        "interior": "Interior",
+        "interiorDesc": "Dentro de casa",
+        "balcon": "Balcón",
+        "balconDesc": "Espacio exterior pequeño",
+        "jardin": "Jardín",
+        "jardinDesc": "En tierra exterior",
+        "terraza": "Terraza",
+        "terrazaDesc": "Exterior amplio",
+        "bajoArboles": "Bajo árboles",
+        "bajoArbolesDesc": "Sombra natural",
+        "invernadero": "Invernadero",
+        "invernaderoDesc": "Ambiente controlado"
+      },
+      "sunExposure": {
+        "title": "¿Cuánta luz solar recibe el lugar?",
+        "subtitle": "Observa el lugar durante el día para determinarlo",
+        "full": "Sol pleno",
+        "fullDesc": "Más de 6 horas de sol directo",
+        "semiSun": "Semi-sol",
+        "semiSunDesc": "4-6 horas de sol",
+        "semiShade": "Semi-sombra",
+        "semiShadeDesc": "2-4 horas de luz filtrada",
+        "shade": "Sombra",
+        "shadeDesc": "Luz indirecta o poca luz"
+      },
+      "waterNeeds": {
+        "title": "¿Cuánto quieres regar?",
+        "subtitle": "Sé honesto sobre tu disponibilidad de tiempo",
+        "low": "Muy poco",
+        "lowDesc": "Riego ocasional",
+        "moderate": "Moderado",
+        "moderateDesc": "Riego regular",
+        "high": "Abundante",
+        "highDesc": "Riego frecuente"
+      },
+      "growthRate": {
+        "title": "¿Qué velocidad de crecimiento prefieres?",
+        "subtitle": "Las plantas de crecimiento lento suelen requerir menos mantenimiento",
+        "slow": "Lento",
+        "slowDesc": "Paciencia recompensada",
+        "medium": "Medio",
+        "mediumDesc": "Ritmo equilibrado",
+        "fast": "Rápido",
+        "fastDesc": "Resultados visibles pronto"
+      },
+      "wowFactor": {
+        "title": "¿Buscas una planta espectacular?",
+        "subtitle": "Algunas plantas son verdaderas protagonistas del jardín",
+        "spectacular": "Sí, algo espectacular",
+        "spectacularDesc": "Quiero impresionar",
+        "discrete": "Prefiero discreto y fácil",
+        "discreteDesc": "Belleza sutil"
+      },
+      "hardinessZone": {
+        "title": "Zona de rusticidad (Hardiness zone)",
+        "subtitle": "Indica la tolerancia al frío según la clasificación USDA"
+      }
+    },
+    "hardiness": {
+      "helperTitle": "¿Cuál es la temperatura mínima en invierno?",
+      "helperSubtitle": "Selecciona el rango que mejor describa tu zona",
+      "helpMe": "No sé mi zona – Ayúdame a encontrarla",
+      "backToZones": "← Volver a selección de zona",
+      "zones": "Zonas",
+      "veryCold": "Muy frío (< -20°C)",
+      "cold": "Frío (-20°C a -10°C)",
+      "temperate": "Templado (-10°C a 0°C)",
+      "mild": "Suave (0°C a 10°C)",
+      "warm": "Cálido (> 10°C)"
+    },
+    "results": {
+      "title": "Recomendaciones para tu espacio",
+      "noMatch": "Basado en tu clima y espacio, no encontramos plantas que coincidan exactamente con tus criterios",
+      "matchOne": "Basado en tu clima y espacio, tenemos 1 planta que encaja con lo que buscas",
+      "matchMany": "Basado en tu clima y espacio, tenemos {{count}} plantas que encajan con lo que buscas",
+      "editAnswers": "Editar",
+      "reset": "Reiniciar",
+      "save": "Guardar",
+      "loginToSave": "para guardar esta búsqueda",
+      "loginLink": "Inicia sesión",
+      "saveDialog": {
+        "title": "Guardar búsqueda",
+        "placeholder": "Ej: Plantas para mi terraza",
+        "hint": "Podrás acceder a esta búsqueda desde tu cuenta en \"Búsquedas guardadas\"",
+        "nameRequired": "Introduce un nombre para la búsqueda",
+        "saved": "Búsqueda guardada. Puedes verla en tu cuenta.",
+        "error": "Error al guardar la búsqueda"
+      },
+      "empty": "Prueba a ajustar tus criterios o reiniciar la búsqueda",
+      "startOver": "Empezar de nuevo"
+    }
+  },
+  "searchSuggestions": {
+    "s1": "plantas para código postal 28001",
+    "s2": "palmeras resistentes al frío Madrid",
+    "s3": "helechos que necesitan poca luz",
+    "s4": "plantas para Barcelona clima mediterráneo",
+    "s5": "código postal 46001 plantas",
+    "s6": "plantas tropicales para Sevilla"
   }
 }

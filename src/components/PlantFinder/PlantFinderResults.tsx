@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plant } from '@/data/plants';
 import PlantCard from '@/components/PlantCard';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ const PlantFinderResults = ({
   onReset, 
   onEditAnswers
 }: PlantFinderResultsProps) => {
+  const { t } = useTranslation();
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [searchName, setSearchName] = useState('');
   
@@ -38,7 +40,7 @@ const PlantFinderResults = ({
 
   const handleSaveSearch = async () => {
     if (!searchName.trim()) {
-      toast.error('Introduce un nombre para la búsqueda');
+      toast.error(t('plantFinder.results.saveDialog.nameRequired'));
       return;
     }
 
@@ -47,13 +49,19 @@ const PlantFinderResults = ({
         name: searchName.trim(),
         filters: answers,
       });
-      toast.success('Búsqueda guardada. Puedes verla en tu cuenta.');
+      toast.success(t('plantFinder.results.saveDialog.saved'));
       setShowSaveDialog(false);
       setSearchName('');
     } catch (error) {
-      toast.error('Error al guardar la búsqueda');
+      toast.error(t('plantFinder.results.saveDialog.error'));
     }
   };
+
+  const resultMessage = plants.length === 0
+    ? t('plantFinder.results.noMatch')
+    : plants.length === 1
+      ? t('plantFinder.results.matchOne')
+      : t('plantFinder.results.matchMany', { count: plants.length });
 
   return (
     <TooltipProvider>
@@ -61,16 +69,11 @@ const PlantFinderResults = ({
         {/* Header */}
         <div className="text-center space-y-3">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Recomendaciones para tu espacio
+            {t('plantFinder.results.title')}
           </h2>
           <div className="flex items-center justify-center gap-2 text-primary">
             <Sparkles className="h-5 w-5" />
-            <span className="text-sm font-medium">
-              {plants.length === 0 
-                ? 'Basado en tu clima y espacio, no encontramos plantas que coincidan exactamente con tus criterios'
-                : `Basado en tu clima y espacio, tenemos ${plants.length} ${plants.length === 1 ? 'planta que encaja' : 'plantas que encajan'} con lo que buscas`
-              }
-            </span>
+            <span className="text-sm font-medium">{resultMessage}</span>
           </div>
         </div>
 
@@ -97,7 +100,7 @@ const PlantFinderResults = ({
             className="text-muted-foreground"
           >
             <Edit2 className="h-4 w-4 mr-1" />
-            Editar
+            {t('plantFinder.results.editAnswers')}
           </Button>
           <Button
             variant="outline"
@@ -106,10 +109,9 @@ const PlantFinderResults = ({
             className="text-muted-foreground"
           >
             <RotateCcw className="h-4 w-4 mr-1" />
-            Reiniciar
+            {t('plantFinder.results.reset')}
           </Button>
           
-          {/* Save search button for logged in users */}
           {user && hasActiveFilters && (
             <Button
               variant="outline"
@@ -118,7 +120,7 @@ const PlantFinderResults = ({
               className="text-primary border-primary/30 hover:bg-primary/5"
             >
               <Bookmark className="h-4 w-4 mr-1" />
-              Guardar
+              {t('plantFinder.results.save')}
             </Button>
           )}
         </div>
@@ -127,9 +129,9 @@ const PlantFinderResults = ({
         {!user && hasActiveFilters && (
           <p className="text-sm text-muted-foreground text-center">
             <a href="/auth" className="text-primary hover:underline font-medium">
-              Inicia sesión
+              {t('plantFinder.results.loginLink')}
             </a>
-            {' '}para guardar esta búsqueda
+            {' '}{t('plantFinder.results.loginToSave')}
           </p>
         )}
 
@@ -137,21 +139,21 @@ const PlantFinderResults = ({
         <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Guardar búsqueda</DialogTitle>
+              <DialogTitle>{t('plantFinder.results.saveDialog.title')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <Input
-                placeholder="Ej: Plantas para mi terraza"
+                placeholder={t('plantFinder.results.saveDialog.placeholder')}
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
               />
               <p className="text-sm text-muted-foreground">
-                Podrás acceder a esta búsqueda desde tu cuenta en "Búsquedas guardadas"
+                {t('plantFinder.results.saveDialog.hint')}
               </p>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleSaveSearch}
@@ -162,7 +164,7 @@ const PlantFinderResults = ({
                 ) : (
                   <Bookmark className="h-4 w-4 mr-2" />
                 )}
-                Guardar
+                {t('plantFinder.results.save')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -178,7 +180,7 @@ const PlantFinderResults = ({
         ) : (
           <div className="text-center py-12 bg-muted rounded-xl">
             <p className="text-muted-foreground mb-4">
-              Prueba a ajustar tus criterios o reiniciar la búsqueda
+              {t('plantFinder.results.empty')}
             </p>
             <Button
               onClick={onReset}
@@ -186,7 +188,7 @@ const PlantFinderResults = ({
               className="text-primary border-primary/30"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Empezar de nuevo
+              {t('plantFinder.results.startOver')}
             </Button>
           </div>
         )}

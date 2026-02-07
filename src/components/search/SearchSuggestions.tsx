@@ -1,13 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-const SEARCH_SUGGESTIONS = [
-  "plantas para código postal 28001",
-  "palmeras resistentes al frío Madrid",
-  "helechos que necesitan poca luz",
-  "plantas para Barcelona clima mediterráneo",
-  "código postal 46001 plantas",
-  "plantas tropicales para Sevilla"
-];
+const SUGGESTION_KEYS = ['s1', 's2', 's3', 's4', 's5', 's6'] as const;
 
 interface SearchSuggestionsProps {
   currentQuery: string;
@@ -17,7 +10,8 @@ interface SearchSuggestionsProps {
 const SearchSuggestions = ({ currentQuery, onSelect }: SearchSuggestionsProps) => {
   const { t } = useTranslation();
 
-  const suggestions = SEARCH_SUGGESTIONS
+  const suggestions = SUGGESTION_KEYS
+    .map(key => t(`searchSuggestions.${key}`))
     .filter(s => !s.toLowerCase().includes(currentQuery.toLowerCase()))
     .slice(0, 3);
 
