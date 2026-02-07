@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { plants } from '@/data/plants';
 
 interface SharedSearchList {
   id: string;
@@ -41,7 +40,6 @@ export const useSharedSearchList = () => {
       if (!user?.id) throw new Error('No user');
 
       if (sharedList) {
-        // Update existing
         const { data, error } = await supabase
           .from('shared_search_lists')
           .update({
@@ -56,7 +54,6 @@ export const useSharedSearchList = () => {
         if (error) throw error;
         return data;
       } else {
-        // Create new
         const { data, error } = await supabase
           .from('shared_search_lists')
           .insert({
@@ -92,7 +89,6 @@ export const useSharedSearchList = () => {
         if (error) throw error;
         return data;
       } else {
-        // Create as public
         const { data, error } = await supabase
           .from('shared_search_lists')
           .insert({
@@ -139,40 +135,40 @@ export const usePublicSearchList = (slug: string) => {
   return useQuery({
     queryKey: ['public-search-list', slug],
     queryFn: async () => {
-      // Use security definer function to fetch public list data without exposing user_id
       const { data, error } = await supabase
         .rpc('get_public_shared_list_by_slug' as any, { p_slug: slug });
 
       if (error) throw error;
       if (!data) return null;
 
-      const result = data as {
-        sharedList: Omit<SharedSearchList, 'user_id'>;
-        wishlistItems: Array<{
-          id: string;
-          name: string;
-          scientific_name: string | null;
-          image_url: string | null;
-          priority: string;
-          status: string;
-          notes: string | null;
-          variety_notes: string | null;
-          catalog_product_id: string | null;
-        }>;
-        stockNotifications: Array<{ id: string; plant_id: string }>;
-      };
+      const result = data as any;
 
-      // Enrich stock notifications with local plant data
-      const stockNotifications = (result.stockNotifications || []).map(n => {
-        const localPlant = plants.find(p => p.id === n.plant_id);
+      // Enrich stock notifications with catalog plant data from DB
+      const stockNotifRaw = result.stockNotifications || [];
+      const plantIds = stockNotifRaw.map((n: any) => n.plant_id).filter(Boolean);
+
+      let plantMap: Record<string, any> = {};
+      if (plantIds.length > 0) {
+        const { data: plantsData } = await supabase
+          .from('plants')
+          .select('id, name, scientific_name, images, price, stock_qty')
+          .in('id', plantIds);
+
+        (plantsData || []).forEach((p: any) => {
+          plantMap[p.id] = p;
+        });
+      }
+
+      const stockNotifications = stockNotifRaw.map((n: any) => {
+        const p = plantMap[n.plant_id];
         return {
           ...n,
-          plantData: localPlant ? {
-            name: localPlant.name,
-            scientificName: localPlant.commonName,
-            thumbnailUrl: localPlant.images?.[0],
-            price: localPlant.price,
-            isInStock: localPlant.quantity > 0,
+          plantData: p ? {
+            name: p.name,
+            scientificName: p.scientific_name,
+            thumbnailUrl: p.images?.[0] || null,
+            price: p.price,
+            isInStock: (p.stock_qty || 0) > 0,
           } : null,
         };
       });

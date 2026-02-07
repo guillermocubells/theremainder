@@ -34,15 +34,15 @@ const PublicPlantPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!plant || error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardContent className="p-8 text-center">
             <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -62,7 +62,7 @@ const PublicPlantPage = () => {
   const ogImage = plant.photos?.[0];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white py-8">
+    <div className="min-h-screen bg-background py-8">
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
@@ -77,9 +77,9 @@ const PublicPlantPage = () => {
       <div className="container max-w-2xl mx-auto px-4">
         {/* Header with logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 text-green-700 mb-2">
+          <div className="inline-flex items-center gap-2 text-primary mb-2">
             <Leaf className="h-6 w-6" />
-            <span className="font-semibold">Fronda Prima</span>
+            <span className="font-semibold">The Remainder</span>
           </div>
           <p className="text-sm text-muted-foreground">Colección de plantas</p>
         </div>
@@ -93,8 +93,8 @@ const PublicPlantPage = () => {
               className="w-full h-64 sm:h-80 object-cover"
             />
           ) : (
-            <div className="w-full h-48 bg-green-100 flex items-center justify-center">
-              <Leaf className="h-16 w-16 text-green-300" />
+            <div className="w-full h-48 bg-muted flex items-center justify-center">
+              <Leaf className="h-16 w-16 text-muted-foreground/30" />
             </div>
           )}
           
@@ -152,8 +152,8 @@ const PublicPlantPage = () => {
           <p className="text-sm text-muted-foreground">
             Página generada con{' '}
             <a 
-              href="https://frondaprima.lovable.app" 
-              className="text-green-600 hover:underline"
+              href="https://theremainder.lovable.app" 
+              className="text-primary hover:underline"
               target="_blank"
               rel="noopener noreferrer"
             >
