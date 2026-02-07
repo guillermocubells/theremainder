@@ -533,6 +533,240 @@
   },
   "referral": {
     "title": "Referidos",
-    "subtitle": "Comparte y gana crédito"
+    "subtitle": "Comparte y gana crédito",
+    "invalidCode": "Código no válido",
+    "selfReferral": "No puedes usar tu propio código",
+    "validationError": "Error al validar el código",
+    "codeApplied": "Código aplicado",
+    "haveCode": "¿Tienes un código de referido?",
+    "codePlaceholder": "Ej: FP-XXXX",
+    "apply": "Aplicar",
+    "yourCode": "Tu código de referido",
+    "copyLink": "Copiar enlace",
+    "linkCopied": "Enlace copiado",
+    "copyError": "No se pudo copiar",
+    "howItWorks": "Comparte tu enlace con amigos. Cuando hagan su primera compra (mín. {{min}}), recibirás un {{percent}}% en crédito (máx. {{max}}).",
+    "loading": "Cargando tu código...",
+    "availableBalance": "Saldo disponible",
+    "pendingBalance": "Pendiente de validar",
+    "pendingNote": "Se valida en {{days}} días",
+    "totalEarned": "Total ganado",
+    "referralsCount": "referidos",
+    "rewardHistory": "Historial de recompensas",
+    "capApplied": "tope aplicado",
+    "maturesOn": "Disponible",
+    "walletHistory": "Movimientos del monedero",
+    "txCredit": "Crédito recibido",
+    "txDebit": "Crédito utilizado"
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "subtitle": "Encuentra respuestas a las dudas más comunes sobre nuestros productos, envíos, pagos y políticas.",
+    "categories": {
+      "orders": "Pedidos y Envíos",
+      "plants": "Plantas y Cuidados",
+      "payments": "Pagos y Facturación",
+      "returns": "Devoluciones y Garantía",
+      "referral": "Programa de Referidos",
+      "account": "Cuenta y Privacidad"
+    },
+    "cta": {
+      "title": "¿No encuentras lo que buscas?",
+      "description": "Nuestro equipo está aquí para ayudarte con cualquier duda.",
+      "button": "Contactar con nosotros"
+    }
+  },
+  "shippingInfo": {
+    "title": "Envíos y entregas",
+    "sections": {
+      "preparation": {
+        "title": "1. Preparación y días de envío",
+        "p1": "Los pedidos se preparan y se envían los lunes al inicio de cada semana, salvo que se notifique lo contrario de forma interna.",
+        "p2": "Una vez preparado, el envío queda en manos del transportista correspondiente."
+      },
+      "zones": {
+        "title": "2. Zonas de envío",
+        "description": "Enviamos principalmente dentro de la Unión Europea, con distintos proveedores según destino.",
+        "alert": "No realizamos envíos a: Islas Canarias, Islas Baleares, Ceuta y Melilla.",
+        "spain": "España (Península): envíos disponibles en toda la península."
+      },
+      "costs": {
+        "title": "3. Gastos de envío",
+        "alert": "La web calcula automáticamente los gastos de envío según la altura y el peso de la planta.",
+        "special": "Para macetas especiales 40–50 cm: consultar precios."
+      },
+      "ratesSpain": {
+        "title": "4. Tarifas orientativas — España (Península)",
+        "headers": ["Maceta / Peso estimado", "1 planta", "Planta adicional"],
+        "note": "Tarifas orientativas. El coste final se calcula automáticamente en el checkout en función de peso y altura."
+      },
+      "ratesEU": {
+        "title": "5. Tarifas orientativas — Unión Europea (Zona 1)",
+        "description": "Países incluidos: Alemania, Austria, Bélgica, Dinamarca, Eslovaquia, Eslovenia, Francia, Italia, Luxemburgo, Países Bajos, Polonia, Portugal, República Checa.",
+        "note": "Nota: Envíos a islas de Italia y Francia: coste fijo adicional de 20 €."
+      },
+      "carriers": {
+        "title": "6. Transportistas y tiempos de entrega",
+        "spain": "España (Península): Seur → entrega estimada 24–72 h",
+        "eu": "Unión Europea: DPD Group (estándar) → entrega estimada 4–6 días laborables",
+        "note": "Los plazos son estimados y pueden variar según la temporada y las condiciones del transporte."
+      },
+      "returns": {
+        "title": "7. Devoluciones",
+        "l1": "Las devoluciones solo se aceptan durante los 15 días posteriores a la entrega de la planta.",
+        "l2": "Transcurrido ese plazo, no se aceptarán devoluciones, ya que el deterioro suele deberse a mala manipulación o condiciones de cultivo.",
+        "l3": "Las devoluciones serán a cargo del comprador si las plantas llegan en buen estado y cumplen las medidas especificadas en el anuncio."
+      },
+      "payments": {
+        "title": "8. Pagos y comisiones",
+        "paypal": "PayPal: coste adicional del 3,20% del importe total de la compra.",
+        "stripe": "Stripe: puede aplicar un coste adicional según la plataforma y método de pago.",
+        "others": "Resto de métodos de pago: sin coste adicional."
+      }
+    }
+  },
+  "privacyPolicy": {
+    "title": "Política de Privacidad y de Cookies",
+    "updated": "Versión actualizada: 02/2026",
+    "intro": "En cumplimiento del Reglamento (UE) 2016/679 (RGPD), la Ley Orgánica 3/2018...",
+    "sections": {
+      "responsible": "1. Responsable del tratamiento",
+      "purpose": "2. Finalidades del tratamiento",
+      "types": "3. Tipos de datos tratados",
+      "legal": "4. Base jurídica del tratamiento",
+      "recipients": "5. Destinatarios y encargados del tratamiento",
+      "transfers": "6. Transferencias internacionales de datos",
+      "retention": "7. Plazo de conservación",
+      "rights": "8. Derechos del usuario",
+      "security": "9. Medidas de seguridad",
+      "minors": "10. Menores de edad",
+      "cookies": "II. Política de Cookies"
+    }
+  },
+  "termsOfSale": {
+    "title": "Condiciones Generales de Venta",
+    "updated": "Versión actualizada: 02/2026",
+    "sections": {
+      "id": "1. Identificación del vendedor",
+      "scope": "2. Ámbito de aplicación",
+      "products": "3. Productos",
+      "prices": "4. Precios",
+      "process": "5. Proceso de compra",
+      "payment": "6. Métodos de pago",
+      "shipping": "7. Envíos y entregas",
+      "withdrawal": "8. Derecho de desistimiento",
+      "returns": "9. Devoluciones y reclamaciones",
+      "warranty": "10. Garantía",
+      "ip": "11. Propiedad intelectual",
+      "data": "12. Protección de datos",
+      "law": "13. Legislación aplicable y jurisdicción",
+      "modification": "14. Modificación de las condiciones",
+      "contact": "15. Contacto"
+    }
+  },
+  "referralProgram": {
+    "title": "Programa de Referidos Frondaprima",
+    "sections": {
+      "how": "¿Cómo funciona?",
+      "what": "¿Qué obtengo?",
+      "usage": "¿Cómo uso mi saldo?",
+      "validation": "Cuándo se valida el crédito",
+      "returns": "Devoluciones y ajustes",
+      "conditions": "Condiciones importantes",
+      "transparency": "Transparencia"
+    }
+  },
+  "collection": {
+    "addPlant": {
+      "title": "Añadir planta a mi colección",
+      "photos": "Fotos",
+      "nickname": "Apodo",
+      "scientificName": "Nombre científico",
+      "commonName": "Nombre común",
+      "status": "Estado",
+      "location": "Ubicación",
+      "selectLocation": "Seleccionar ubicación",
+      "newLocation": "Nueva ubicación",
+      "purchaseDate": "Fecha de compra",
+      "nextCheckin": "Próximo chequeo",
+      "tags": "Etiquetas (separadas por coma)",
+      "add": "Añadir planta",
+      "success": "Planta añadida a tu colección"
+    },
+    "addObservation": {
+      "title": "Registrar observación",
+      "plant": "Planta",
+      "date": "Fecha",
+      "status": "Estado",
+      "notes": "Notas",
+      "placeholder": "Describe lo que observas...",
+      "save": "Guardar observación",
+      "success": "Observación registrada"
+    },
+    "status": {
+      "alive": "Viva",
+      "dormant": "Latente",
+      "sick": "Enferma",
+      "removed": "Eliminada"
+    },
+    "condition": {
+      "healthy": "Saludable",
+      "okay": "Aceptable",
+      "concern": "Preocupante",
+      "critical": "Crítico"
+    }
+  },
+  "garden": {
+    "kanban": {
+      "searching": "En búsqueda",
+      "inCollection": "En colección",
+      "archived": "Ya no disponibles",
+      "empty": {
+        "searching": "Añade plantas que deseas conseguir",
+        "inCollection": "Tus plantas aparecerán aquí",
+        "archived": "Plantas perdidas, regaladas o que ya no existen"
+      }
+    },
+    "inquiries": {
+      "title": "Consultas de visitantes",
+      "new": "Nuevas",
+      "replied": "Respondidas",
+      "ignored": "Ignoradas",
+      "all": "Todas",
+      "reply": "Responder",
+      "ignore": "Ignorar",
+      "block": "Bloquear",
+      "types": {
+        "buy": "Quiere comprar",
+        "trade": "Propone intercambio",
+        "question": "Pregunta"
+      }
+    }
+  },
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "message": "No se pudo cargar esta sección. Intenta de nuevo.",
+    "retry": "Reintentar"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "¡Vaya! Página no encontrada",
+    "back": "Volver al inicio"
+  },
+  "countries": {
+    "ES": "España",
+    "FR": "Francia",
+    "DE": "Alemania",
+    "IT": "Italia",
+    "PT": "Portugal",
+    "NL": "Países Bajos",
+    "BE": "Bélgica",
+    "AT": "Austria",
+    "PL": "Polonia",
+    "DK": "Dinamarca",
+    "CZ": "República Checa",
+    "SK": "Eslovaquia",
+    "SI": "Eslovenia",
+    "LU": "Luxemburgo"
   }
 }

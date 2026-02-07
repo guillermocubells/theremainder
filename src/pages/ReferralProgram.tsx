@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Separator } from "@/components/ui/separator";
 
 const ReferralProgram = () => {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
@@ -22,20 +24,18 @@ const ReferralProgram = () => {
           {/* Page Header */}
           <header className="text-center mb-10 md:mb-14 not-prose">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Programa de Referidos Frondaprima
+              {t('referralProgram.title')}
             </h1>
           </header>
+
 
           {/* Sección: ¿Cómo funciona? */}
           <section className="space-y-4">
             <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-8 mb-4">
-              ¿Cómo funciona?
+              {t('referralProgram.sections.how')}
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              Comparte Frondaprima con otras personas.
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              Si alguien nuevo llega a la plataforma a través de tu enlace y realiza su primera compra, recibirás un <strong className="text-foreground">5% del valor del pedido</strong> en crédito para tus futuras compras.
+              {t('referral.howItWorks', { min: '25€', percent: '5', max: '20€' })}
             </p>
           </section>
 
@@ -44,13 +44,13 @@ const ReferralProgram = () => {
           {/* Sección: ¿Qué obtengo? */}
           <section className="space-y-4">
             <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-8 mb-4">
-              ¿Qué obtengo?
+              {t('referralProgram.sections.what')}
             </h2>
             <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
-              <li><strong className="text-foreground">5%</strong> del valor del pedido del usuario referido</li>
-              <li>Solo en su <strong className="text-foreground">primera compra</strong> (mínimo 25 €)</li>
-              <li>Crédito máximo por pedido: <strong className="text-foreground">20 €</strong></li>
-              <li>El crédito se acumula en tu cuenta como <strong className="text-foreground">saldo Frondaprima</strong></li>
+              <li><strong className="text-foreground">5%</strong> {t('referralProgram.sections.what_li1', 'del valor del pedido del usuario referido')}</li>
+              <li>{t('referralProgram.sections.what_li2', 'Solo en su primera compra (mínimo 25 €)')}</li>
+              <li>{t('referralProgram.sections.what_li3', 'Crédito máximo por pedido: 20 €')}</li>
+              <li>{t('referralProgram.sections.what_li4', 'El crédito se acumula en tu cuenta como saldo Frondaprima')}</li>
             </ul>
           </section>
 
@@ -59,13 +59,13 @@ const ReferralProgram = () => {
           {/* Sección: ¿Cómo uso mi saldo? */}
           <section className="space-y-4">
             <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-8 mb-4">
-              ¿Cómo uso mi saldo?
+              {t('referralProgram.sections.usage')}
             </h2>
             <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
-              <li>El saldo puede utilizarse para <strong className="text-foreground">comprar plantas</strong> en Frondaprima</li>
-              <li>Se puede usar hasta un <strong className="text-foreground">100%</strong> del valor de los productos del carrito</li>
-              <li>El saldo <strong className="text-foreground">no puede utilizarse</strong> para gastos de envío</li>
-              <li>El saldo no es dinero en efectivo, <strong className="text-foreground">no se puede retirar ni transferir</strong></li>
+              <li>{t('referralProgram.sections.usage_li1', 'El saldo puede utilizarse para comprar plantas en Frondaprima')}</li>
+              <li>{t('referralProgram.sections.usage_li2', 'Se puede usar hasta un 100% del valor de los productos del carrito')}</li>
+              <li>{t('referralProgram.sections.usage_li3', 'El saldo no puede utilizarse para gastos de envío')}</li>
+              <li>{t('referralProgram.sections.usage_li4', 'El saldo no es dinero en efectivo, no se puede retirar ni transferir')}</li>
             </ul>
           </section>
 
@@ -74,11 +74,11 @@ const ReferralProgram = () => {
           {/* Sección: Cuándo se valida el crédito */}
           <section className="space-y-4">
             <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-8 mb-4">
-              Cuándo se valida el crédito
+              {t('referralProgram.sections.validation')}
             </h2>
             <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
-              <li>El crédito se genera cuando el pedido del usuario referido está <strong className="text-foreground">pagado</strong></li>
-              <li>El crédito pasa a estar disponible <strong className="text-foreground">14 días después</strong>, siempre que no haya incidencias o devoluciones</li>
+              <li>{t('referralProgram.sections.validation_li1', 'El crédito se genera cuando el pedido del usuario referido está pagado')}</li>
+              <li>{t('referralProgram.sections.validation_li2', 'El crédito pasa a estar disponible 14 días después, siempre que no haya incidencias o devoluciones')}</li>
             </ul>
           </section>
 
@@ -87,11 +87,11 @@ const ReferralProgram = () => {
           {/* Sección: Devoluciones y ajustes */}
           <section className="space-y-4">
             <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-8 mb-4">
-              Devoluciones y ajustes
+              {t('referralProgram.sections.returns')}
             </h2>
             <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
-              <li>Si el pedido referido se devuelve total o parcialmente, el crédito generado se <strong className="text-foreground">ajustará o cancelará automáticamente</strong></li>
-              <li>No se generan créditos sobre pedidos devueltos</li>
+              <li>{t('referralProgram.sections.returns_li1', 'Si el pedido referido se devuelve total o parcialmente, el crédito generado se ajustará o cancelará automáticamente')}</li>
+              <li>{t('referralProgram.sections.returns_li2', 'No se generan créditos sobre pedidos devueltos')}</li>
             </ul>
           </section>
 
@@ -100,13 +100,13 @@ const ReferralProgram = () => {
           {/* Sección: Condiciones importantes */}
           <section className="space-y-4">
             <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-8 mb-4">
-              Condiciones importantes
+              {t('referralProgram.sections.conditions')}
             </h2>
             <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
-              <li>Solo válido para <strong className="text-foreground">usuarios nuevos</strong></li>
-              <li>Solo aplica al <strong className="text-foreground">primer pedido</strong></li>
-              <li>No se permiten <strong className="text-foreground">autorreferidos</strong></li>
-              <li>Frondaprima se reserva el derecho de <strong className="text-foreground">anular créditos</strong> en caso de uso indebido</li>
+              <li>{t('referralProgram.sections.conditions_li1', 'Solo válido para usuarios nuevos')}</li>
+              <li>{t('referralProgram.sections.conditions_li2', 'Solo aplica al primer pedido')}</li>
+              <li>{t('referralProgram.sections.conditions_li3', 'No se permiten autorreferidos')}</li>
+              <li>{t('referralProgram.sections.conditions_li4', 'Frondaprima se reserva el derecho de anular créditos en caso de uso indebido')}</li>
             </ul>
           </section>
 
@@ -115,11 +115,11 @@ const ReferralProgram = () => {
           {/* Sección: Transparencia */}
           <section className="space-y-4">
             <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-8 mb-4">
-              Transparencia
+              {t('referralProgram.sections.transparency')}
             </h2>
             <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
-              <li>Puedes consultar tus créditos y movimientos desde <strong className="text-foreground">tu cuenta</strong></li>
-              <li>El historial de saldo es <strong className="text-foreground">visible y auditable</strong></li>
+              <li>{t('referralProgram.sections.transparency_li1', 'Puedes consultar tus créditos y movimientos desde tu cuenta')}</li>
+              <li>{t('referralProgram.sections.transparency_li2', 'El historial de saldo es visible y auditable')}</li>
             </ul>
           </section>
         </article>
