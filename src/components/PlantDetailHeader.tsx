@@ -241,21 +241,8 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             </TooltipContent>
           </Tooltip>
 
-          {plant.quantity && Number(plant.quantity) > 0 && (
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground cursor-default">
-                  <span>{plant.quantity}x {t('plant.available')}</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="start" className="text-left">
-                <div>
-                  <p className="font-semibold">{t('plant.availability')}</p>
-                  <p className="text-xs sm:text-sm">{t('plant.availableQuantity')}: {plant.quantity} {plant.quantity === 1 ? t('plant.unit') : t('plant.units')}</p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          )}
+
+
 
           {/* Climate Zones badge */}
           {plant.climateZones && plant.climateZones.length > 0 && (
