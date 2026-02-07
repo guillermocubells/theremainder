@@ -134,6 +134,23 @@ RESPONSE FORMAT (STRICT JSON):
 {"recommendations":[{"plant_id":"uuid","fit_score":0.85,"reasoning":"Why this plant matches","tradeoffs":"Limitations"}],"confidence":"low"|"medium"|"high","no_good_match":false}
 Return max 3 recommendations ordered by fit_score. If all scores < 0.5, set no_good_match: true.`;
 
+// Simple in-memory rate limiter for anonymous users
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX_ANON = 10; // 10 requests/hour for anonymous
+
+function checkRateLimit(key: string, maxRequests: number): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= maxRequests) return false;
+  entry.count++;
+  return true;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -152,6 +169,19 @@ serve(async (req) => {
       if (userData?.user) {
         userId = userData.user.id;
       }
+    }
+
+    // Rate limit anonymous users to prevent AI API cost abuse
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rateLimitKey = userId !== "anonymous" ? `user:${userId}` : `ip:${clientIp}`;
+    const maxRequests = userId !== "anonymous" ? 30 : RATE_LIMIT_MAX_ANON;
+
+    if (!checkRateLimit(rateLimitKey, maxRequests)) {
+      console.warn("[recommend-plants] Rate limit exceeded for:", rateLimitKey);
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 429 }
+      );
     }
 
     console.log("[recommend-plants] User:", userId);
