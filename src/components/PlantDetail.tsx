@@ -229,6 +229,7 @@ const PlantDetail = () => {
         items={[
           { name: "Inicio", url: "/" },
           { name: "Catálogo", url: "/#catalogo" },
+          ...(plant.plantGroup ? [{ name: plant.plantGroup, url: `/#catalogo` }] : []),
           { name: plant.name, url: `/plant/${plant.id}` },
         ]} 
       />
