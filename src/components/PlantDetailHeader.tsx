@@ -11,6 +11,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import AddToCartButton from "./AddToCartButton";
 import StockNotificationButton from "./StockNotificationButton";
 import SocialShareButtons from "./SocialShareButtons";
+import TrustBadges from "./TrustBadges";
+import ScarcityIndicator from "./ScarcityIndicator";
 import { useCatalogFavorite } from "@/hooks/wishlist";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -377,6 +379,11 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           </Collapsible>
         )}
 
+        {/* Scarcity indicator */}
+        {plant.quantity && Number(plant.quantity) > 0 && Number(plant.quantity) <= 3 && (
+          <ScarcityIndicator quantity={Number(plant.quantity)} />
+        )}
+
         {/* Price and Add to cart button OR Stock Notification */}
         {plant.quantity && Number(plant.quantity) > 0 ? (
           <div className="pt-4 sm:pt-6 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12">
@@ -408,6 +415,9 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             <StockNotificationButton plantId={plant.id} />
           </div>
         )}
+
+        {/* Trust badges */}
+        <TrustBadges />
       </div>
     </div>
   );

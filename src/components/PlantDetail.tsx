@@ -26,6 +26,7 @@ import RecentlyViewed from "./RecentlyViewed";
 import RecentlyPurchased from "./RecentlyPurchased";
 import CompleteYourOrder from "./CompleteYourOrder";
 import Footer from "./Footer";
+import StickyMobileCTA from "./StickyMobileCTA";
 
 const PlantDetail = () => {
   const { plantId } = useParams();
@@ -347,11 +348,25 @@ const PlantDetail = () => {
             <div className="animate-fade-in" style={{ animationDelay: '500ms' }}>
               <RecentlyPurchased currentPlant={plant} />
             </div>
-          </div>
         </div>
+        {/* Mobile bottom spacing for sticky CTA */}
+        <div className="h-20 sm:hidden" />
+      </div>
 
-        {/* Footer */}
-        <Footer />
+      {/* Sticky mobile CTA bar */}
+      {plant.quantity && Number(plant.quantity) > 0 && (
+        <StickyMobileCTA
+          plantId={plant.id}
+          plantName={plant.name}
+          price={plant.price || 0}
+          maxQuantity={Number(plant.quantity)}
+          image={plant.images?.[0]}
+          containerSize={plant.containerSize}
+        />
+      )}
+
+      {/* Footer */}
+      <Footer />
 
         {/* Scroll to Top Button - positioned to not overlap WhatsApp button (bottom-right) */}
         {showScrollTop && (
