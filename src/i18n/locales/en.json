@@ -533,6 +533,240 @@
   },
   "referral": {
     "title": "Referrals",
-    "subtitle": "Share and earn credit"
+    "subtitle": "Share and earn credit",
+    "invalidCode": "Invalid code",
+    "selfReferral": "You cannot use your own code",
+    "validationError": "Error validating code",
+    "codeApplied": "Code applied",
+    "haveCode": "Have a referral code?",
+    "codePlaceholder": "E.g. FP-XXXX",
+    "apply": "Apply",
+    "yourCode": "Your referral code",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "copyError": "Could not copy",
+    "howItWorks": "Share your link with friends. When they make their first purchase (min. {{min}}), you receive {{percent}}% in credit (max. {{max}}).",
+    "loading": "Loading your code...",
+    "availableBalance": "Available balance",
+    "pendingBalance": "Pending validation",
+    "pendingNote": "Validated in {{days}} days",
+    "totalEarned": "Total earned",
+    "referralsCount": "referrals",
+    "rewardHistory": "Reward history",
+    "capApplied": "cap applied",
+    "maturesOn": "Available",
+    "walletHistory": "Wallet transactions",
+    "txCredit": "Credit received",
+    "txDebit": "Credit used"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to the most common questions about our products, shipping, payments, and policies.",
+    "categories": {
+      "orders": "Orders & Shipping",
+      "plants": "Plants & Care",
+      "payments": "Payments & Billing",
+      "returns": "Returns & Warranty",
+      "referral": "Referral Program",
+      "account": "Account & Privacy"
+    },
+    "cta": {
+      "title": "Can't find what you're looking for?",
+      "description": "Our team is here to help you with any questions.",
+      "button": "Contact us"
+    }
+  },
+  "shippingInfo": {
+    "title": "Shipping & Delivery",
+    "sections": {
+      "preparation": {
+        "title": "1. Preparation and shipping days",
+        "p1": "Orders are prepared and shipped on Mondays at the beginning of each week, unless otherwise notified internally.",
+        "p2": "Once prepared, the shipment is handed over to the corresponding carrier."
+      },
+      "zones": {
+        "title": "2. Shipping zones",
+        "description": "We ship mainly within the European Union, with different providers depending on the destination.",
+        "alert": "We do not ship to: Canary Islands, Balearic Islands, Ceuta, and Melilla.",
+        "spain": "Spain (Mainland): shipping available throughout the peninsula."
+      },
+      "costs": {
+        "title": "3. Shipping costs",
+        "alert": "The website automatically calculates shipping costs based on the height and weight of the plant.",
+        "special": "For special pots 40–50 cm: consult prices."
+      },
+      "ratesSpain": {
+        "title": "4. Indicative rates — Spain (Mainland)",
+        "headers": ["Pot / Estimated Weight", "1 plant", "Additional plant"],
+        "note": "Indicative rates. The final cost is calculated automatically at checkout based on weight and height."
+      },
+      "ratesEU": {
+        "title": "5. Indicative rates — European Union (Zone 1)",
+        "description": "Countries included: Germany, Austria, Belgium, Denmark, Slovakia, Slovenia, France, Italy, Luxembourg, Netherlands, Poland, Portugal, Czech Republic.",
+        "note": "Note: Shipments to islands of Italy and France: additional fixed cost of €20."
+      },
+      "carriers": {
+        "title": "6. Carriers and delivery times",
+        "spain": "Spain (Mainland): Seur → estimated delivery 24–72 h",
+        "eu": "European Union: DPD Group (standard) → estimated delivery 4–6 business days",
+        "note": "Times are estimates and may vary depending on the season and transport conditions."
+      },
+      "returns": {
+        "title": "7. Returns",
+        "l1": "Returns are only accepted within 15 days after delivery of the plant.",
+        "l2": "After this period, returns will not be accepted, as deterioration is usually due to poor handling or growing conditions.",
+        "l3": "Returns will be at the buyer's expense if the plants arrive in good condition and meet the measurements specified in the listing."
+      },
+      "payments": {
+        "title": "8. Payments and fees",
+        "paypal": "PayPal: additional cost of 3.20% of the total purchase amount.",
+        "stripe": "Stripe: may apply an additional cost depending on the platform and payment method.",
+        "others": "Other payment methods: no additional cost."
+      }
+    }
+  },
+  "privacyPolicy": {
+    "title": "Privacy and Cookies Policy",
+    "updated": "Updated version: 02/2026",
+    "intro": "In compliance with Regulation (EU) 2016/679 (GDPR), Organic Law 3/2018...",
+    "sections": {
+      "responsible": "1. Data Controller",
+      "purpose": "2. Purposes of processing",
+      "types": "3. Types of data processed",
+      "legal": "4. Legal basis for processing",
+      "recipients": "5. Recipients and data processors",
+      "transfers": "6. International data transfers",
+      "retention": "7. Retention period",
+      "rights": "8. User rights",
+      "security": "9. Security measures",
+      "minors": "10. Minors",
+      "cookies": "II. Cookies Policy"
+    }
+  },
+  "termsOfSale": {
+    "title": "General Terms of Sale",
+    "updated": "Updated version: 02/2026",
+    "sections": {
+      "id": "1. Identification of the seller",
+      "scope": "2. Scope of application",
+      "products": "3. Products",
+      "prices": "4. Prices",
+      "process": "5. Purchase process",
+      "payment": "6. Payment methods",
+      "shipping": "7. Shipping and delivery",
+      "withdrawal": "8. Right of withdrawal",
+      "returns": "9. Returns and claims",
+      "warranty": "10. Warranty",
+      "ip": "11. Intellectual property",
+      "data": "12. Data protection",
+      "law": "13. Applicable law and jurisdiction",
+      "modification": "14. Modification of conditions",
+      "contact": "15. Contact"
+    }
+  },
+  "referralProgram": {
+    "title": "Frondaprima Referral Program",
+    "sections": {
+      "how": "How does it work?",
+      "what": "What do I get?",
+      "usage": "How do I use my balance?",
+      "validation": "When is credit validated",
+      "returns": "Returns and adjustments",
+      "conditions": "Important conditions",
+      "transparency": "Transparency"
+    }
+  },
+  "collection": {
+    "addPlant": {
+      "title": "Add plant to my collection",
+      "photos": "Photos",
+      "nickname": "Nickname",
+      "scientificName": "Scientific name",
+      "commonName": "Common name",
+      "status": "Status",
+      "location": "Location",
+      "selectLocation": "Select location",
+      "newLocation": "New location",
+      "purchaseDate": "Purchase date",
+      "nextCheckin": "Next check-in",
+      "tags": "Tags (comma separated)",
+      "add": "Add plant",
+      "success": "Plant added to your collection"
+    },
+    "addObservation": {
+      "title": "Log observation",
+      "plant": "Plant",
+      "date": "Date",
+      "status": "Status",
+      "notes": "Notes",
+      "placeholder": "Describe what you observe...",
+      "save": "Save observation",
+      "success": "Observation logged"
+    },
+    "status": {
+      "alive": "Alive",
+      "dormant": "Dormant",
+      "sick": "Sick",
+      "removed": "Removed"
+    },
+    "condition": {
+      "healthy": "Healthy",
+      "okay": "Okay",
+      "concern": "Concern",
+      "critical": "Critical"
+    }
+  },
+  "garden": {
+    "kanban": {
+      "searching": "Searching",
+      "inCollection": "In collection",
+      "archived": "No longer available",
+      "empty": {
+        "searching": "Add plants you wish to get",
+        "inCollection": "Your plants will appear here",
+        "archived": "Lost, gifted, or non-existent plants"
+      }
+    },
+    "inquiries": {
+      "title": "Visitor Inquiries",
+      "new": "New",
+      "replied": "Replied",
+      "ignored": "Ignored",
+      "all": "All",
+      "reply": "Reply",
+      "ignore": "Ignore",
+      "block": "Block",
+      "types": {
+        "buy": "Wants to buy",
+        "trade": "Proposes trade",
+        "question": "Question"
+      }
+    }
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "message": "Could not load this section. Try again.",
+    "retry": "Retry"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "Oops! Page not found",
+    "back": "Return to Home"
+  },
+  "countries": {
+    "ES": "Spain",
+    "FR": "France",
+    "DE": "Germany",
+    "IT": "Italy",
+    "PT": "Portugal",
+    "NL": "Netherlands",
+    "BE": "Belgium",
+    "AT": "Austria",
+    "PL": "Poland",
+    "DK": "Denmark",
+    "CZ": "Czech Republic",
+    "SK": "Slovakia",
+    "SI": "Slovenia",
+    "LU": "Luxembourg"
   }
 }
