@@ -213,7 +213,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
         <div className="flex flex-wrap gap-2 sm:gap-3">
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium cursor-help ${lightInfo.color}`}>
+              <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium cursor-default ${lightInfo.color}`}>
                 <LightIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>{lightInfo.text}</span>
               </div>
@@ -228,7 +228,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
 
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium cursor-help ${growthInfo.color}`}>
+              <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium cursor-default ${growthInfo.color}`}>
                 <GrowthIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>{growthInfo.text}</span>
               </div>
@@ -244,7 +244,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           {plant.quantity && Number(plant.quantity) > 0 && (
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground cursor-help">
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground cursor-default">
                   <span>{plant.quantity}x {t('plant.available')}</span>
                 </div>
               </TooltipTrigger>
@@ -261,7 +261,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           {plant.climateZones && plant.climateZones.length > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground border border-border cursor-help capitalize">
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-secondary text-secondary-foreground border border-border cursor-default capitalize">
                   <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>{plant.climateZones.join(', ')}</span>
                 </div>
@@ -277,7 +277,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
           {plant.hardinessZones && plant.hardinessZones.length > 0 && (
             <Popover>
               <PopoverTrigger asChild>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-accent text-accent-foreground border border-border cursor-help">
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-accent text-accent-foreground border border-border cursor-default">
                   <Thermometer className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>{formatHardinessZones(plant.hardinessZones)}</span>
                 </div>
