@@ -91,6 +91,7 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
               src={displayImages[selectedIndex]}
               alt={`${plantName} - imagen ${selectedIndex + 1}`}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              wrapperClassName="w-full h-full"
               loading="eager"
             />
             {/* Zoom button */}
