@@ -28,7 +28,7 @@ const CollectionPlantCard = ({ plant }: CollectionPlantCardProps) => {
   const locationName = plant.plant_locations?.name || plant.location_text;
   
   return (
-    <Link to={`/collection/plant/${plant.id}`}>
+    <Link to={`/garden/plant/${plant.id}`}>
       <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
         <CardContent className="p-0">
           {/* Image */}

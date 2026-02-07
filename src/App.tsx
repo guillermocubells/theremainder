@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -86,30 +86,29 @@ const App = () => (
                   <MyGarden />
                 </ProtectedRoute>
               } />
-              
-              {/* Legacy routes - redirect to unified garden */}
-              <Route path="/collection" element={
-                <ProtectedRoute>
-                  <MyGarden />
-                </ProtectedRoute>
-              } />
-              <Route path="/collection/plant/:id" element={
+              <Route path="/garden/plant/:id" element={
                 <ProtectedRoute>
                   <PlantDetailPage />
                 </ProtectedRoute>
               } />
-              <Route path="/collection/locations" element={
+              <Route path="/garden/locations" element={
                 <ProtectedRoute>
                   <LocationsPage />
                 </ProtectedRoute>
               } />
               
-              {/* Wishlist route - redirect to unified garden */}
-              <Route path="/account/wishlist" element={
+              {/* Legacy routes - redirect to unified garden */}
+              <Route path="/collection" element={<Navigate to="/garden" replace />} />
+              <Route path="/account/wishlist" element={<Navigate to="/garden" replace />} />
+              <Route path="/account/wishlist/notifications" element={<Navigate to="/garden" replace />} />
+              
+              {/* Collection sub-pages redirect to garden equivalents */}
+              <Route path="/collection/plant/:id" element={
                 <ProtectedRoute>
-                  <MyGarden />
+                  <PlantDetailPage />
                 </ProtectedRoute>
               } />
+              <Route path="/collection/locations" element={<Navigate to="/garden/locations" replace />} />
               
               {/* Public plant page (no auth required) */}
               <Route path="/p/:slug" element={<PublicPlantPage />} />
