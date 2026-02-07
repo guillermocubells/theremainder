@@ -1,12 +1,13 @@
 
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { ArrowLeft, TreePalm, User, ChevronUp } from "lucide-react";
+import { ArrowLeft, TreePalm, User, ChevronUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from 'react-i18next';
-import { plants } from "@/data/plants";
-import { plantDetails } from "@/data/plantDetailData";
+import { plants, Plant } from "@/data/plants";
+import { plantDetails, PlantDetailData } from "@/data/plantDetailData";
+import { supabase } from "@/integrations/supabase/client";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
@@ -33,8 +34,111 @@ const PlantDetail = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { addToRecentlyViewed } = useRecentlyViewed();
-  const plant = plants.find(p => p.id === plantId);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [dbPlant, setDbPlant] = useState<Plant | null>(null);
+  const [dbDetail, setDbDetail] = useState<PlantDetailData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Try static data first
+  const staticPlant = plants.find(p => p.id === plantId);
+
+  // Fetch from DB if not in static data
+  useEffect(() => {
+    if (staticPlant || !plantId) return;
+    
+    let cancelled = false;
+    setLoading(true);
+    
+    supabase
+      .from("plants")
+      .select("*")
+      .eq("slug", plantId)
+      .eq("is_active", true)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) {
+          setLoading(false);
+          return;
+        }
+        
+        const row = data as Record<string, unknown>;
+        const images = (row.images as string[] | null) || [];
+        const thumbnail = row.thumbnail_url as string | null;
+        const allImages = thumbnail && !images.includes(thumbnail)
+          ? [thumbnail, ...images]
+          : images;
+        
+        const mapWater = (w: string | null) => {
+          if (!w) return undefined;
+          if (w === "low") return "Baja" as const;
+          if (w === "high") return "Alta" as const;
+          return "Moderada" as const;
+        };
+        const mapLight = (exp: string[] | null) => {
+          if (!exp?.length) return "Semisol";
+          const f = exp[0];
+          if (f === "full_sun" || f === "sol") return "Soleada";
+          if (f === "shade" || f === "full_shade" || f === "sombra") return "Sombreada";
+          return "Semisol";
+        };
+        const mapGrowth = (g: string | null) => {
+          if (!g) return "Medio";
+          if (g.toLowerCase() === "slow") return "Lento";
+          if (g.toLowerCase() === "fast") return "Rápido";
+          return "Medio";
+        };
+        
+        const mapped: Plant = {
+          id: row.slug as string,
+          name: row.name as string,
+          variety: "",
+          quantity: (row.stock_qty as number) ?? 0,
+          commonName: (row.common_name as string) || (row.name as string),
+          description: (row.short_description as string) || (row.description as string) || "",
+          link: "",
+          location: (row.origin_country as string) || "",
+          light: mapLight(row.exposure as string[] | null),
+          growthRate: mapGrowth(row.growth_rate as string | null),
+          notes: (row.notes as string) || "",
+          price: row.sale_price ? (row.sale_price as number) : (row.price as number) ?? 0,
+          images: allImages,
+          hardinessZones: (row.climate_zones as string[] | null) || [],
+          waterNeeds: mapWater(row.water as string | null),
+          containerSize: (row.container_size as string) || undefined,
+          germinationDate: (row.germination_date as string) || undefined,
+        };
+        
+        setDbPlant(mapped);
+        
+        // Build detail from DB fields
+        const care = row.care_instructions as Record<string, string> | null;
+        const facts = row.curious_facts as string[] | null;
+        const specs = row.specifications as Record<string, string> | null;
+        
+        const detail: PlantDetailData = {
+          family: specs?.family || (row.plant_type as string) || undefined,
+          origin: [row.origin_country, row.origin_region].filter(Boolean).join(", ") || undefined,
+          height: (row.mature_height as string) || undefined,
+          climate: (row.temperature_range as string) || undefined,
+          careInstructions: care ? Object.values(care) : undefined,
+          characteristics: [
+            row.native_habitat && `Hábitat: ${row.native_habitat}`,
+            row.mature_height && `Altura: ${row.mature_height}`,
+            row.mature_width && `Ancho: ${row.mature_width}`,
+            row.hardiness_zone && `Zona: ${row.hardiness_zone}`,
+          ].filter(Boolean) as string[],
+          curiousFacts: facts || undefined,
+        };
+        
+        setDbDetail(detail);
+        setLoading(false);
+      });
+    
+    return () => { cancelled = true; };
+  }, [plantId, staticPlant]);
+
+  const plant = staticPlant || dbPlant;
+  const detail = staticPlant ? plantDetails[staticPlant.id] : dbDetail;
 
   // Track scroll position to show/hide the scroll-to-top button
   useEffect(() => {
@@ -94,6 +198,14 @@ const PlantDetail = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (!plant) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -106,8 +218,6 @@ const PlantDetail = () => {
       </div>
     );
   }
-
-  const detail = plantDetails[plant.id];
 
   return (
     <TooltipProvider>
