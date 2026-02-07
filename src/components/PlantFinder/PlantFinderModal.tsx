@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { plants } from '@/data/plants';
-import { PlantFinderAnswers, initialAnswers, questions } from './types';
+import { PlantFinderAnswers, initialAnswers, getQuestions } from './types';
 import ProgressBar from './ProgressBar';
 import QuestionStep from './QuestionStep';
 import HardinessZoneStep from './HardinessZoneStep';
@@ -16,13 +17,14 @@ interface PlantFinderModalProps {
 }
 
 const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<PlantFinderAnswers>(initialAnswers);
   const [showResults, setShowResults] = useState(false);
 
+  const questions = useMemo(() => getQuestions(t), [t]);
   const totalSteps = questions.length;
 
-  // Track modal open
   useEffect(() => {
     if (open) {
       trackPlantFinderEvent('plant_finder_opened');
@@ -33,7 +35,6 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
     trackPlantFinderEvent('question_answered', { questionId, value, step: currentStep + 1 });
     
-    // Auto-advance to next step for single-choice questions
     if (autoAdvance) {
       setTimeout(() => {
         if (currentStep < totalSteps - 1) {
@@ -42,7 +43,7 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
           trackPlantFinderEvent('questionnaire_completed', { ...answers, [questionId]: value });
           setShowResults(true);
         }
-      }, 200); // Small delay for visual feedback
+      }, 200);
     }
   };
 
@@ -50,7 +51,6 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
-      // Show results
       trackPlantFinderEvent('questionnaire_completed', { answers });
       setShowResults(true);
     }
@@ -87,18 +87,16 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
           <DialogHeader>
             <DialogTitle className="text-center text-primary flex items-center justify-center gap-2">
               <Search className="h-5 w-5" />
-              Encuentra tu planta ideal
+              {t('plantFinder.title')}
             </DialogTitle>
           </DialogHeader>
         )}
-        {showResults && <DialogHeader><DialogTitle className="sr-only">Resultados</DialogTitle></DialogHeader>}
+        {showResults && <DialogHeader><DialogTitle className="sr-only">{t('plantFinder.resultsSrOnly')}</DialogTitle></DialogHeader>}
 
         {!showResults ? (
           <div className="space-y-6 py-4">
-            {/* Progress bar */}
             <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
 
-            {/* Question content */}
             {currentQuestion.id === 'hardinessZone' ? (
               <HardinessZoneStep
                 selectedValue={currentAnswer}
@@ -112,7 +110,6 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
               />
             )}
 
-            {/* Navigation buttons */}
             <div className="flex items-center justify-between pt-4 border-t">
               <Button
                 variant="ghost"
@@ -121,7 +118,7 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
                 className="text-muted-foreground"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
-                Anterior
+                {t('plantFinder.previous')}
               </Button>
 
               <Button
@@ -129,12 +126,12 @@ const PlantFinderModal = ({ open, onOpenChange }: PlantFinderModalProps) => {
               >
                 {isLastStep ? (
                   <>
-                    Ver resultados
+                    {t('plantFinder.viewResults')}
                     <Search className="h-4 w-4 ml-1" />
                   </>
                 ) : (
                   <>
-                    Siguiente
+                    {t('plantFinder.next')}
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </>
                 )}

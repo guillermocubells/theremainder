@@ -11,11 +11,11 @@ const QuestionStep = ({ question, selectedValue, onSelect }: QuestionStepProps) 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
+        <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
           {question.title}
         </h3>
         {question.subtitle && (
-          <p className="text-sm sm:text-base text-gray-500">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {question.subtitle}
           </p>
         )}
@@ -28,10 +28,10 @@ const QuestionStep = ({ question, selectedValue, onSelect }: QuestionStepProps) 
             onClick={() => onSelect(option.value)}
             className={cn(
               "flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left",
-              "hover:border-green-400 hover:bg-green-50",
+              "hover:border-primary/60 hover:bg-primary/5",
               selectedValue === option.value
-                ? "border-green-500 bg-green-50 shadow-md"
-                : "border-gray-200 bg-white"
+                ? "border-primary bg-primary/5 shadow-md"
+                : "border-border bg-card"
             )}
           >
             {option.icon && (
@@ -40,12 +40,12 @@ const QuestionStep = ({ question, selectedValue, onSelect }: QuestionStepProps) 
             <div className="flex-1 min-w-0">
               <p className={cn(
                 "font-medium",
-                selectedValue === option.value ? "text-green-700" : "text-gray-800"
+                selectedValue === option.value ? "text-primary" : "text-foreground"
               )}>
                 {option.label}
               </p>
               {option.description && (
-                <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{option.description}</p>
               )}
             </div>
           </button>

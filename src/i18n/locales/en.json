@@ -808,5 +808,126 @@
     "SK": "Slovakia",
     "SI": "Slovenia",
     "LU": "Luxembourg"
+  },
+  "plantFinder": {
+    "title": "Find your ideal plant",
+    "resultsSrOnly": "Results",
+    "previous": "Previous",
+    "next": "Next",
+    "viewResults": "View results",
+    "questions": {
+      "plantGroup": {
+        "title": "What type of plant are you looking for?",
+        "subtitle": "Choose the category that best fits your needs",
+        "palmeras": "Palms",
+        "helechos": "Tree ferns",
+        "cicadas": "Cycads",
+        "arboles": "Trees",
+        "arbustos": "Shrubs",
+        "tropical": "Tropical",
+        "easy": "Something easy"
+      },
+      "location": {
+        "title": "Where will you plant it?",
+        "subtitle": "The location determines light and space conditions",
+        "interior": "Indoors",
+        "interiorDesc": "Inside the house",
+        "balcon": "Balcony",
+        "balconDesc": "Small outdoor space",
+        "jardin": "Garden",
+        "jardinDesc": "Outdoor ground",
+        "terraza": "Terrace",
+        "terrazaDesc": "Large outdoor area",
+        "bajoArboles": "Under trees",
+        "bajoArbolesDesc": "Natural shade",
+        "invernadero": "Greenhouse",
+        "invernaderoDesc": "Controlled environment"
+      },
+      "sunExposure": {
+        "title": "How much sunlight does the area get?",
+        "subtitle": "Observe the spot throughout the day to determine this",
+        "full": "Full sun",
+        "fullDesc": "More than 6 hours of direct sun",
+        "semiSun": "Partial sun",
+        "semiSunDesc": "4-6 hours of sun",
+        "semiShade": "Partial shade",
+        "semiShadeDesc": "2-4 hours of filtered light",
+        "shade": "Shade",
+        "shadeDesc": "Indirect or low light"
+      },
+      "waterNeeds": {
+        "title": "How much do you want to water?",
+        "subtitle": "Be honest about your available time",
+        "low": "Very little",
+        "lowDesc": "Occasional watering",
+        "moderate": "Moderate",
+        "moderateDesc": "Regular watering",
+        "high": "Abundant",
+        "highDesc": "Frequent watering"
+      },
+      "growthRate": {
+        "title": "What growth rate do you prefer?",
+        "subtitle": "Slow-growing plants usually require less maintenance",
+        "slow": "Slow",
+        "slowDesc": "Patience rewarded",
+        "medium": "Medium",
+        "mediumDesc": "Balanced pace",
+        "fast": "Fast",
+        "fastDesc": "Visible results soon"
+      },
+      "wowFactor": {
+        "title": "Are you looking for a spectacular plant?",
+        "subtitle": "Some plants are true garden showstoppers",
+        "spectacular": "Yes, something spectacular",
+        "spectacularDesc": "I want to impress",
+        "discrete": "Prefer subtle and easy",
+        "discreteDesc": "Understated beauty"
+      },
+      "hardinessZone": {
+        "title": "Hardiness zone",
+        "subtitle": "Indicate cold tolerance based on the USDA classification"
+      }
+    },
+    "hardiness": {
+      "helperTitle": "What is the minimum winter temperature?",
+      "helperSubtitle": "Select the range that best describes your area",
+      "helpMe": "I don't know my zone – Help me find it",
+      "backToZones": "← Back to zone selection",
+      "zones": "Zones",
+      "veryCold": "Very cold (< -20°C)",
+      "cold": "Cold (-20°C to -10°C)",
+      "temperate": "Temperate (-10°C to 0°C)",
+      "mild": "Mild (0°C to 10°C)",
+      "warm": "Warm (> 10°C)"
+    },
+    "results": {
+      "title": "Recommendations for your space",
+      "noMatch": "Based on your climate and space, we couldn't find plants that exactly match your criteria",
+      "matchOne": "Based on your climate and space, we have 1 plant that fits what you're looking for",
+      "matchMany": "Based on your climate and space, we have {{count}} plants that fit what you're looking for",
+      "editAnswers": "Edit",
+      "reset": "Reset",
+      "save": "Save",
+      "loginToSave": "to save this search",
+      "loginLink": "Sign in",
+      "saveDialog": {
+        "title": "Save search",
+        "placeholder": "e.g. Plants for my terrace",
+        "hint": "You can access this search from your account under \"Saved Searches\"",
+        "nameRequired": "Enter a name for the search",
+        "saved": "Search saved. You can view it in your account.",
+        "error": "Error saving the search"
+      },
+      "empty": "Try adjusting your criteria or resetting the search",
+      "startOver": "Start over"
+    }
+  },
+  "searchSuggestions": {
+    "s1": "plants for postal code 28001",
+    "s2": "cold-hardy palms Madrid",
+    "s3": "low-light ferns",
+    "s4": "plants for Barcelona Mediterranean climate",
+    "s5": "postal code 46001 plants",
+    "s6": "tropical plants for Seville"
   }
 }
