@@ -1046,10 +1046,12 @@ export type Database = {
           difficulty: Database["public"]["Enums"]["difficulty_level"] | null
           display_order: number
           exposure: string[] | null
+          family: string | null
           germination_date: string | null
           growth_rate: string | null
           humidity: Database["public"]["Enums"]["humidity_level"] | null
           id: string
+          image_alt_text: string | null
           images: string[] | null
           is_active: boolean
           is_featured: boolean
@@ -1067,6 +1069,7 @@ export type Database = {
           plant_use: string[] | null
           price: number
           rarity: Database["public"]["Enums"]["rarity_level"] | null
+          reference_url: string | null
           sale_price: number | null
           scientific_name: string | null
           short_description: string | null
@@ -1074,7 +1077,9 @@ export type Database = {
           specifications: Json | null
           stock_qty: number
           updated_at: string
+          variety: string | null
           water: Database["public"]["Enums"]["water_level"] | null
+          weight_grams: number | null
         }
         Insert: {
           care_instructions?: Json | null
@@ -1088,10 +1093,12 @@ export type Database = {
           difficulty?: Database["public"]["Enums"]["difficulty_level"] | null
           display_order?: number
           exposure?: string[] | null
+          family?: string | null
           germination_date?: string | null
           growth_rate?: string | null
           humidity?: Database["public"]["Enums"]["humidity_level"] | null
           id?: string
+          image_alt_text?: string | null
           images?: string[] | null
           is_active?: boolean
           is_featured?: boolean
@@ -1109,6 +1116,7 @@ export type Database = {
           plant_use?: string[] | null
           price?: number
           rarity?: Database["public"]["Enums"]["rarity_level"] | null
+          reference_url?: string | null
           sale_price?: number | null
           scientific_name?: string | null
           short_description?: string | null
@@ -1116,7 +1124,9 @@ export type Database = {
           specifications?: Json | null
           stock_qty?: number
           updated_at?: string
+          variety?: string | null
           water?: Database["public"]["Enums"]["water_level"] | null
+          weight_grams?: number | null
         }
         Update: {
           care_instructions?: Json | null
@@ -1130,10 +1140,12 @@ export type Database = {
           difficulty?: Database["public"]["Enums"]["difficulty_level"] | null
           display_order?: number
           exposure?: string[] | null
+          family?: string | null
           germination_date?: string | null
           growth_rate?: string | null
           humidity?: Database["public"]["Enums"]["humidity_level"] | null
           id?: string
+          image_alt_text?: string | null
           images?: string[] | null
           is_active?: boolean
           is_featured?: boolean
@@ -1151,6 +1163,7 @@ export type Database = {
           plant_use?: string[] | null
           price?: number
           rarity?: Database["public"]["Enums"]["rarity_level"] | null
+          reference_url?: string | null
           sale_price?: number | null
           scientific_name?: string | null
           short_description?: string | null
@@ -1158,7 +1171,9 @@ export type Database = {
           specifications?: Json | null
           stock_qty?: number
           updated_at?: string
+          variety?: string | null
           water?: Database["public"]["Enums"]["water_level"] | null
+          weight_grams?: number | null
         }
         Relationships: [
           {
