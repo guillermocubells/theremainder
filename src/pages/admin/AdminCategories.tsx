@@ -289,6 +289,7 @@ export default function AdminCategories() {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, slug: e.target.value }))
                 }
+                required
               />
             </div>
 

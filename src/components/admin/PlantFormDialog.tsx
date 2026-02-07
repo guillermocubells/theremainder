@@ -80,7 +80,7 @@ export function PlantFormDialog({
           category_id: plant.category_id || "",
           price: plant.price?.toString() || "",
           sale_price: plant.sale_price?.toString() || "",
-          stock: plant.stock?.toString() || "0",
+          stock: plant.stock_qty?.toString() || "0",
           container_size: plant.container_size || "",
           germination_date: plant.germination_date || "",
           growth_rate: plant.growth_rate || "",
