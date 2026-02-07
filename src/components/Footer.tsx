@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { CurrencySelector } from "./CurrencySelector";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -156,6 +157,8 @@ const Footer = () => {
               </div>
               <div className="h-6 w-px bg-primary-foreground/10" />
               <LanguageSwitcher variant="footer" />
+              <div className="h-6 w-px bg-primary-foreground/10" />
+              <CurrencySelector />
             </div>
           </div>
 
@@ -257,9 +260,11 @@ const Footer = () => {
               </div>
             </div>
 
-            {/* Language switcher - centered on tablet */}
-            <div className="flex items-center justify-center mb-8">
+            {/* Language & currency switcher - centered on tablet */}
+            <div className="flex items-center justify-center gap-3 mb-8">
               <LanguageSwitcher variant="footer" />
+              <div className="h-5 w-px bg-primary-foreground/10" />
+              <CurrencySelector />
             </div>
           </div>
 
@@ -378,6 +383,8 @@ const Footer = () => {
               </div>
               <div className="hidden lg:flex items-center gap-4">
                 <LanguageSwitcher variant="footer" />
+                <div className="h-4 w-px bg-primary-foreground/10" />
+                <CurrencySelector />
                 <span className="text-primary-foreground/25">
                   {t('footer.rights')}
                 </span>
