@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.notify-restock]
 verify_jwt = false
+
+[functions.update-exchange-rates]
+verify_jwt = false

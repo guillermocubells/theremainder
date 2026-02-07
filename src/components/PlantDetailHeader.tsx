@@ -12,6 +12,7 @@ import StockNotificationButton from "./StockNotificationButton";
 import SocialShareButtons from "./SocialShareButtons";
 import { useCatalogFavorite } from "@/hooks/wishlist";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { cn } from "@/lib/utils";
 
 interface Plant {
@@ -50,6 +51,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
   const GrowthIcon = growthInfo.icon;
   
   const { isFavorite, isToggling, toggleFavorite } = useCatalogFavorite(plant.id);
+  const { formatPrice } = useCurrency();
 
   const totalPrice = plant.price !== undefined ? plant.price * selectedQuantity : undefined;
 
@@ -357,7 +359,7 @@ const PlantDetailHeader = ({ plant, origin, climate }: PlantDetailHeaderProps) =
             {totalPrice !== undefined && (
               <div className="flex items-baseline gap-2 min-w-[120px] sm:min-w-[140px]">
                 <p className="text-2xl sm:text-3xl font-bold text-primary transition-all duration-200">
-                  {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                  {formatPrice(totalPrice)}
                 </p>
                 <span className="text-xs sm:text-sm text-muted-foreground/70">
                   IVA incl.

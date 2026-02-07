@@ -7,6 +7,7 @@ import { PlantFinderModal } from "@/components/PlantFinder";
 import { useAuth } from "@/contexts/AuthContext";
 import CartDrawer from "@/components/CartDrawer";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { CurrencySelector } from "@/components/CurrencySelector";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 
 const Header = () => {
@@ -56,8 +57,9 @@ const Header = () => {
                 <span className="hidden sm:inline sm:ml-2">{t('header.findPlant')}</span>
               </Button>
 
-              {/* Language switcher - hidden on mobile, shown in footer */}
-              <div className="hidden sm:block">
+              {/* Language & currency switchers - hidden on mobile */}
+              <div className="hidden sm:flex items-center gap-1">
+                <CurrencySelector />
                 <LanguageSwitcher />
               </div>
 

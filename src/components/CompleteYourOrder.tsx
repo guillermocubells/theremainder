@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useOrderPromotion } from '@/hooks/useOrderPromotion';
 import { useCart } from '@/contexts/CartContext';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { Plant } from '@/data/plants';
 
 interface CompleteYourOrderProps {
@@ -17,12 +18,12 @@ const CompleteYourOrder = ({ compact = false }: CompleteYourOrderProps) => {
   const { t } = useTranslation();
   const promo = useOrderPromotion();
   const { items, addToCart } = useCart();
+  const { formatPrice } = useCurrency();
 
   // Don't render if cart is empty
   if (items.length === 0) return null;
 
-  const formatCurrency = (v: number) =>
-    v.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+  const formatCurrency = (v: number) => formatPrice(v);
 
   const handleQuickAdd = (plant: Plant) => {
     addToCart({

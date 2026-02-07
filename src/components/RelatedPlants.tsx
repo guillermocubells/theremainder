@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { plants, Plant } from "@/data/plants";
 import { Card, CardContent } from "@/components/ui/card";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { Badge } from "@/components/ui/badge";
 import { Leaf } from "lucide-react";
 
@@ -12,6 +13,7 @@ interface RelatedPlantsProps {
 
 const RelatedPlants = ({ currentPlant, maxItems = 4 }: RelatedPlantsProps) => {
   const { t } = useTranslation();
+  const { formatPrice } = useCurrency();
 
   // Filter plants by same plantGroup, excluding current plant
   const relatedPlants = plants
@@ -73,10 +75,7 @@ const RelatedPlants = ({ currentPlant, maxItems = 4 }: RelatedPlantsProps) => {
                 {/* Price and availability */}
                 <div className="flex items-center justify-between mt-2 gap-2">
                   <span className="text-sm sm:text-base font-semibold text-foreground">
-                    {plant.price?.toLocaleString("es-ES", {
-                      style: "currency",
-                      currency: "EUR",
-                    })}
+                    {plant.price != null && formatPrice(plant.price)}
                   </span>
                   {plant.quantity <= 3 && (
                     <Badge

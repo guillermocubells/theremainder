@@ -3,6 +3,7 @@ import { ShoppingBag, Truck, Lock, CreditCard, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { CartItem } from "@/contexts/CartContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { ShippingQuote } from "@/hooks/useShippingQuote";
 
 interface OrderSummaryProps {
@@ -21,20 +22,10 @@ export function OrderSummary({
   canSubmit,
 }: OrderSummaryProps) {
   const { t } = useTranslation();
+  const { formatPrice } = useCurrency();
 
-  const formatCurrency = (euros: number) => {
-    return euros.toLocaleString("es-ES", {
-      style: "currency",
-      currency: "EUR",
-    });
-  };
-
-  const formatCurrencyCents = (cents: number) => {
-    return (cents / 100).toLocaleString("es-ES", {
-      style: "currency",
-      currency: "EUR",
-    });
-  };
+  const formatCurrency = (euros: number) => formatPrice(euros);
+  const formatCurrencyCents = (cents: number) => formatPrice(cents / 100);
 
   // Calculate subtotal from frontend items (for display before quote loads)
   const frontendSubtotal = items.reduce(

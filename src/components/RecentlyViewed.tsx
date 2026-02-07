@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { plants } from "@/data/plants";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ interface RecentlyViewedProps {
 const RecentlyViewed = ({ excludePlantId, maxItems = 4 }: RecentlyViewedProps) => {
   const { t } = useTranslation();
   const { getRecentIds, clearRecentlyViewed } = useRecentlyViewed();
+  const { formatPrice } = useCurrency();
 
   // Get recent plant IDs excluding the current one
   const recentIds = getRecentIds(excludePlantId);
@@ -89,10 +91,7 @@ const RecentlyViewed = ({ excludePlantId, maxItems = 4 }: RecentlyViewedProps) =
                 {/* Price and availability */}
                 <div className="flex items-center justify-between mt-2 gap-2">
                   <span className="text-sm sm:text-base font-semibold text-foreground">
-                    {plant.price?.toLocaleString("es-ES", {
-                      style: "currency",
-                      currency: "EUR",
-                    })}
+                    {plant.price != null && formatPrice(plant.price)}
                   </span>
                   {plant.quantity <= 0 ? (
                     <Badge
