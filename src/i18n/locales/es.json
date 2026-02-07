@@ -41,7 +41,8 @@
   },
   "navigation": {
     "backToCatalog": "Volver al catálogo",
-    "catalog": "Catálogo"
+    "catalog": "Catálogo",
+    "backToTop": "Volver arriba"
   },
   "hero": {
     "title": "Descubre Plantas Únicas de Alta Montaña",
@@ -94,6 +95,7 @@
     "commercialBlock": {
       "title": "Elige tu ejemplar",
       "description": "Selecciona entre las especies compatibles con tu entorno",
+      "category": "Categoría",
       "plantGroup": "Grupo de planta",
       "availability": "Disponibilidad",
       "sortBy": "Ordenar por",

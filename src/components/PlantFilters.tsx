@@ -361,7 +361,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
               <div className="space-y-1.5">
                 <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <FolderTree className="h-3 w-3" />
-                  Categoría
+                  {t('filters.commercialBlock.category')}
                 </label>
                 <Select 
                   value={filters.category || "all"} 
