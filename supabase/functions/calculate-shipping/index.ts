@@ -1,139 +1,16 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Product catalog (same as create-checkout)
-const PRODUCT_CATALOG: Record<string, { priceCents: number; weightGrams: number; name: string }> = {
-  "rhopalostylis-sapida": { priceCents: 8500, weightGrams: 2500, name: "Rhopalostylis sapida" },
-  "chuniophoenix-hainanensis": { priceCents: 12000, weightGrams: 4000, name: "Chuniophoenix hainanensis" },
-  "brahea-armata": { priceCents: 15000, weightGrams: 5500, name: "Brahea armata" },
-  "sabal-miamensis": { priceCents: 9500, weightGrams: 4000, name: "Sabal miamensis" },
-  "ptychosperma-caryotoides": { priceCents: 7500, weightGrams: 2500, name: "Ptychosperma caryotoides" },
-  "caryota-obtusa": { priceCents: 11000, weightGrams: 4000, name: "Caryota obtusa" },
-  "cyathea-sp": { priceCents: 6500, weightGrams: 2000, name: "Cyathea sp." },
-  "dicksonia-sp": { priceCents: 7000, weightGrams: 4500, name: "Dicksonia sp." },
-  "zamia-integrifolia": { priceCents: 13000, weightGrams: 3000, name: "Zamia integrifolia" },
-  "magnolia-laevifolia": { priceCents: 9000, weightGrams: 4500, name: "Magnolia laevifolia" },
-  "chamaedorea-elegans": { priceCents: 5500, weightGrams: 1500, name: "Chamaedorea elegans" },
-  "basselinia-favieri": { priceCents: 14000, weightGrams: 2500, name: "Basselinia favieri" },
-};
-
-// Shipping zones
-interface ShippingZone {
-  id: string;
-  name: string;
-  countries: string[];
-  baseCostCents: number;
-  costPerKgCents: number;
-  freeShippingThresholdCents: number | null;
-  deliveryDaysMin: number;
-  deliveryDaysMax: number;
-}
-
-const SHIPPING_ZONES: ShippingZone[] = [
-  {
-    id: "spain",
-    name: "España peninsular",
-    countries: ["ES"],
-    baseCostCents: 800,
-    costPerKgCents: 150,
-    freeShippingThresholdCents: 15000,
-    deliveryDaysMin: 2,
-    deliveryDaysMax: 4,
-  },
-  {
-    id: "portugal",
-    name: "Portugal",
-    countries: ["PT"],
-    baseCostCents: 1200,
-    costPerKgCents: 200,
-    freeShippingThresholdCents: 20000,
-    deliveryDaysMin: 3,
-    deliveryDaysMax: 5,
-  },
-  {
-    id: "france",
-    name: "Francia",
-    countries: ["FR"],
-    baseCostCents: 1500,
-    costPerKgCents: 250,
-    freeShippingThresholdCents: 25000,
-    deliveryDaysMin: 4,
-    deliveryDaysMax: 6,
-  },
-  {
-    id: "central_europe",
-    name: "Europa Central",
-    countries: ["DE", "BE", "NL", "LU", "AT"],
-    baseCostCents: 1800,
-    costPerKgCents: 300,
-    freeShippingThresholdCents: 30000,
-    deliveryDaysMin: 5,
-    deliveryDaysMax: 8,
-  },
-  {
-    id: "italy",
-    name: "Italia",
-    countries: ["IT"],
-    baseCostCents: 1600,
-    costPerKgCents: 280,
-    freeShippingThresholdCents: 28000,
-    deliveryDaysMin: 4,
-    deliveryDaysMax: 7,
-  },
-  {
-    id: "nordic",
-    name: "Países Nórdicos",
-    countries: ["SE", "DK", "FI"],
-    baseCostCents: 2500,
-    costPerKgCents: 400,
-    freeShippingThresholdCents: null,
-    deliveryDaysMin: 6,
-    deliveryDaysMax: 10,
-  },
-  {
-    id: "eastern_europe",
-    name: "Europa del Este",
-    countries: ["PL", "CZ", "SK", "HU", "RO", "BG", "HR", "SI"],
-    baseCostCents: 2200,
-    costPerKgCents: 350,
-    freeShippingThresholdCents: null,
-    deliveryDaysMin: 6,
-    deliveryDaysMax: 10,
-  },
-  {
-    id: "baltic",
-    name: "Países Bálticos",
-    countries: ["EE", "LV", "LT"],
-    baseCostCents: 2800,
-    costPerKgCents: 450,
-    freeShippingThresholdCents: null,
-    deliveryDaysMin: 7,
-    deliveryDaysMax: 12,
-  },
-  {
-    id: "islands",
-    name: "Islas",
-    countries: ["IE", "MT", "CY", "GR"],
-    baseCostCents: 3000,
-    costPerKgCents: 500,
-    freeShippingThresholdCents: null,
-    deliveryDaysMin: 8,
-    deliveryDaysMax: 14,
-  },
-];
-
-const ALLOWED_COUNTRIES = SHIPPING_ZONES.flatMap((zone) => zone.countries);
-
 interface CalculateShippingRequest {
   items: Array<{ plantId: string; quantity: number }>;
   countryCode: string;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -155,10 +32,22 @@ serve(async (req) => {
       );
     }
 
-    // Check if country is supported
-    if (!ALLOWED_COUNTRIES.includes(countryCode)) {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Get shipping zone from database
+    const { data: zone, error: zoneError } = await supabase
+      .from("shipping_zones")
+      .select("*")
+      .eq("country_code", countryCode)
+      .eq("is_active", true)
+      .single();
+
+    if (zoneError || !zone) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "SHIPPING_NOT_AVAILABLE",
           message: "No shipping available to this country",
           supported: false,
@@ -167,49 +56,68 @@ serve(async (req) => {
       );
     }
 
-    // Calculate totals from backend catalog
+    // Get product data from database
+    const plantIds = items.map((i) => i.plantId);
+    const { data: plants, error: plantsError } = await supabase
+      .from("plants")
+      .select("id, slug, price, sale_price, weight_grams, name")
+      .or(`slug.in.(${plantIds.map(id => `"${id}"`).join(",")}),id.in.(${plantIds.map(id => `"${id}"`).join(",")})`)
+      .eq("is_active", true);
+
+    if (plantsError) {
+      console.error("Error fetching plants:", plantsError);
+      return new Response(
+        JSON.stringify({ error: "Error fetching product data" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+
+    // Build lookup by slug and id
+    const plantLookup = new Map<string, typeof plants[0]>();
+    for (const p of plants || []) {
+      plantLookup.set(p.slug, p);
+      plantLookup.set(p.id, p);
+    }
+
+    // Calculate totals
     let subtotalCents = 0;
     let totalWeightGrams = 0;
 
     for (const item of items) {
-      const catalogItem = PRODUCT_CATALOG[item.plantId];
-      if (!catalogItem) {
+      const plant = plantLookup.get(item.plantId);
+      if (!plant) {
         return new Response(
           JSON.stringify({ error: `Product not found: ${item.plantId}` }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
         );
       }
-      subtotalCents += catalogItem.priceCents * item.quantity;
-      totalWeightGrams += catalogItem.weightGrams * item.quantity;
+      const priceCents = Math.round((plant.sale_price ?? plant.price) * 100);
+      const weight = plant.weight_grams ?? 2000; // default 2kg if not set
+      subtotalCents += priceCents * item.quantity;
+      totalWeightGrams += weight * item.quantity;
     }
 
-    // Find zone
-    const zone = SHIPPING_ZONES.find((z) => z.countries.includes(countryCode));
-    if (!zone) {
-      return new Response(
-        JSON.stringify({ 
-          error: "SHIPPING_NOT_AVAILABLE",
-          supported: false,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-      );
-    }
+    // Calculate shipping cost using zone config
+    const baseCostCents = Math.round(zone.base_cost * 100);
+    const perItemCostCents = Math.round(zone.per_item_cost * 100);
+    const freeShippingThresholdCents = zone.free_shipping_threshold
+      ? Math.round(zone.free_shipping_threshold * 100)
+      : null;
 
-    // Calculate shipping
+    const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
     const qualifiesForFreeShipping =
-      zone.freeShippingThresholdCents !== null &&
-      subtotalCents >= zone.freeShippingThresholdCents;
+      freeShippingThresholdCents !== null &&
+      subtotalCents >= freeShippingThresholdCents;
 
     let shippingCostCents = 0;
     if (!qualifiesForFreeShipping) {
-      const weightKg = Math.ceil(totalWeightGrams / 1000);
-      shippingCostCents = zone.baseCostCents + weightKg * zone.costPerKgCents;
+      shippingCostCents = baseCostCents + (totalItems - 1) * perItemCostCents;
     }
 
-    // Calculate amount needed for free shipping
+    // Amount needed for free shipping
     let amountForFreeShippingCents: number | null = null;
-    if (zone.freeShippingThresholdCents !== null && !qualifiesForFreeShipping) {
-      amountForFreeShippingCents = zone.freeShippingThresholdCents - subtotalCents;
+    if (freeShippingThresholdCents !== null && !qualifiesForFreeShipping) {
+      amountForFreeShippingCents = freeShippingThresholdCents - subtotalCents;
     }
 
     return new Response(
@@ -221,10 +129,10 @@ serve(async (req) => {
         totalWeightGrams,
         isFreeShipping: qualifiesForFreeShipping,
         amountForFreeShippingCents,
-        freeShippingThresholdCents: zone.freeShippingThresholdCents,
-        deliveryDaysMin: zone.deliveryDaysMin,
-        deliveryDaysMax: zone.deliveryDaysMax,
-        zoneName: zone.name,
+        freeShippingThresholdCents,
+        deliveryDaysMin: zone.delivery_days_min,
+        deliveryDaysMax: zone.delivery_days_max,
+        zoneName: zone.country_name,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
