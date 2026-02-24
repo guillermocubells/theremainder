@@ -7,135 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Product catalog with prices and weights (in cents and grams)
-// This should match frontend data
-const PRODUCT_CATALOG: Record<string, { priceCents: number; weightGrams: number; name: string }> = {
-  "rhopalostylis-sapida": { priceCents: 8500, weightGrams: 2500, name: "Rhopalostylis sapida" },
-  "chuniophoenix-hainanensis": { priceCents: 12000, weightGrams: 4000, name: "Chuniophoenix hainanensis" },
-  "brahea-armata": { priceCents: 15000, weightGrams: 5500, name: "Brahea armata" },
-  "sabal-miamensis": { priceCents: 9500, weightGrams: 4000, name: "Sabal miamensis" },
-  "ptychosperma-caryotoides": { priceCents: 7500, weightGrams: 2500, name: "Ptychosperma caryotoides" },
-  "caryota-obtusa": { priceCents: 11000, weightGrams: 4000, name: "Caryota obtusa" },
-  "cyathea-sp": { priceCents: 6500, weightGrams: 2000, name: "Cyathea sp." },
-  "dicksonia-sp": { priceCents: 7000, weightGrams: 4500, name: "Dicksonia sp." },
-  "zamia-integrifolia": { priceCents: 13000, weightGrams: 3000, name: "Zamia integrifolia" },
-  "magnolia-laevifolia": { priceCents: 9000, weightGrams: 4500, name: "Magnolia laevifolia" },
-  "chamaedorea-elegans": { priceCents: 5500, weightGrams: 1500, name: "Chamaedorea elegans" },
-  "basselinia-favieri": { priceCents: 14000, weightGrams: 2500, name: "Basselinia favieri" },
-};
-
-// Shipping zones configuration
-interface ShippingZone {
-  id: string;
-  name: string;
-  countries: string[];
-  baseCostCents: number;
-  costPerKgCents: number;
-  freeShippingThresholdCents: number | null;
-  deliveryDaysMin: number;
-  deliveryDaysMax: number;
-}
-
-const SHIPPING_ZONES: ShippingZone[] = [
-  {
-    id: "spain",
-    name: "España peninsular",
-    countries: ["ES"],
-    baseCostCents: 800,
-    costPerKgCents: 150,
-    freeShippingThresholdCents: 15000,
-    deliveryDaysMin: 2,
-    deliveryDaysMax: 4,
-  },
-  {
-    id: "portugal",
-    name: "Portugal",
-    countries: ["PT"],
-    baseCostCents: 1200,
-    costPerKgCents: 200,
-    freeShippingThresholdCents: 20000,
-    deliveryDaysMin: 3,
-    deliveryDaysMax: 5,
-  },
-  {
-    id: "france",
-    name: "Francia",
-    countries: ["FR"],
-    baseCostCents: 1500,
-    costPerKgCents: 250,
-    freeShippingThresholdCents: 25000,
-    deliveryDaysMin: 4,
-    deliveryDaysMax: 6,
-  },
-  {
-    id: "central_europe",
-    name: "Europa Central",
-    countries: ["DE", "BE", "NL", "LU", "AT"],
-    baseCostCents: 1800,
-    costPerKgCents: 300,
-    freeShippingThresholdCents: 30000,
-    deliveryDaysMin: 5,
-    deliveryDaysMax: 8,
-  },
-  {
-    id: "italy",
-    name: "Italia",
-    countries: ["IT"],
-    baseCostCents: 1600,
-    costPerKgCents: 280,
-    freeShippingThresholdCents: 28000,
-    deliveryDaysMin: 4,
-    deliveryDaysMax: 7,
-  },
-  {
-    id: "nordic",
-    name: "Países Nórdicos",
-    countries: ["SE", "DK", "FI"],
-    baseCostCents: 2500,
-    costPerKgCents: 400,
-    freeShippingThresholdCents: null,
-    deliveryDaysMin: 6,
-    deliveryDaysMax: 10,
-  },
-  {
-    id: "eastern_europe",
-    name: "Europa del Este",
-    countries: ["PL", "CZ", "SK", "HU", "RO", "BG", "HR", "SI"],
-    baseCostCents: 2200,
-    costPerKgCents: 350,
-    freeShippingThresholdCents: null,
-    deliveryDaysMin: 6,
-    deliveryDaysMax: 10,
-  },
-  {
-    id: "baltic",
-    name: "Países Bálticos",
-    countries: ["EE", "LV", "LT"],
-    baseCostCents: 2800,
-    costPerKgCents: 450,
-    freeShippingThresholdCents: null,
-    deliveryDaysMin: 7,
-    deliveryDaysMax: 12,
-  },
-  {
-    id: "islands",
-    name: "Islas",
-    countries: ["IE", "MT", "CY", "GR"],
-    baseCostCents: 3000,
-    costPerKgCents: 500,
-    freeShippingThresholdCents: null,
-    deliveryDaysMin: 8,
-    deliveryDaysMax: 14,
-  },
-];
-
-const ALLOWED_COUNTRIES = SHIPPING_ZONES.flatMap((zone) => zone.countries);
-
 interface CartItem {
   plantId: string;
   quantity: number;
-  name?: string;
-  price?: number;
   image?: string;
   containerSize?: string;
 }
@@ -156,31 +30,8 @@ interface CheckoutRequest {
     notes?: string;
   };
   locale?: string;
-  referralCode?: string; // Referral code from URL param
-  useWalletBalance?: boolean; // Whether to apply wallet credit
-}
-
-function calculateShipping(
-  countryCode: string,
-  subtotalCents: number,
-  totalWeightGrams: number
-): { shippingCostCents: number; zone: ShippingZone; isFreeShipping: boolean } | null {
-  const zone = SHIPPING_ZONES.find((z) => z.countries.includes(countryCode));
-  if (!zone) return null;
-
-  const qualifiesForFreeShipping =
-    zone.freeShippingThresholdCents !== null &&
-    subtotalCents >= zone.freeShippingThresholdCents;
-
-  if (qualifiesForFreeShipping) {
-    return { shippingCostCents: 0, zone, isFreeShipping: true };
-  }
-
-  const weightKg = Math.ceil(totalWeightGrams / 1000);
-  const weightCost = weightKg * zone.costPerKgCents;
-  const totalShippingCents = zone.baseCostCents + weightCost;
-
-  return { shippingCostCents: totalShippingCents, zone, isFreeShipping: false };
+  referralCode?: string;
+  useWalletBalance?: boolean;
 }
 
 serve(async (req) => {
@@ -193,10 +44,15 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
   );
 
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
   try {
     const { items, shippingCountry, shippingAddress, locale = "es", referralCode, useWalletBalance }: CheckoutRequest = await req.json();
 
-    console.log("Checkout request:", { items, shippingCountry, locale, referralCode, useWalletBalance });
+    console.log("Checkout request:", { items: items.length, shippingCountry, locale, referralCode });
 
     if (!items || items.length === 0) {
       throw new Error("No items in cart");
@@ -206,18 +62,59 @@ serve(async (req) => {
       throw new Error("Shipping country is required");
     }
 
-    // Validate country is supported
-    if (!ALLOWED_COUNTRIES.includes(shippingCountry)) {
+    // Get shipping zone from database
+    const { data: zone, error: zoneError } = await supabaseAdmin
+      .from("shipping_zones")
+      .select("*")
+      .eq("country_code", shippingCountry)
+      .eq("is_active", true)
+      .single();
+
+    if (zoneError || !zone) {
       return new Response(
-        JSON.stringify({ 
-          error: "SHIPPING_NOT_AVAILABLE",
-          message: "No shipping available to this country" 
-        }),
+        JSON.stringify({ error: "SHIPPING_NOT_AVAILABLE", message: "No shipping available to this country" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
 
-    // Recalculate subtotal and weight from backend catalog (security)
+    // Get all allowed countries for Stripe shipping address collection
+    const { data: allZones } = await supabaseAdmin
+      .from("shipping_zones")
+      .select("country_code")
+      .eq("is_active", true);
+
+    const allowedCountries = (allZones || []).map(z => z.country_code);
+
+    // Fetch product data from database
+    const plantIds = items.map(i => i.plantId);
+    // Separate UUIDs from slugs to avoid type errors
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuids = plantIds.filter(id => uuidRegex.test(id));
+    const slugs = plantIds.filter(id => !uuidRegex.test(id));
+    
+    const orClauses: string[] = [];
+    if (slugs.length > 0) orClauses.push(`slug.in.(${slugs.map(s => `"${s}"`).join(",")})`);
+    if (uuids.length > 0) orClauses.push(`id.in.(${uuids.map(u => `"${u}"`).join(",")})`);
+    
+    const { data: plants, error: plantsError } = await supabaseAdmin
+      .from("plants")
+      .select("id, slug, price, sale_price, weight_grams, name, container_size")
+      .or(orClauses.join(","))
+      .eq("is_active", true);
+
+    if (plantsError) {
+      console.error("Error fetching plants:", plantsError);
+      throw new Error("Error fetching product data");
+    }
+
+    // Build lookup by slug and id
+    const plantLookup = new Map<string, typeof plants[0]>();
+    for (const p of plants || []) {
+      plantLookup.set(p.slug, p);
+      plantLookup.set(p.id, p);
+    }
+
+    // Calculate totals from DB data (security: never trust client prices)
     let subtotalCents = 0;
     let totalWeightGrams = 0;
     const validatedItems: Array<{
@@ -231,40 +128,47 @@ serve(async (req) => {
     }> = [];
 
     for (const item of items) {
-      const catalogItem = PRODUCT_CATALOG[item.plantId];
-      if (!catalogItem) {
+      const plant = plantLookup.get(item.plantId);
+      if (!plant) {
         console.error(`Product not found: ${item.plantId}`);
         throw new Error(`Product not found: ${item.plantId}`);
       }
 
-      subtotalCents += catalogItem.priceCents * item.quantity;
-      totalWeightGrams += catalogItem.weightGrams * item.quantity;
+      const priceCents = Math.round((plant.sale_price ?? plant.price) * 100);
+      const weightGrams = plant.weight_grams ?? 2000;
+
+      subtotalCents += priceCents * item.quantity;
+      totalWeightGrams += weightGrams * item.quantity;
       validatedItems.push({
         plantId: item.plantId,
         quantity: item.quantity,
-        priceCents: catalogItem.priceCents,
-        weightGrams: catalogItem.weightGrams,
-        name: catalogItem.name,
+        priceCents,
+        weightGrams,
+        name: plant.name,
         image: item.image,
-        containerSize: item.containerSize,
+        containerSize: item.containerSize || plant.container_size || undefined,
       });
     }
 
     console.log("Calculated:", { subtotalCents, totalWeightGrams });
 
-    // Calculate shipping
-    const shippingResult = calculateShipping(shippingCountry, subtotalCents, totalWeightGrams);
-    if (!shippingResult) {
-      return new Response(
-        JSON.stringify({ 
-          error: "SHIPPING_NOT_AVAILABLE",
-          message: "No shipping available to this country" 
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-      );
+    // Calculate shipping using zone config
+    const baseCostCents = Math.round(zone.base_cost * 100);
+    const perItemCostCents = Math.round(zone.per_item_cost * 100);
+    const freeShippingThresholdCents = zone.free_shipping_threshold
+      ? Math.round(zone.free_shipping_threshold * 100)
+      : null;
+
+    const totalItemCount = items.reduce((sum, i) => sum + i.quantity, 0);
+    const qualifiesForFreeShipping =
+      freeShippingThresholdCents !== null && subtotalCents >= freeShippingThresholdCents;
+
+    let shippingCostCents = 0;
+    if (!qualifiesForFreeShipping) {
+      shippingCostCents = baseCostCents + (totalItemCount - 1) * perItemCostCents;
     }
 
-    console.log("Shipping:", shippingResult);
+    console.log("Shipping:", { shippingCostCents, qualifiesForFreeShipping, zone: zone.country_name });
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -274,8 +178,8 @@ serve(async (req) => {
     // Check if user is authenticated
     let userId: string | null = null;
     let customerEmail = shippingAddress?.email || "";
-    let walletBalanceCents = 0;
     let walletAmountToUseCents = 0;
+    let walletBalanceCents = 0;
     let validReferralCode: string | null = null;
 
     const authHeader = req.headers.get("Authorization");
@@ -288,11 +192,6 @@ serve(async (req) => {
 
         // Get wallet balance if user wants to use it
         if (useWalletBalance) {
-          const supabaseAdmin = createClient(
-            Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-          );
-
           const { data: wallet } = await supabaseAdmin
             .from("wallets")
             .select("available_balance")
@@ -301,8 +200,6 @@ serve(async (req) => {
 
           if (wallet && wallet.available_balance > 0) {
             walletBalanceCents = Math.round(wallet.available_balance * 100);
-
-            // Get max wallet percentage setting
             const { data: maxWalletSetting } = await supabaseAdmin
               .from("referral_settings")
               .select("value")
@@ -311,20 +208,12 @@ serve(async (req) => {
 
             const maxWalletPercent = maxWalletSetting?.value || 50;
             const maxWalletCents = Math.round(subtotalCents * (maxWalletPercent / 100));
-
-            // Apply minimum of: wallet balance, max allowed, or subtotal
             walletAmountToUseCents = Math.min(walletBalanceCents, maxWalletCents, subtotalCents);
-            console.log("Wallet balance available:", { walletBalanceCents, maxWalletCents, walletAmountToUseCents });
           }
         }
 
-        // Validate referral code if provided (and not self-referral)
+        // Validate referral code
         if (referralCode) {
-          const supabaseAdmin = createClient(
-            Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-          );
-
           const { data: refCode } = await supabaseAdmin
             .from("referral_codes")
             .select("user_id, code")
@@ -333,16 +222,10 @@ serve(async (req) => {
 
           if (refCode && refCode.user_id !== userId) {
             validReferralCode = refCode.code;
-            console.log("Valid referral code found:", validReferralCode);
-          } else if (refCode?.user_id === userId) {
-            console.log("Self-referral blocked");
           }
         }
       }
     }
-
-    // Adjust subtotal for wallet discount (Stripe still gets the reduced amount)
-    const adjustedSubtotalCents = subtotalCents - walletAmountToUseCents;
 
     // Check if Stripe customer exists
     let customerId: string | undefined;
@@ -353,10 +236,8 @@ serve(async (req) => {
       }
     }
 
-    // Get origin for URLs
     const origin = req.headers.get("origin") || "https://theremainder.lovable.app";
 
-    // Helper for absolute image URLs
     const getAbsoluteImageUrl = (imageUrl: string | undefined): string[] | undefined => {
       if (!imageUrl) return undefined;
       if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
@@ -367,7 +248,7 @@ serve(async (req) => {
       return [`${baseUrl}${imagePath}`];
     };
 
-    // Build line items - apply wallet discount as a line item if applicable
+    // Build line items
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = validatedItems.map((item) => ({
       price_data: {
         currency: "eur",
@@ -400,23 +281,15 @@ serve(async (req) => {
     const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] = [
       {
         shipping_rate_data: {
-          display_name: shippingResult.isFreeShipping
-            ? "Envío gratuito"
-            : "Envío estándar",
+          display_name: qualifiesForFreeShipping ? "Envío gratuito" : "Envío estándar",
           type: "fixed_amount",
           fixed_amount: {
-            amount: shippingResult.shippingCostCents,
+            amount: shippingCostCents,
             currency: "eur",
           },
           delivery_estimate: {
-            minimum: {
-              unit: "business_day",
-              value: shippingResult.zone.deliveryDaysMin,
-            },
-            maximum: {
-              unit: "business_day",
-              value: shippingResult.zone.deliveryDaysMax,
-            },
+            minimum: { unit: "business_day", value: zone.delivery_days_min },
+            maximum: { unit: "business_day", value: zone.delivery_days_max },
           },
         },
       },
@@ -429,30 +302,23 @@ serve(async (req) => {
       line_items: lineItems,
       mode: "payment",
       ui_mode: "embedded",
-      payment_method_types: [
-        "card",
-        "sepa_debit",
-        "ideal",
-        "bancontact",
-        "giropay",
-        "sofort",
-      ],
+      payment_method_types: ["card"],
       billing_address_collection: "required",
       shipping_address_collection: {
-        allowed_countries: ALLOWED_COUNTRIES as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
+        allowed_countries: allowedCountries as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
       },
       shipping_options: shippingOptions,
       locale: locale === "es" ? "es" : "en",
       metadata: {
         user_id: userId || "guest",
         subtotal_cents: subtotalCents.toString(),
-        shipping_cents: shippingResult.shippingCostCents.toString(),
+        shipping_cents: shippingCostCents.toString(),
         wallet_amount_cents: walletAmountToUseCents.toString(),
         referral_code_used: validReferralCode || "",
         total_weight_grams: totalWeightGrams.toString(),
-        shipping_zone: shippingResult.zone.id,
+        shipping_zone: zone.id,
         shipping_country: shippingCountry,
-        is_free_shipping: shippingResult.isFreeShipping.toString(),
+        is_free_shipping: qualifiesForFreeShipping.toString(),
         items_json: JSON.stringify(validatedItems.map(i => ({
           id: i.plantId,
           qty: i.quantity,
@@ -466,16 +332,16 @@ serve(async (req) => {
     console.log("Checkout session created:", session.id);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         clientSecret: session.client_secret,
         sessionId: session.id,
         publishableKey: Deno.env.get("VITE_STRIPE_PUBLISHABLE_KEY") || "",
-        shippingCostCents: shippingResult.shippingCostCents,
+        shippingCostCents,
         subtotalCents,
         walletAmountCents: walletAmountToUseCents,
         walletBalanceCents,
         referralCodeApplied: validReferralCode,
-        totalCents: subtotalCents + shippingResult.shippingCostCents - walletAmountToUseCents,
+        totalCents: subtotalCents + shippingCostCents - walletAmountToUseCents,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );

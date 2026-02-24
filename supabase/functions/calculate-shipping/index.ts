@@ -58,10 +58,19 @@ Deno.serve(async (req) => {
 
     // Get product data from database
     const plantIds = items.map((i) => i.plantId);
+    // Separate UUIDs from slugs to avoid type errors
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuids = plantIds.filter(id => uuidRegex.test(id));
+    const slugs = plantIds.filter(id => !uuidRegex.test(id));
+    
+    const orClauses: string[] = [];
+    if (slugs.length > 0) orClauses.push(`slug.in.(${slugs.map(s => `"${s}"`).join(",")})`);
+    if (uuids.length > 0) orClauses.push(`id.in.(${uuids.map(u => `"${u}"`).join(",")})`);
+    
     const { data: plants, error: plantsError } = await supabase
       .from("plants")
       .select("id, slug, price, sale_price, weight_grams, name")
-      .or(`slug.in.(${plantIds.map(id => `"${id}"`).join(",")}),id.in.(${plantIds.map(id => `"${id}"`).join(",")})`)
+      .or(orClauses.join(","))
       .eq("is_active", true);
 
     if (plantsError) {
