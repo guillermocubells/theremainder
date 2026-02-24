@@ -33,7 +33,7 @@ export function AdminSidebar() {
   return (
     <aside className="w-64 bg-card border-r border-border min-h-screen flex flex-col">
       <div className="p-6 border-b border-border">
-        <h1 className="text-xl font-bold text-foreground">Fronda Prima</h1>
+        <h1 className="text-xl font-bold text-foreground">The Remainder</h1>
         <p className="text-sm text-muted-foreground">Panel de Administración</p>
       </div>
 
