@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2, Upload, X, Plus } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
+import { COUNTRIES } from "@/data/countries";
 
 interface Category {
   id: string;
@@ -428,13 +429,21 @@ export function PlantFormDialog({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="origin_country">País de origen</Label>
-                    <Input
-                      id="origin_country"
+                    <Select
                       value={formData.origin_country}
-                      onChange={(e) =>
-                        handleChange("origin_country", e.target.value)
-                      }
-                    />
+                      onValueChange={(v) => handleChange("origin_country", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona país..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {COUNTRIES.map((c) => (
+                          <SelectItem key={c.code} value={c.code}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="origin_region">Región de origen</Label>
