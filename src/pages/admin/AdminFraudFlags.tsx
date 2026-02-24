@@ -96,17 +96,17 @@ const flagTypeIcons: Record<FraudFlagType, typeof Shield> = {
 };
 
 const severityColors: Record<FraudFlagSeverity, string> = {
-  low: "bg-blue-100 text-blue-800",
-  medium: "bg-yellow-100 text-yellow-800",
-  high: "bg-orange-100 text-orange-800",
-  critical: "bg-red-100 text-red-800",
+  low: "bg-info-muted text-info-muted-foreground",
+  medium: "bg-warning-muted text-warning-muted-foreground",
+  high: "bg-caution-muted text-caution-muted-foreground",
+  critical: "bg-danger-muted text-danger-muted-foreground",
 };
 
 const statusColors: Record<FraudFlagStatus, string> = {
-  pending: "bg-gray-100 text-gray-800",
-  reviewed: "bg-blue-100 text-blue-800",
-  approved: "bg-green-100 text-green-800",
-  revoked: "bg-red-100 text-red-800",
+  pending: "bg-neutral-muted text-neutral-muted-foreground",
+  reviewed: "bg-info-muted text-info-muted-foreground",
+  approved: "bg-success-muted text-success-muted-foreground",
+  revoked: "bg-danger-muted text-danger-muted-foreground",
 };
 
 const AdminFraudFlags = () => {
@@ -267,7 +267,7 @@ const AdminFraudFlags = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Pendientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+            <div className="text-2xl font-bold text-warning">{stats.pending}</div>
           </CardContent>
         </Card>
         <Card>
@@ -275,7 +275,7 @@ const AdminFraudFlags = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Críticos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.critical}</div>
+            <div className="text-2xl font-bold text-danger">{stats.critical}</div>
           </CardContent>
         </Card>
         <Card>
@@ -384,7 +384,7 @@ const AdminFraudFlags = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-green-600 hover:text-green-700"
+                                className="text-success hover:text-success/80"
                                 onClick={() => handleAction(flag, "approve")}
                               >
                                 <CheckCircle className="h-4 w-4" />
@@ -392,7 +392,7 @@ const AdminFraudFlags = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-red-600 hover:text-red-700"
+                                className="text-danger hover:text-danger/80"
                                 onClick={() => handleAction(flag, "revoke")}
                               >
                                 <XCircle className="h-4 w-4" />
