@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -12,10 +12,10 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 const statusColors: Record<string, string> = {
-  pending: "bg-warning/20 text-warning border-warning/30",
-  available: "bg-primary/20 text-primary border-primary/30",
+  pending: "bg-warning-muted text-warning-muted-foreground",
+  available: "bg-success-muted text-success-muted-foreground",
   used: "bg-secondary text-secondary-foreground",
-  reversed: "bg-destructive/20 text-destructive border-destructive/30",
+  reversed: "bg-danger-muted text-danger-muted-foreground",
   expired: "bg-muted text-muted-foreground",
 };
 
@@ -67,9 +67,7 @@ const AdminReferrals = () => {
   const totalWalletBalance = wallets.reduce((sum: number, w: any) => sum + (w.available_balance || 0), 0);
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AdminSidebar />
-      <main className="flex-1 p-6 overflow-auto">
+    <div className="p-6 overflow-auto">
         <div className="space-y-6">
           <h1 className="text-2xl font-bold">Programa de Referidos</h1>
 
@@ -202,8 +200,7 @@ const AdminReferrals = () => {
             </TabsContent>
           </Tabs>
         </div>
-      </main>
-    </div>
+      </div>
   );
 };
 
