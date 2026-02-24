@@ -32,10 +32,10 @@ const AccountSecurity = () => {
   const passwordStrength = getPasswordStrength(newPassword);
 
   const getStrengthColor = () => {
-    if (passwordStrength <= 1) return 'bg-red-500';
-    if (passwordStrength <= 2) return 'bg-orange-500';
-    if (passwordStrength <= 3) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (passwordStrength <= 1) return 'bg-danger';
+    if (passwordStrength <= 2) return 'bg-caution';
+    if (passwordStrength <= 3) return 'bg-warning';
+    return 'bg-success';
   };
 
   const getStrengthLabel = () => {
@@ -83,14 +83,14 @@ const AccountSecurity = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Seguridad</h1>
-        <p className="text-gray-600 mt-1">Gestiona la seguridad de tu cuenta</p>
+        <h1 className="text-2xl font-bold text-foreground">Seguridad</h1>
+        <p className="text-muted-foreground mt-1">Gestiona la seguridad de tu cuenta</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Shield className="h-5 w-5 text-green-600" />
+            <Shield className="h-5 w-5 text-primary" />
             Cambiar contraseña
           </CardTitle>
         </CardHeader>
@@ -152,28 +152,28 @@ const AccountSecurity = () => {
                       <div
                         key={i}
                         className={`h-1 flex-1 rounded ${
-                          i <= passwordStrength ? getStrengthColor() : 'bg-gray-200'
+                          i <= passwordStrength ? getStrengthColor() : 'bg-muted'
                         }`}
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Fortaleza: <span className="font-medium">{getStrengthLabel()}</span>
                   </p>
-                  <ul className="text-xs text-gray-500 space-y-1">
-                    <li className={`flex items-center gap-1 ${newPassword.length >= 6 ? 'text-green-600' : ''}`}>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li className={`flex items-center gap-1 ${newPassword.length >= 6 ? 'text-success' : ''}`}>
                       {newPassword.length >= 6 && <Check className="h-3 w-3" />}
                       Al menos 6 caracteres
                     </li>
-                    <li className={`flex items-center gap-1 ${/[A-Z]/.test(newPassword) ? 'text-green-600' : ''}`}>
+                    <li className={`flex items-center gap-1 ${/[A-Z]/.test(newPassword) ? 'text-success' : ''}`}>
                       {/[A-Z]/.test(newPassword) && <Check className="h-3 w-3" />}
                       Una letra mayúscula
                     </li>
-                    <li className={`flex items-center gap-1 ${/[0-9]/.test(newPassword) ? 'text-green-600' : ''}`}>
+                    <li className={`flex items-center gap-1 ${/[0-9]/.test(newPassword) ? 'text-success' : ''}`}>
                       {/[0-9]/.test(newPassword) && <Check className="h-3 w-3" />}
                       Un número
                     </li>
-                    <li className={`flex items-center gap-1 ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-green-600' : ''}`}>
+                    <li className={`flex items-center gap-1 ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-success' : ''}`}>
                       {/[^A-Za-z0-9]/.test(newPassword) && <Check className="h-3 w-3" />}
                       Un carácter especial
                     </li>
@@ -192,13 +192,13 @@ const AccountSecurity = () => {
                 placeholder="Repite la nueva contraseña"
               />
               {confirmPassword && newPassword !== confirmPassword && (
-                <p className="text-xs text-red-500">Las contraseñas no coinciden</p>
+                <p className="text-xs text-destructive">Las contraseñas no coinciden</p>
               )}
             </div>
 
             <Button 
               type="submit" 
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={loading || !newPassword || newPassword !== confirmPassword}
             >
               {loading ? (
@@ -215,12 +215,12 @@ const AccountSecurity = () => {
           <CardTitle className="text-lg">Sesiones activas</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Si sospechas que alguien más tiene acceso a tu cuenta, puedes cerrar sesión en todos los dispositivos.
           </p>
           <Button 
             variant="outline" 
-            className="text-red-600 border-red-200 hover:bg-red-50"
+            className="text-destructive border-destructive/20 hover:bg-destructive/5"
             onClick={handleLogoutAll}
           >
             Cerrar sesión en todos los dispositivos

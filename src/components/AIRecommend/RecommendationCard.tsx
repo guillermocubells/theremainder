@@ -21,12 +21,12 @@ interface RecommendationCardProps {
 }
 
 const getViabilityScoreColor = (score: number) => {
-  if (score >= 8) return "text-green-700 bg-green-100";
-  if (score >= 7) return "text-green-600 bg-green-50";
-  if (score >= 6) return "text-yellow-600 bg-yellow-50";
-  if (score >= 5) return "text-orange-600 bg-orange-50";
-  if (score >= 4) return "text-red-600 bg-red-50";
-  return "text-red-700 bg-red-100";
+  if (score >= 8) return "text-success-muted-foreground bg-success-muted";
+  if (score >= 7) return "text-success bg-success-muted";
+  if (score >= 6) return "text-warning-muted-foreground bg-warning-muted";
+  if (score >= 5) return "text-caution-muted-foreground bg-caution-muted";
+  if (score >= 4) return "text-danger-muted-foreground bg-danger-muted";
+  return "text-danger bg-danger-muted";
 };
 
 const RecommendationCard = ({ 
@@ -62,8 +62,8 @@ const RecommendationCard = ({
   
   const getScoreColor = (score: number) => {
     if (score >= 0.7) return "text-moss bg-moss/10";
-    if (score >= 0.5) return "text-amber-600 bg-amber-50";
-    return "text-red-600 bg-red-50";
+    if (score >= 0.5) return "text-warning bg-warning-muted";
+    return "text-danger bg-danger-muted";
   };
 
   const getScoreLabel = (score: number) => {
@@ -183,11 +183,11 @@ const RecommendationCard = ({
               </div>
               
               {recommendation.tradeoffs && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5">
+                <div className="bg-warning-muted border border-warning/20 rounded-lg p-2.5">
                   <p className="text-xs text-foreground leading-relaxed flex items-start gap-1.5">
-                    <AlertTriangle className="h-3 w-3 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <AlertTriangle className="h-3 w-3 text-warning flex-shrink-0 mt-0.5" />
                     <span>
-                      <span className="font-medium text-amber-700">Consideraciones:</span>{" "}
+                      <span className="font-medium text-warning-muted-foreground">Consideraciones:</span>{" "}
                       {recommendation.tradeoffs}
                     </span>
                   </p>

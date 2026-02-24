@@ -81,11 +81,11 @@ interface InvoiceSeries {
 }
 
 const statusColors: Record<string, string> = {
-  issued: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-  refunded: "bg-orange-100 text-orange-800",
-  partially_refunded: "bg-amber-100 text-amber-800",
-  void: "bg-gray-100 text-gray-800",
+  issued: "bg-success-muted text-success-muted-foreground",
+  cancelled: "bg-danger-muted text-danger-muted-foreground",
+  refunded: "bg-caution-muted text-caution-muted-foreground",
+  partially_refunded: "bg-warning-muted text-warning-muted-foreground",
+  void: "bg-neutral-muted text-neutral-muted-foreground",
 };
 
 const statusLabels: Record<string, string> = {
@@ -220,12 +220,12 @@ export default function AdminInvoices() {
 
   const getInvoiceTypeIcon = (invoice: Invoice) => {
     if (invoice.invoice_type === "rectificativa") {
-      return <FileText className="h-4 w-4 text-red-500" />;
+      return <FileText className="h-4 w-4 text-danger" />;
     }
     if (invoice.customer_type === "b2b") {
-      return <Building2 className="h-4 w-4 text-blue-500" />;
+      return <Building2 className="h-4 w-4 text-info" />;
     }
-    return <User className="h-4 w-4 text-purple-500" />;
+    return <User className="h-4 w-4 text-highlight" />;
   };
 
   const clearFilters = () => {
@@ -310,7 +310,7 @@ export default function AdminInvoices() {
         </div>
         <div className="bg-card border border-border rounded-lg p-4">
           <p className="text-sm text-muted-foreground">B2B</p>
-          <p className="text-2xl font-bold text-blue-600">
+          <p className="text-2xl font-bold text-info">
             {invoices.filter(i => i.customer_type === "b2b" && i.invoice_type === "standard").length}
           </p>
         </div>

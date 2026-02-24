@@ -11,10 +11,10 @@ interface CollectionPlantCardProps {
 }
 
 const statusColors: Record<string, string> = {
-  alive: 'bg-green-100 text-green-800',
-  dormant: 'bg-yellow-100 text-yellow-800',
-  sick: 'bg-orange-100 text-orange-800',
-  removed: 'bg-gray-100 text-gray-800',
+  alive: 'bg-success-muted text-success-muted-foreground',
+  dormant: 'bg-warning-muted text-warning-muted-foreground',
+  sick: 'bg-caution-muted text-caution-muted-foreground',
+  removed: 'bg-neutral-muted text-neutral-muted-foreground',
 };
 
 const statusLabels: Record<string, string> = {

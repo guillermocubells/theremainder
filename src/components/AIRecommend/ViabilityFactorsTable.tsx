@@ -50,12 +50,12 @@ const factorInfo: Record<keyof ViabilityFactors, FactorInfo> = {
 };
 
 const getScoreColor = (score: number) => {
-  if (score >= 8) return "text-green-700 font-bold";
-  if (score >= 7) return "text-green-600 font-semibold";
-  if (score >= 6) return "text-yellow-600 font-semibold";
-  if (score >= 5) return "text-orange-600 font-semibold";
-  if (score >= 4) return "text-red-600 font-semibold";
-  return "text-red-700 font-bold";
+  if (score >= 8) return "text-success font-bold";
+  if (score >= 7) return "text-success font-semibold";
+  if (score >= 6) return "text-warning font-semibold";
+  if (score >= 5) return "text-caution font-semibold";
+  if (score >= 4) return "text-danger font-semibold";
+  return "text-danger font-bold";
 };
 
 const getScoreLabel = (score: number): string => {

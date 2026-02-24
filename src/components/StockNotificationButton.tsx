@@ -33,7 +33,7 @@ const StockNotificationButton = ({ plantId, className = "" }: StockNotificationB
       onClick={handleClick}
       disabled={isLoading}
       size="lg"
-      className={`gap-2 text-sm sm:text-base px-6 sm:px-8 ${isSubscribed ? "" : "bg-rose-600 hover:bg-rose-700 text-white"} ${className}`}
+      className={`gap-2 text-sm sm:text-base px-6 sm:px-8 ${isSubscribed ? "" : "bg-danger hover:bg-danger/90 text-danger-foreground"} ${className}`}
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />

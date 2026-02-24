@@ -49,10 +49,10 @@ export const WishlistCard = ({ item }: WishlistCardProps) => {
 
   const getPriorityColor = () => {
     switch (item.priority) {
-      case 'urgent': return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300';
-      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300';
-      case 'medium': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300';
-      case 'low': return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+      case 'urgent': return 'bg-danger-muted text-danger-muted-foreground dark:bg-danger-muted dark:text-danger-muted-foreground';
+      case 'high': return 'bg-caution-muted text-caution-muted-foreground dark:bg-caution-muted dark:text-caution-muted-foreground';
+      case 'medium': return 'bg-info-muted text-info-muted-foreground dark:bg-info-muted dark:text-info-muted-foreground';
+      case 'low': return 'bg-neutral-muted text-neutral-muted-foreground dark:bg-neutral-muted dark:text-neutral-muted-foreground';
     }
   };
 
