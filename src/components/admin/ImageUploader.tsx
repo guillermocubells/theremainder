@@ -1,10 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OptimizedImage } from "@/components/ui/optimized-image";
-import { Upload, X, Link as LinkIcon, Loader2, GripVertical } from "lucide-react";
+import { Upload, X, Link as LinkIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ImageUploaderProps {
@@ -15,6 +15,8 @@ interface ImageUploaderProps {
 export function ImageUploader({ images, onImagesChange }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [urlInput, setUrlInput] = useState("");
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -70,19 +72,40 @@ export function ImageUploader({ images, onImagesChange }: ImageUploaderProps) {
     onImagesChange(newImages);
   };
 
-  const moveImage = (fromIndex: number, toIndex: number) => {
-    if (toIndex < 0 || toIndex >= images.length) return;
+  const handleDragStart = (index: number) => {
+    setDragIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setOverIndex(index);
+  };
+
+  const handleDrop = (e: React.DragEvent, toIndex: number) => {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === toIndex) {
+      setDragIndex(null);
+      setOverIndex(null);
+      return;
+    }
     const newImages = [...images];
-    const [movedItem] = newImages.splice(fromIndex, 1);
-    newImages.splice(toIndex, 0, movedItem);
+    const [moved] = newImages.splice(dragIndex, 1);
+    newImages.splice(toIndex, 0, moved);
     onImagesChange(newImages);
+    setDragIndex(null);
+    setOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setOverIndex(null);
   };
 
   return (
     <div className="space-y-4">
       <Label>Imágenes</Label>
 
-      {/* Upload buttons */}
+      {/* Upload area */}
       <div className="flex gap-4">
         <div className="flex-1">
           <label className="flex items-center justify-center gap-2 px-4 py-8 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-moss/50 hover:bg-muted/50 transition-colors">
@@ -127,54 +150,43 @@ export function ImageUploader({ images, onImagesChange }: ImageUploaderProps) {
         </Button>
       </div>
 
-      {/* Image grid */}
+      {/* Draggable image grid */}
       {images.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
           {images.map((url, index) => (
             <div
               key={`${url}-${index}`}
-              className="relative group aspect-square rounded-xl overflow-hidden bg-muted border border-border"
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+              className={`relative group aspect-square rounded-xl overflow-hidden bg-muted border-2 transition-all cursor-grab active:cursor-grabbing ${
+                overIndex === index && dragIndex !== index
+                  ? "border-primary scale-[1.03]"
+                  : dragIndex === index
+                    ? "border-primary/50 opacity-50"
+                    : "border-border"
+              }`}
             >
               <OptimizedImage
                 src={url}
                 alt={`Imagen ${index + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover pointer-events-none"
                 fallbackSrc="/placeholder.svg"
               />
 
-              {/* Overlay with controls */}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                {index > 0 && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => moveImage(index, index - 1)}
-                  >
-                    ←
-                  </Button>
-                )}
+              {/* Delete button on hover */}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Button
                   type="button"
                   variant="destructive"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => handleRemoveImage(index)}
+                  onClick={(e) => { e.stopPropagation(); handleRemoveImage(index); }}
                 >
                   <X className="h-4 w-4" />
                 </Button>
-                {index < images.length - 1 && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => moveImage(index, index + 1)}
-                  >
-                    →
-                  </Button>
-                )}
               </div>
 
               {/* Index badge */}
@@ -184,6 +196,10 @@ export function ImageUploader({ images, onImagesChange }: ImageUploaderProps) {
             </div>
           ))}
         </div>
+      )}
+
+      {images.length > 1 && (
+        <p className="text-xs text-muted-foreground">Arrastra las imágenes para cambiar el orden. La primera imagen será la principal.</p>
       )}
     </div>
   );
