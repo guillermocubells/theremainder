@@ -416,11 +416,11 @@ export function PlantFormDialog({
                   <Label htmlFor="germination_date">Fecha germinación</Label>
                   <Input
                     id="germination_date"
+                    type="date"
                     value={formData.germination_date}
                     onChange={(e) =>
                       handleChange("germination_date", e.target.value)
                     }
-                    placeholder="ej: Enero 2024"
                   />
                 </div>
               </TabsContent>
