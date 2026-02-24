@@ -218,8 +218,8 @@ export function PlantFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <ScrollArea className="h-[calc(90vh-150px)] pr-4">
-            <Tabs defaultValue="general" className="w-full">
+          <ScrollArea className="h-[calc(90vh-150px)]">
+            <Tabs defaultValue="general" className="w-full px-1">
               <TabsList className="grid grid-cols-4 w-full mb-4">
                 <TabsTrigger value="general">General</TabsTrigger>
                 <TabsTrigger value="details">Detalles</TabsTrigger>
