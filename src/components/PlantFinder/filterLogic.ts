@@ -145,11 +145,7 @@ export const filterPlantsByAnswers = (
   return { plants: filtered, activeFilters };
 };
 
-// Analytics tracking
-export const trackPlantFinderEvent = (eventName: string, data?: Record<string, unknown>) => {
-  // Log to console in development
-  console.log(`[PlantFinder Analytics] ${eventName}`, data);
-  
-  // You could integrate with a real analytics service here
-  // e.g., window.gtag?.('event', eventName, data);
+// Analytics tracking — integrate with a real analytics service (e.g. GA4)
+export const trackPlantFinderEvent = (_eventName: string, _data?: Record<string, unknown>) => {
+  // window.gtag?.('event', _eventName, _data);
 };

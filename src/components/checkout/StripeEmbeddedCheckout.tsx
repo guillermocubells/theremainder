@@ -88,7 +88,7 @@ export function StripeEmbeddedCheckout({
           throw new Error("Missing checkout data from server");
         }
 
-        console.log("Checkout session created successfully");
+        // Checkout session created — proceed to load Stripe
         
         // Load Stripe with the publishable key from the server
         const stripe = loadStripe(data.publishableKey);
