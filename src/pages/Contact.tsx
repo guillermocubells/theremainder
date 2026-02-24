@@ -57,7 +57,7 @@ const Contact = () => {
     // Simulate API call - in production, this would send to an edge function
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    console.log("Contact form submitted:", data);
+    // Form data submitted — integrate with backend edge function in production
     
     setIsSubmitting(false);
     setIsSubmitted(true);
