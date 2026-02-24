@@ -46,10 +46,10 @@ const CollectionDashboard = () => {
 
   const getConditionColor = (condition: string) => {
     switch (condition) {
-      case 'healthy': return 'text-green-600 bg-green-100';
-      case 'okay': return 'text-yellow-600 bg-yellow-100';
-      case 'concern': return 'text-orange-600 bg-orange-100';
-      case 'critical': return 'text-red-600 bg-red-100';
+      case 'healthy': return 'text-success-muted-foreground bg-success-muted';
+      case 'okay': return 'text-warning-muted-foreground bg-warning-muted';
+      case 'concern': return 'text-caution-muted-foreground bg-caution-muted';
+      case 'critical': return 'text-danger-muted-foreground bg-danger-muted';
       default: return 'text-muted-foreground bg-muted';
     }
   };
@@ -107,8 +107,8 @@ const CollectionDashboard = () => {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="bg-green-100 p-2 rounded-lg">
-                  <Leaf className="h-5 w-5 text-green-600" />
+                <div className="bg-success-muted p-2 rounded-lg">
+                  <Leaf className="h-5 w-5 text-success" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{plants?.length || 0}</p>
@@ -133,8 +133,8 @@ const CollectionDashboard = () => {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="bg-orange-100 p-2 rounded-lg">
-                  <Calendar className="h-5 w-5 text-orange-600" />
+                <div className="bg-caution-muted p-2 rounded-lg">
+                  <Calendar className="h-5 w-5 text-caution" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{statusCounts.sick}</p>

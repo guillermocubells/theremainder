@@ -63,8 +63,8 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
             <Star
               className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
                 star <= rating
-                  ? 'fill-amber-400 text-amber-400'
-                  : 'fill-gray-200 text-gray-200'
+                  ? 'fill-rating text-rating'
+                  : 'fill-rating-muted text-rating-muted'
               }`}
             />
           </button>

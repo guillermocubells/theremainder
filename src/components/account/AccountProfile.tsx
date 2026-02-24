@@ -50,7 +50,7 @@ const AccountProfile = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -58,14 +58,14 @@ const AccountProfile = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Datos personales</h1>
-        <p className="text-gray-600 mt-1">Gestiona la información de tu cuenta</p>
+        <h1 className="text-2xl font-bold text-foreground">Datos personales</h1>
+        <p className="text-muted-foreground mt-1">Gestiona la información de tu cuenta</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <User className="h-5 w-5 text-green-600" />
+            <User className="h-5 w-5 text-primary" />
             Información personal
           </CardTitle>
         </CardHeader>
@@ -90,9 +90,9 @@ const AccountProfile = () => {
                 id="email"
                 value={user?.email || ''}
                 disabled
-                className="bg-gray-50"
+                className="bg-muted"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 El email no puede ser modificado desde aquí
               </p>
             </div>
@@ -112,7 +112,7 @@ const AccountProfile = () => {
 
             <Button 
               type="submit" 
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={!hasChanges || updateProfile.isPending}
             >
               {updateProfile.isPending ? (
@@ -133,18 +133,18 @@ const AccountProfile = () => {
         <CardContent>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">ID de usuario</span>
-              <span className="font-mono text-xs text-gray-600">{user?.id?.slice(0, 8)}...</span>
+              <span className="text-muted-foreground">ID de usuario</span>
+              <span className="font-mono text-xs text-muted-foreground">{user?.id?.slice(0, 8)}...</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Cuenta creada</span>
-              <span className="text-gray-600">
+              <span className="text-muted-foreground">Cuenta creada</span>
+              <span className="text-foreground">
                 {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('es-ES') : '-'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Última actualización</span>
-              <span className="text-gray-600">
+              <span className="text-muted-foreground">Última actualización</span>
+              <span className="text-foreground">
                 {profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString('es-ES') : '-'}
               </span>
             </div>

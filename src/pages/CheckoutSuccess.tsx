@@ -77,17 +77,17 @@ const CheckoutSuccess = () => {
 
           {/* Plants added to collection notification */}
           {user && (
-            <Card className="mb-6 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+            <Card className="mb-6 bg-gradient-to-br from-success-muted to-success-muted/60 border-success/20">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-green-100 p-2 rounded-full">
-                    <Leaf className="h-6 w-6 text-green-600" />
+                  <div className="bg-success-muted p-2 rounded-full">
+                    <Leaf className="h-6 w-6 text-success" />
                   </div>
                   <div className="text-left">
-                    <h3 className="font-semibold text-green-900">
+                    <h3 className="font-semibold text-success-muted-foreground">
                       ¡Plantas añadidas a tu colección!
                     </h3>
-                    <p className="text-sm text-green-700">
+                    <p className="text-sm text-success">
                       {plantsLoading ? (
                         <span className="flex items-center gap-2">
                           <Loader2 className="h-3 w-3 animate-spin" />
@@ -105,15 +105,15 @@ const CheckoutSuccess = () => {
                 {recentPlants.length > 0 && (
                   <div className="space-y-2 mb-4">
                     {recentPlants.slice(0, 3).map(plant => (
-                      <div key={plant.id} className="flex items-center gap-2 text-sm text-green-800 bg-white/50 rounded-lg p-2">
-                        <span className="font-mono text-xs bg-green-100 px-2 py-0.5 rounded">
+                      <div key={plant.id} className="flex items-center gap-2 text-sm text-success-muted-foreground bg-background/50 rounded-lg p-2">
+                        <span className="font-mono text-xs bg-success-muted px-2 py-0.5 rounded">
                           {plant.serial_code}
                         </span>
                         <span className="truncate">{plant.nickname}</span>
                       </div>
                     ))}
                     {recentPlants.length > 3 && (
-                      <p className="text-xs text-green-600">
+                      <p className="text-xs text-success">
                         +{recentPlants.length - 3} más...
                       </p>
                     )}
@@ -123,7 +123,7 @@ const CheckoutSuccess = () => {
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
                     asChild 
-                    className="bg-green-600 hover:bg-green-700 flex-1"
+                    className="bg-primary hover:bg-primary/90 flex-1"
                   >
                     <Link to="/collection">
                       Ir a mi colección
@@ -133,7 +133,7 @@ const CheckoutSuccess = () => {
                   {showObservationPrompt && recentPlants.length > 0 && (
                     <Button 
                       variant="outline"
-                      className="border-green-300 text-green-700 hover:bg-green-50"
+                      className="border-primary/30 text-primary hover:bg-primary/5"
                       onClick={() => setObservationDialogOpen(true)}
                     >
                       Añadir observación inicial
@@ -146,18 +146,18 @@ const CheckoutSuccess = () => {
 
           {/* Guest user prompt */}
           {!user && (
-            <Card className="mb-6 bg-amber-50 border-amber-200">
+            <Card className="mb-6 bg-warning-muted border-warning/20">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-3">
-                  <Leaf className="h-6 w-6 text-amber-600" />
-                  <h3 className="font-semibold text-amber-900">
+                  <Leaf className="h-6 w-6 text-warning" />
+                  <h3 className="font-semibold text-warning-muted-foreground">
                     ¿Quieres guardar tus plantas?
                   </h3>
                 </div>
-                <p className="text-sm text-amber-700 mb-4">
+                <p className="text-sm text-warning-muted-foreground mb-4">
                   Crea una cuenta para añadir tus plantas a tu colección personal y hacer seguimiento de su cuidado.
                 </p>
-                <Button asChild variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100">
+                <Button asChild variant="outline" className="border-warning/30 text-warning-muted-foreground hover:bg-warning-muted/50">
                   <Link to="/auth">
                     Crear cuenta
                     <ArrowRight className="h-4 w-4 ml-2" />

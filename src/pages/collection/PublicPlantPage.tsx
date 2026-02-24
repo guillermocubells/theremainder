@@ -22,10 +22,10 @@ const conditionLabels: Record<string, string> = {
 };
 
 const conditionColors: Record<string, string> = {
-  healthy: 'bg-green-100 text-green-800',
-  okay: 'bg-yellow-100 text-yellow-800',
-  concern: 'bg-orange-100 text-orange-800',
-  critical: 'bg-red-100 text-red-800',
+  healthy: 'bg-success-muted text-success-muted-foreground',
+  okay: 'bg-warning-muted text-warning-muted-foreground',
+  concern: 'bg-caution-muted text-caution-muted-foreground',
+  critical: 'bg-danger-muted text-danger-muted-foreground',
 };
 
 const PublicPlantPage = () => {

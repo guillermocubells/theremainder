@@ -31,20 +31,20 @@ const QuantitySelector = ({ quantity, maxQuantity, onChange, size = "default" }:
         type="button"
         variant="outline"
         size="icon"
-        className={`${buttonSize} border-green-300 hover:bg-green-50 hover:border-green-400`}
+        className={`${buttonSize} border-primary/30 hover:bg-primary/5 hover:border-primary/40`}
         onClick={decrease}
         disabled={quantity <= 1}
       >
         <Minus className={iconSize} />
       </Button>
-      <span className={`${textSize} font-medium w-8 text-center text-gray-800`}>
+      <span className={`${textSize} font-medium w-8 text-center text-foreground`}>
         {quantity}
       </span>
       <Button
         type="button"
         variant="outline"
         size="icon"
-        className={`${buttonSize} border-green-300 hover:bg-green-50 hover:border-green-400`}
+        className={`${buttonSize} border-primary/30 hover:bg-primary/5 hover:border-primary/40`}
         onClick={increase}
         disabled={quantity >= maxQuantity}
       >

@@ -48,10 +48,10 @@ import PlantSharingControls from '@/components/collection/PlantSharingControls';
 import { cn } from '@/lib/utils';
 
 const statusColors: Record<string, string> = {
-  alive: 'bg-green-100 text-green-800',
-  dormant: 'bg-yellow-100 text-yellow-800',
-  sick: 'bg-orange-100 text-orange-800',
-  removed: 'bg-gray-100 text-gray-800',
+  alive: 'bg-success-muted text-success-muted-foreground',
+  dormant: 'bg-warning-muted text-warning-muted-foreground',
+  sick: 'bg-caution-muted text-caution-muted-foreground',
+  removed: 'bg-neutral-muted text-neutral-muted-foreground',
 };
 
 const statusLabels: Record<string, string> = {
@@ -62,10 +62,10 @@ const statusLabels: Record<string, string> = {
 };
 
 const conditionColors: Record<string, string> = {
-  healthy: 'bg-green-100 text-green-800',
-  okay: 'bg-yellow-100 text-yellow-800',
-  concern: 'bg-orange-100 text-orange-800',
-  critical: 'bg-red-100 text-red-800',
+  healthy: 'bg-success-muted text-success-muted-foreground',
+  okay: 'bg-warning-muted text-warning-muted-foreground',
+  concern: 'bg-caution-muted text-caution-muted-foreground',
+  critical: 'bg-danger-muted text-danger-muted-foreground',
 };
 
 const conditionLabels: Record<string, string> = {
@@ -355,8 +355,8 @@ const PlantDetailPage = () => {
                       </div>
                       <span className={cn(
                         "text-lg font-bold",
-                        viabilityScore >= 70 ? "text-green-600" :
-                        viabilityScore >= 50 ? "text-yellow-600" : "text-red-600"
+                        viabilityScore >= 70 ? "text-success" :
+                        viabilityScore >= 50 ? "text-warning" : "text-danger"
                       )}>
                         {viabilityScore}%
                       </span>
@@ -365,8 +365,8 @@ const PlantDetailPage = () => {
                       value={viabilityScore} 
                       className="h-2"
                       indicatorClassName={cn(
-                        viabilityScore >= 70 ? "bg-green-500" :
-                        viabilityScore >= 50 ? "bg-yellow-500" : "bg-red-500"
+                        viabilityScore >= 70 ? "bg-success" :
+                        viabilityScore >= 50 ? "bg-warning" : "bg-danger"
                       )}
                     />
                     <p className="text-xs text-muted-foreground mt-2">

@@ -145,8 +145,8 @@ export const WishlistKanban = ({ wishlistItems, lookingItems, acquiredItems }: W
         title="Lista de Deseos"
         status="wishlist"
         items={wishlistItems}
-        icon={<Heart className="h-5 w-5 text-rose-500" />}
-        colorClass="bg-rose-50 dark:bg-rose-950/30"
+        icon={<Heart className="h-5 w-5 text-danger" />}
+        colorClass="bg-danger-muted dark:bg-danger-muted"
         onDrop={handleDrop}
         isCollapsed={collapsedColumns.wishlist}
         onToggleCollapse={() => toggleCollapse('wishlist')}
@@ -156,8 +156,8 @@ export const WishlistKanban = ({ wishlistItems, lookingItems, acquiredItems }: W
         title="Buscando Activamente"
         status="looking"
         items={lookingItems}
-        icon={<Search className="h-5 w-5 text-amber-500" />}
-        colorClass="bg-amber-50 dark:bg-amber-950/30"
+        icon={<Search className="h-5 w-5 text-warning" />}
+        colorClass="bg-warning-muted dark:bg-warning-muted"
         onDrop={handleDrop}
         isCollapsed={collapsedColumns.looking}
         onToggleCollapse={() => toggleCollapse('looking')}
@@ -167,8 +167,8 @@ export const WishlistKanban = ({ wishlistItems, lookingItems, acquiredItems }: W
         title="Adquiridas"
         status="acquired"
         items={acquiredItems}
-        icon={<ShoppingBag className="h-5 w-5 text-green-500" />}
-        colorClass="bg-green-50 dark:bg-green-950/30"
+        icon={<ShoppingBag className="h-5 w-5 text-success" />}
+        colorClass="bg-success-muted dark:bg-success-muted"
         onDrop={handleDrop}
         isCollapsed={collapsedColumns.acquired}
         onToggleCollapse={() => toggleCollapse('acquired')}

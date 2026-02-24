@@ -71,7 +71,7 @@ const AccountSavedSearches = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -79,8 +79,8 @@ const AccountSavedSearches = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Búsquedas guardadas</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Búsquedas guardadas</h1>
+        <p className="text-muted-foreground mt-1">
           Accede rápidamente a tus configuraciones de búsqueda favoritas
         </p>
       </div>
@@ -92,15 +92,15 @@ const AccountSavedSearches = () => {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className="bg-green-100 p-2 rounded-lg flex-shrink-0">
-                      <Search className="h-5 w-5 text-green-600" />
+                    <div className="bg-primary/10 p-2 rounded-lg flex-shrink-0">
+                      <Search className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800 truncate">{search.name}</p>
-                      <p className="text-sm text-gray-500 truncate">
+                      <p className="font-medium text-foreground truncate">{search.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">
                         {getFilterSummary(search.filters)}
                       </p>
-                      <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                      <p className="text-xs text-muted-foreground/70 flex items-center gap-1 mt-1">
                         <Calendar className="h-3 w-3" />
                         {format(new Date(search.created_at), "d 'de' MMMM, yyyy", { locale: es })}
                       </p>
@@ -109,7 +109,7 @@ const AccountSavedSearches = () => {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
                       size="sm"
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
                       onClick={() => handleApply(search)}
                     >
                       <Play className="h-4 w-4 mr-1" />
@@ -133,7 +133,7 @@ const AccountSavedSearches = () => {
                         setDeleteDialogOpen(true);
                       }}
                     >
-                      <Trash2 className="h-4 w-4 text-red-500" />
+                      <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
                 </div>
@@ -144,9 +144,9 @@ const AccountSavedSearches = () => {
       ) : (
         <Card>
           <CardContent className="p-8 text-center">
-            <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-800 mb-2">Sin búsquedas guardadas</h3>
-            <p className="text-gray-500">
+            <Search className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">Sin búsquedas guardadas</h3>
+            <p className="text-muted-foreground">
               Cuando uses el buscador de plantas y apliques filtros, podrás guardar esa configuración para acceder rápidamente en el futuro.
             </p>
           </CardContent>
@@ -172,7 +172,7 @@ const AccountSavedSearches = () => {
             </Button>
             <Button 
               onClick={handleRename}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={updateSearch.isPending || !newName.trim()}
             >
               {updateSearch.isPending ? (
@@ -198,7 +198,7 @@ const AccountSavedSearches = () => {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Eliminar
             </AlertDialogAction>

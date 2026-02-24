@@ -209,7 +209,7 @@ const AIRecommendPanel = ({
             {/* Confidence indicator */}
             <div className="flex items-center gap-2">
               {result.no_good_match ? (
-                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                <Badge variant="outline" className="bg-warning-muted text-warning-muted-foreground border-warning/20">
                   <AlertCircle className="h-3 w-3 mr-1" />
                   Sin coincidencias óptimas
                 </Badge>
@@ -218,8 +218,8 @@ const AIRecommendPanel = ({
                   variant="outline" 
                   className={`
                     ${result.confidence === 'high' ? 'bg-moss/10 text-moss border-moss/30' : ''}
-                    ${result.confidence === 'medium' ? 'bg-blue-50 text-blue-700 border-blue-200' : ''}
-                    ${result.confidence === 'low' ? 'bg-amber-50 text-amber-700 border-amber-200' : ''}
+                    ${result.confidence === 'medium' ? 'bg-info-muted text-info-muted-foreground border-info/20' : ''}
+                    ${result.confidence === 'low' ? 'bg-warning-muted text-warning-muted-foreground border-warning/20' : ''}
                   `}
                 >
                   <CheckCircle2 className="h-3 w-3 mr-1" />
