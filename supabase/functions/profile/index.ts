@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { checkRateLimit, rateLimitResponse, PRESETS, extractUserIdFromJwt } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -116,6 +117,13 @@ async function authenticateRequest(req: Request) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  // Rate limit
+  const userId = extractUserIdFromJwt(req.headers.get("Authorization"));
+  const rl = checkRateLimit(req, PRESETS.auth_write, userId);
+  if (!rl.allowed) {
+    return rateLimitResponse(rl.headers, corsHeaders);
   }
 
   // Authenticate

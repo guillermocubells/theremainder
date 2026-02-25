@@ -1,27 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-
-// Simple in-memory rate limiting (per deployment instance)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 5; // max inquiries per window
-const RATE_WINDOW = 60 * 60 * 1000; // 1 hour
-
-function isRateLimited(identifier: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(identifier);
-  
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(identifier, { count: 1, resetAt: now + RATE_WINDOW });
-    return false;
-  }
-  
-  entry.count++;
-  return entry.count > RATE_LIMIT;
-}
 
 function sanitizeText(text: string): string {
   // Normalize unicode first to prevent lookalike attacks
@@ -105,11 +88,9 @@ Deno.serve(async (req) => {
     const viewerIdentifier = hashIdentifier((viewer_email || '') + clientIP);
 
     // Rate limit check
-    if (isRateLimited(viewerIdentifier)) {
-      return new Response(
-        JSON.stringify({ error: 'Demasiadas consultas. Intenta de nuevo más tarde.' }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const rl = checkRateLimit(req, PRESETS.form_submit);
+    if (!rl.allowed) {
+      return rateLimitResponse(rl.headers, corsHeaders);
     }
 
     // Verify plant exists and get owner from the database (don't trust client-supplied owner_user_id)
