@@ -20,7 +20,7 @@ export const STORE_CONTACT = {
 
 // ─── SEO defaults ───
 export const STORE_SEO = {
-  defaultOgImage: "https://lovable.dev/opengraph-image-p98pqg.png",
+  defaultOgImage: "https://theremainder.lovable.app/pwa-512x512.png",
   locale: "es_ES",
 } as const;
 

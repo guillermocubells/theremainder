@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { PageSEO } from "@/components/seo";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Separator } from "@/components/ui/separator";
@@ -16,14 +16,11 @@ import {
 const ShippingInfo = () => {
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>Envíos y entregas | The Remainder</title>
-        <meta 
-          name="description" 
-          content="Información sobre preparación, envíos, plazos de entrega, devoluciones y costes de pago." 
-        />
-        <link rel="canonical" href="https://theremainder.lovable.app/envios-y-entregas" />
-      </Helmet>
+      <PageSEO
+        title="Envíos y entregas"
+        description="Información sobre preparación, envíos, plazos de entrega, devoluciones y costes de pago."
+        path="/envios-y-entregas"
+      />
       
       <Header />
       

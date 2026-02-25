@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import { PageSEO } from "@/components/seo";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Separator } from "@/components/ui/separator";
@@ -8,14 +8,11 @@ const ReferralProgram = () => {
   const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>Programa de Referidos | The Remainder</title>
-        <meta 
-          name="description" 
-          content="Comparte The Remainder y gana crédito. Descubre cómo funciona nuestro programa de referidos." 
-        />
-        <link rel="canonical" href="https://frondaprima.lovable.app/programa-referidos" />
-      </Helmet>
+      <PageSEO
+        title="Programa de Referidos"
+        description="Comparte The Remainder y gana crédito. Descubre cómo funciona nuestro programa de referidos."
+        path="/programa-referidos"
+      />
       
       <Header />
       

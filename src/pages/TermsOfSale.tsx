@@ -2,10 +2,16 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Separator } from "@/components/ui/separator";
 import { STORE_CONTACT } from "@/config/store";
+import { PageSEO } from "@/components/seo";
 
 const TermsOfSale = () => {
   return (
     <div className="min-h-screen bg-background">
+      <PageSEO
+        title="Condiciones de Venta"
+        description="Condiciones generales de venta de The Remainder. Información legal sobre pedidos, pagos y entregas."
+        path="/condiciones-venta"
+      />
       <Header />
       
       <main className="container mx-auto px-4 py-8 md:py-12">

@@ -1,10 +1,16 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Separator } from "@/components/ui/separator";
+import { PageSEO } from "@/components/seo";
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background">
+      <PageSEO
+        title="Política de Privacidad"
+        description="Política de privacidad y cookies de The Remainder. Información sobre protección de datos."
+        path="/privacy"
+      />
       <Header />
       
       <main className="container mx-auto px-4 py-8 md:py-12">
