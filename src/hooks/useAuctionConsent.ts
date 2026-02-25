@@ -52,19 +52,20 @@ export function useAuctionConsent(consentType: AuctionConsentType) {
 
   const hasConsent = !!consent;
 
-  // Record consent
+  // Record consent via edge function (captures IP server-side)
   const recordConsent = useMutation({
     mutationFn: async () => {
       if (!user || !termsVersion) throw new Error('No autenticado');
-      const { error } = await supabase
-        .from('auction_consents' as any)
-        .insert({
-          user_id: user.id,
-          terms_version: termsVersion,
+      const { data, error } = await supabase.functions.invoke('record-auction-consent', {
+        body: {
           consent_type: consentType,
+          terms_version: termsVersion,
           user_agent: navigator.userAgent,
-        });
+        },
+      });
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auction-consent', user?.id, consentType] });
