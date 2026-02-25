@@ -418,6 +418,53 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_logs: {
+        Row: {
+          consents: Json
+          created_at: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          order_id: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          consents?: Json
+          created_at?: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          order_id?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          consents?: Json
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          order_id?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       currency_rates: {
         Row: {
           base_currency: string

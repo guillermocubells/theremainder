@@ -27,6 +27,7 @@ import {
 import ReferralCodeField from "@/components/checkout/ReferralCodeField";
 import ReferralBanner from "@/components/ReferralBanner";
 import { CheckoutConsent, ConsentState, INITIAL_CONSENT, validateConsent } from "@/components/checkout/CheckoutConsent";
+import { logConsent } from "@/hooks/useConsentLog";
 
 interface ShippingForm {
   email: string;
@@ -65,7 +66,7 @@ const Checkout = () => {
   const [appliedReferralCode, setAppliedReferralCode] = useState<string | null>(null);
   const [referrerUserId, setReferrerUserId] = useState<string | null>(null);
   const [consent, setConsent] = useState<ConsentState>(INITIAL_CONSENT);
-  const [consentErrors, setConsentErrors] = useState<{ terms?: string; privacy?: string }>({});
+  const [consentErrors, setConsentErrors] = useState<{ terms?: string; privacy?: string; withdrawal?: string; platformFee?: string }>({});
   const [form, setForm] = useState<ShippingForm>({
     ...INITIAL_FORM,
     email: user?.email || "",
@@ -168,6 +169,18 @@ const Checkout = () => {
           isValid = false;
         } else {
           setConsentErrors({});
+          // Log consent to audit trail
+          logConsent({
+            eventType: "order_checkout",
+            consents: {
+              termsAccepted: consent.termsAccepted,
+              privacyAccepted: consent.privacyAccepted,
+              withdrawalWaiver: consent.withdrawalWaiver,
+              platformFeeAck: consent.platformFeeAck,
+              analyticsOptIn: consent.analyticsOptIn,
+              marketingOptIn: consent.marketingOptIn,
+            },
+          });
           isValid = true;
         }
         break;

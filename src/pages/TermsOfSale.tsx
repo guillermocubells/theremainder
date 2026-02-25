@@ -71,14 +71,15 @@ const TermsOfSale = () => {
 
             <Separator className="my-6" />
 
-            {/* 4. Precios */}
+            {/* 4. Precios y comisión de plataforma */}
             <div>
               <h2 className="text-lg font-semibold text-foreground mb-3">
-                4. Precios
+                4. Precios y comisión de plataforma
               </h2>
               <ul className="space-y-2 text-muted-foreground text-sm list-disc pl-5">
                 <li>Los precios indicados incluyen el IVA vigente en España.</li>
                 <li>Los gastos de envío se calculan en función del destino y del peso/volumen del pedido, y se muestran antes de confirmar el pago.</li>
+                <li><strong className="text-foreground">Comisión de plataforma:</strong> se aplica una comisión del <strong className="text-foreground">6%</strong> sobre el precio de los productos, incluida en el precio final mostrado al cliente. Esta comisión cubre los costes de mantenimiento de la plataforma, procesamiento de pagos y soporte al cliente.</li>
                 <li>LA EMPRESA se reserva el derecho de modificar los precios en cualquier momento, siendo aplicable el precio vigente en el momento de la compra.</li>
               </ul>
             </div>
@@ -137,13 +138,16 @@ const TermsOfSale = () => {
                 8. Derecho de desistimiento
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                De conformidad con la normativa vigente, EL CLIENTE dispone de un plazo de <strong className="text-foreground">14 días naturales</strong> desde la recepción del producto para ejercer su derecho de desistimiento, sin necesidad de justificación.
+                Conforme al artículo <strong className="text-foreground">103.d) del Real Decreto Legislativo 1/2007</strong> (Ley General para la Defensa de los Consumidores y Usuarios), las plantas vivas se consideran <strong className="text-foreground">bienes perecederos o que pueden caducar con rapidez</strong>, por lo que están <strong className="text-foreground">excluidas del derecho de desistimiento</strong> de 14 días previsto en la Directiva 2011/83/UE, artículo 16, apartado d).
               </p>
               <p className="text-muted-foreground leading-relaxed mt-3">
-                <strong className="text-foreground">Excepciones:</strong> Dada la naturaleza perecedera de las plantas, el derecho de desistimiento no será aplicable si el producto ha sufrido deterioro tras su entrega debido a causas ajenas a LA EMPRESA.
+                Al realizar un pedido, EL CLIENTE acepta expresamente esta exclusión, reconociendo que las plantas son productos vivos cuyo estado puede deteriorarse con el paso del tiempo.
               </p>
               <p className="text-muted-foreground leading-relaxed mt-3">
-                Para ejercer este derecho, contacte con nosotros en: 📧 <a href="mailto:guillermocubells@gmail.com" className="text-primary hover:underline">guillermocubells@gmail.com</a>
+                <strong className="text-foreground">No obstante</strong>, si el producto llega dañado, en mal estado o no se corresponde con lo pedido, EL CLIENTE tiene derecho a reclamar conforme a la sección 9 (Devoluciones y reclamaciones).
+              </p>
+              <p className="text-muted-foreground leading-relaxed mt-3">
+                Para cualquier consulta, contacte con nosotros en: 📧 <a href="mailto:guillermocubells@gmail.com" className="text-primary hover:underline">guillermocubells@gmail.com</a>
               </p>
             </div>
 
