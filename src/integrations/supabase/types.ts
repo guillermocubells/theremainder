@@ -2899,6 +2899,7 @@ export type Database = {
       generate_plant_serial_code: { Args: never; Returns: string }
       generate_plant_slug: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      get_auction_terms_version: { Args: never; Returns: string }
       get_public_shared_list_by_slug: {
         Args: { p_slug: string }
         Returns: Json
