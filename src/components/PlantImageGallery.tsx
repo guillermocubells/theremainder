@@ -87,17 +87,17 @@ const PlantImageGallery = ({ images, productImages, primaryImage, plantName }: P
   return (
     <>
       <div className="h-full flex flex-col w-full">
-        {/* Main Image - grows to fill available space */}
-        <div className="relative flex-1 min-h-0 mb-3">
+        {/* Main Image - fixed aspect ratio to prevent layout shifts */}
+        <div className="relative mb-3">
           <div 
-            className="relative h-full w-full overflow-hidden rounded-xl cursor-pointer group shadow-lg bg-muted flex items-center justify-center"
+            className="relative w-full overflow-hidden rounded-xl cursor-pointer group shadow-lg bg-muted aspect-[4/5]"
             onClick={openLightbox}
           >
             <OptimizedImage
               src={displayImages[selectedIndex]}
               alt={`${plantName} - imagen ${selectedIndex + 1}`}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              wrapperClassName="w-full h-full"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              wrapperClassName="absolute inset-0 w-full h-full"
               loading="eager"
             />
             {/* Zoom button */}
