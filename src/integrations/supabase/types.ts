@@ -132,8 +132,10 @@ export type Database = {
       }
       auctions: {
         Row: {
+          admin_notes: string | null
           bid_increment: number
           buy_now_price: number | null
+          change_request_message: string | null
           condition: string | null
           created_at: string
           created_by: string
@@ -151,6 +153,8 @@ export type Database = {
           provenance_documents: string[] | null
           reserve_met: boolean
           reserve_price: number | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           seller_notes: string | null
           seller_user_id: string | null
           slug: string
@@ -165,8 +169,10 @@ export type Database = {
           winning_bid_id: string | null
         }
         Insert: {
+          admin_notes?: string | null
           bid_increment?: number
           buy_now_price?: number | null
+          change_request_message?: string | null
           condition?: string | null
           created_at?: string
           created_by: string
@@ -184,6 +190,8 @@ export type Database = {
           provenance_documents?: string[] | null
           reserve_met?: boolean
           reserve_price?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           seller_notes?: string | null
           seller_user_id?: string | null
           slug: string
@@ -198,8 +206,10 @@ export type Database = {
           winning_bid_id?: string | null
         }
         Update: {
+          admin_notes?: string | null
           bid_increment?: number
           buy_now_price?: number | null
+          change_request_message?: string | null
           condition?: string | null
           created_at?: string
           created_by?: string
@@ -217,6 +227,8 @@ export type Database = {
           provenance_documents?: string[] | null
           reserve_met?: boolean
           reserve_price?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           seller_notes?: string | null
           seller_user_id?: string | null
           slug?: string
@@ -2197,6 +2209,10 @@ export type Database = {
         | "ended"
         | "settled"
         | "cancelled"
+        | "pending_review"
+        | "approved"
+        | "rejected"
+        | "changes_requested"
       bid_status: "active" | "outbid" | "winning" | "won" | "cancelled"
       customer_type: "b2c" | "b2b"
       difficulty_level:
@@ -2406,6 +2422,10 @@ export const Constants = {
         "ended",
         "settled",
         "cancelled",
+        "pending_review",
+        "approved",
+        "rejected",
+        "changes_requested",
       ],
       bid_status: ["active", "outbid", "winning", "won", "cancelled"],
       customer_type: ["b2c", "b2b"],
