@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ShoppingBag, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -28,6 +29,37 @@ import ReferralCodeField from "@/components/checkout/ReferralCodeField";
 import ReferralBanner from "@/components/ReferralBanner";
 import { CheckoutConsent, ConsentState, INITIAL_CONSENT, validateConsent } from "@/components/checkout/CheckoutConsent";
 import { logConsent } from "@/hooks/useConsentLog";
+
+// ── Postal code patterns by country ──
+const POSTAL_CODE_PATTERNS: Record<string, RegExp> = {
+  ES: /^\d{5}$/,
+  PT: /^\d{4}-?\d{3}$/,
+  FR: /^\d{5}$/,
+  DE: /^\d{5}$/,
+  BE: /^\d{4}$/,
+  NL: /^\d{4}\s?[A-Z]{2}$/i,
+  LU: /^\d{4}$/,
+  AT: /^\d{4}$/,
+  IT: /^\d{5}$/,
+  SE: /^\d{3}\s?\d{2}$/,
+  DK: /^\d{4}$/,
+  FI: /^\d{5}$/,
+  PL: /^\d{2}-?\d{3}$/,
+  CZ: /^\d{3}\s?\d{2}$/,
+  SK: /^\d{3}\s?\d{2}$/,
+  HU: /^\d{4}$/,
+  RO: /^\d{6}$/,
+  BG: /^\d{4}$/,
+  HR: /^\d{5}$/,
+  SI: /^\d{4}$/,
+  EE: /^\d{5}$/,
+  LV: /^LV-?\d{4}$/i,
+  LT: /^LT-?\d{5}$/i,
+  IE: /^[A-Z\d]{3}\s?[A-Z\d]{4}$/i,
+  MT: /^[A-Z]{3}\s?\d{4}$/i,
+  CY: /^\d{4}$/,
+  GR: /^\d{3}\s?\d{2}$/,
+};
 
 interface ShippingForm {
   email: string;
@@ -72,6 +104,8 @@ const Checkout = () => {
     email: user?.email || "",
   });
   const [errors, setErrors] = useState<Partial<ShippingForm & { country: string }>>({});
+  // Track which fields have been touched (for blur validation)
+  const [touched, setTouched] = useState<Partial<Record<keyof ShippingForm | "country", boolean>>>({});
 
   // Get shipping quote from backend
   const { quote, isLoading: isQuoteLoading, error: quoteError } = useShippingQuote({
@@ -117,6 +151,70 @@ const Checkout = () => {
     }
   };
 
+
+  // ── Zod schemas (depend on country for postal code) ──
+  const contactSchema = z.object({
+    email: z.string().trim()
+      .min(1, { message: t("common.form.required") })
+      .email({ message: t("common.form.invalidEmail") })
+      .max(255, { message: t("common.form.tooLong", { max: 255 }) }),
+  });
+
+  const postalCodePattern = POSTAL_CODE_PATTERNS[shippingCountry];
+
+  const addressSchema = z.object({
+    fullName: z.string().trim()
+      .min(2, { message: t("common.form.nameTooShort") })
+      .max(100, { message: t("common.form.tooLong", { max: 100 }) }),
+    phone: z.string().trim()
+      .refine(
+        (val) => !val || /^\+?[\d\s\-().]{7,20}$/.test(val),
+        { message: t("common.form.invalidPhone") }
+      ),
+    street: z.string().trim()
+      .min(1, { message: t("common.form.required") })
+      .max(200, { message: t("common.form.tooLong", { max: 200 }) }),
+    apartment: z.string().trim().max(50, { message: t("common.form.tooLong", { max: 50 }) }),
+    postalCode: z.string().trim()
+      .min(1, { message: t("common.form.required") })
+      .max(15, { message: t("common.form.tooLong", { max: 15 }) })
+      .refine(
+        (val) => !postalCodePattern || postalCodePattern.test(val),
+        { message: t("common.form.invalidPostalCode") }
+      ),
+    city: z.string().trim()
+      .min(1, { message: t("common.form.required") })
+      .max(100, { message: t("common.form.tooLong", { max: 100 }) }),
+    province: z.string().trim()
+      .min(1, { message: t("common.form.required") })
+      .max(100, { message: t("common.form.tooLong", { max: 100 }) }),
+  });
+
+  // ── Field-level validation on blur ──
+  const validateField = (field: keyof ShippingForm) => {
+    let fieldError: string | undefined;
+
+    if (field === "email") {
+      const result = contactSchema.shape.email.safeParse(form.email);
+      if (!result.success) fieldError = result.error.issues[0]?.message;
+    } else if (field in addressSchema.shape) {
+      const shape = addressSchema.shape as Record<string, z.ZodType>;
+      const validator = shape[field];
+      if (validator) {
+        const result = validator.safeParse(form[field]);
+        if (!result.success) fieldError = result.error.issues[0]?.message;
+      }
+    }
+
+    setErrors((prev) => ({ ...prev, [field]: fieldError }));
+    return !fieldError;
+  };
+
+  const handleBlur = (field: keyof ShippingForm) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateField(field);
+  };
+
   const validateShippingStep = (): boolean => {
     if (!shippingCountry) {
       setErrors({ country: t("common.form.required") });
@@ -131,23 +229,49 @@ const Checkout = () => {
   };
 
   const validateContactStep = (): boolean => {
-    const newErrors: Partial<ShippingForm> = {};
-    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = t("common.form.invalidEmail");
+    const result = contactSchema.safeParse({ email: form.email });
+    if (!result.success) {
+      const fieldErrors: Partial<ShippingForm> = {};
+      result.error.issues.forEach((issue) => {
+        const path = issue.path[0] as keyof ShippingForm;
+        if (!fieldErrors[path]) fieldErrors[path] = issue.message;
+      });
+      setErrors(fieldErrors);
+      setTouched((prev) => ({ ...prev, email: true }));
+      return false;
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors((prev) => ({ ...prev, email: undefined }));
+    return true;
   };
 
   const validateAddressStep = (): boolean => {
-    const newErrors: Partial<ShippingForm> = {};
-    if (!form.fullName.trim()) newErrors.fullName = t("common.form.required");
-    if (!form.street.trim()) newErrors.street = t("common.form.required");
-    if (!form.postalCode.trim()) newErrors.postalCode = t("common.form.required");
-    if (!form.city.trim()) newErrors.city = t("common.form.required");
-    if (!form.province.trim()) newErrors.province = t("common.form.required");
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const result = addressSchema.safeParse({
+      fullName: form.fullName,
+      phone: form.phone,
+      street: form.street,
+      apartment: form.apartment,
+      postalCode: form.postalCode,
+      city: form.city,
+      province: form.province,
+    });
+    if (!result.success) {
+      const fieldErrors: Partial<ShippingForm> = {};
+      const touchAll: Partial<Record<keyof ShippingForm, boolean>> = {};
+      result.error.issues.forEach((issue) => {
+        const path = issue.path[0] as keyof ShippingForm;
+        if (!fieldErrors[path]) fieldErrors[path] = issue.message;
+        touchAll[path] = true;
+      });
+      setErrors(fieldErrors);
+      setTouched((prev) => ({ ...prev, ...touchAll }));
+      return false;
+    }
+    setErrors((prev) => {
+      const next = { ...prev };
+      (["fullName", "phone", "street", "apartment", "postalCode", "city", "province"] as const).forEach((k) => { next[k] = undefined; });
+      return next;
+    });
+    return true;
   };
 
   const handleStepContinue = (step: CheckoutStep) => {
@@ -169,7 +293,6 @@ const Checkout = () => {
           isValid = false;
         } else {
           setConsentErrors({});
-          // Log consent to audit trail
           logConsent({
             eventType: "order_checkout",
             consents: {
@@ -197,8 +320,10 @@ const Checkout = () => {
 
   const handleChange = (field: keyof ShippingForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    // Re-validate on change if field was already touched and has an error
+    if (touched[field] && errors[field]) {
+      // Defer validation to next tick so state is updated
+      setTimeout(() => validateField(field), 0);
     }
   };
 
@@ -206,6 +331,10 @@ const Checkout = () => {
     setShippingCountry(value);
     if (errors.country) {
       setErrors((prev) => ({ ...prev, country: undefined }));
+    }
+    // Re-validate postal code when country changes if already touched
+    if (touched.postalCode && form.postalCode) {
+      setTimeout(() => validateField("postalCode"), 0);
     }
   };
 
@@ -302,14 +431,19 @@ const Checkout = () => {
                 <Input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   value={form.email}
                   onChange={(e) => handleChange("email", e.target.value)}
+                  onBlur={() => handleBlur("email")}
                   placeholder={t("common.form.emailPlaceholder")}
-                  className={errors.email ? "border-destructive" : ""}
+                  maxLength={255}
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? "email-error" : undefined}
+                  className={errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
                 />
                 {errors.email && (
-                  <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
+                  <p id="email-error" role="alert" className="text-xs text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
                     {errors.email}
                   </p>
                 )}
@@ -334,13 +468,21 @@ const Checkout = () => {
                 <Label htmlFor="fullName">{t("common.form.fullName")} *</Label>
                 <Input
                   id="fullName"
+                  autoComplete="name"
                   value={form.fullName}
                   onChange={(e) => handleChange("fullName", e.target.value)}
+                  onBlur={() => handleBlur("fullName")}
                   placeholder={t("common.form.fullNamePlaceholder")}
-                  className={errors.fullName ? "border-destructive" : ""}
+                  maxLength={100}
+                  aria-invalid={!!errors.fullName}
+                  aria-describedby={errors.fullName ? "fullName-error" : undefined}
+                  className={errors.fullName ? "border-destructive focus-visible:ring-destructive" : ""}
                 />
                 {errors.fullName && (
-                  <p className="text-xs text-destructive mt-1">{errors.fullName}</p>
+                  <p id="fullName-error" role="alert" className="text-xs text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    {errors.fullName}
+                  </p>
                 )}
               </div>
 
@@ -349,23 +491,43 @@ const Checkout = () => {
                 <Input
                   id="phone"
                   type="tel"
+                  autoComplete="tel"
                   value={form.phone}
                   onChange={(e) => handleChange("phone", e.target.value)}
+                  onBlur={() => handleBlur("phone")}
                   placeholder={t("common.form.phonePlaceholder")}
+                  maxLength={20}
+                  aria-invalid={!!errors.phone}
+                  aria-describedby={errors.phone ? "phone-error" : undefined}
+                  className={errors.phone ? "border-destructive focus-visible:ring-destructive" : ""}
                 />
+                {errors.phone && (
+                  <p id="phone-error" role="alert" className="text-xs text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    {errors.phone}
+                  </p>
+                )}
               </div>
 
               <div className="sm:col-span-2">
                 <Label htmlFor="street">{t("checkout.street")} *</Label>
                 <Input
                   id="street"
+                  autoComplete="street-address"
                   value={form.street}
                   onChange={(e) => handleChange("street", e.target.value)}
+                  onBlur={() => handleBlur("street")}
                   placeholder={t("checkout.streetPlaceholder")}
-                  className={errors.street ? "border-destructive" : ""}
+                  maxLength={200}
+                  aria-invalid={!!errors.street}
+                  aria-describedby={errors.street ? "street-error" : undefined}
+                  className={errors.street ? "border-destructive focus-visible:ring-destructive" : ""}
                 />
                 {errors.street && (
-                  <p className="text-xs text-destructive mt-1">{errors.street}</p>
+                  <p id="street-error" role="alert" className="text-xs text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    {errors.street}
+                  </p>
                 )}
               </div>
 
@@ -373,9 +535,11 @@ const Checkout = () => {
                 <Label htmlFor="apartment">{t("checkout.apartment")}</Label>
                 <Input
                   id="apartment"
+                  autoComplete="address-line2"
                   value={form.apartment}
                   onChange={(e) => handleChange("apartment", e.target.value)}
                   placeholder={t("checkout.apartmentPlaceholder")}
+                  maxLength={50}
                 />
               </div>
 
@@ -383,13 +547,21 @@ const Checkout = () => {
                 <Label htmlFor="postalCode">{t("checkout.postalCode")} *</Label>
                 <Input
                   id="postalCode"
+                  autoComplete="postal-code"
                   value={form.postalCode}
                   onChange={(e) => handleChange("postalCode", e.target.value)}
+                  onBlur={() => handleBlur("postalCode")}
                   placeholder={t("checkout.postalCodePlaceholder")}
-                  className={errors.postalCode ? "border-destructive" : ""}
+                  maxLength={15}
+                  aria-invalid={!!errors.postalCode}
+                  aria-describedby={errors.postalCode ? "postalCode-error" : undefined}
+                  className={errors.postalCode ? "border-destructive focus-visible:ring-destructive" : ""}
                 />
                 {errors.postalCode && (
-                  <p className="text-xs text-destructive mt-1">{errors.postalCode}</p>
+                  <p id="postalCode-error" role="alert" className="text-xs text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    {errors.postalCode}
+                  </p>
                 )}
               </div>
 
@@ -397,13 +569,21 @@ const Checkout = () => {
                 <Label htmlFor="city">{t("checkout.city")} *</Label>
                 <Input
                   id="city"
+                  autoComplete="address-level2"
                   value={form.city}
                   onChange={(e) => handleChange("city", e.target.value)}
+                  onBlur={() => handleBlur("city")}
                   placeholder={t("checkout.cityPlaceholder")}
-                  className={errors.city ? "border-destructive" : ""}
+                  maxLength={100}
+                  aria-invalid={!!errors.city}
+                  aria-describedby={errors.city ? "city-error" : undefined}
+                  className={errors.city ? "border-destructive focus-visible:ring-destructive" : ""}
                 />
                 {errors.city && (
-                  <p className="text-xs text-destructive mt-1">{errors.city}</p>
+                  <p id="city-error" role="alert" className="text-xs text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    {errors.city}
+                  </p>
                 )}
               </div>
 
@@ -411,13 +591,21 @@ const Checkout = () => {
                 <Label htmlFor="province">{t("checkout.province")} *</Label>
                 <Input
                   id="province"
+                  autoComplete="address-level1"
                   value={form.province}
                   onChange={(e) => handleChange("province", e.target.value)}
+                  onBlur={() => handleBlur("province")}
                   placeholder={t("checkout.provincePlaceholder")}
-                  className={errors.province ? "border-destructive" : ""}
+                  maxLength={100}
+                  aria-invalid={!!errors.province}
+                  aria-describedby={errors.province ? "province-error" : undefined}
+                  className={errors.province ? "border-destructive focus-visible:ring-destructive" : ""}
                 />
                 {errors.province && (
-                  <p className="text-xs text-destructive mt-1">{errors.province}</p>
+                  <p id="province-error" role="alert" className="text-xs text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    {errors.province}
+                  </p>
                 )}
               </div>
 
@@ -453,6 +641,7 @@ const Checkout = () => {
                 onChange={(e) => handleChange("notes", e.target.value)}
                 placeholder={t("checkout.notesPlaceholder")}
                 rows={3}
+                maxLength={500}
               />
               
               {/* Referral Code Field */}
