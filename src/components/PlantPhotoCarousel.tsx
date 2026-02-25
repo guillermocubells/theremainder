@@ -129,6 +129,7 @@ const PlantPhotoCarousel = ({ images, productImages, primaryImage, plantName }: 
                   alt={`${plantName} - thumbnail ${index + 1}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  responsiveHint="thumb"
                 />
               </button>
             ))}

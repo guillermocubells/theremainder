@@ -60,11 +60,12 @@ export default defineConfig(({ mode }) => ({
           },
           {
             urlPattern: ({ url }: { url: URL }) =>
-              url.pathname.includes("/storage/v1/object/public/"),
+              url.pathname.includes("/storage/v1/object/public/") ||
+              url.pathname.includes("/storage/v1/render/image/public/"),
             handler: "CacheFirst",
             options: {
               cacheName: "plant-images",
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 90 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
