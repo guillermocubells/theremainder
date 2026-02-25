@@ -142,7 +142,10 @@ serve(async (req) => {
           response = await handleChargeRefunded(event, supabaseAdmin, corsHeaders);
           break;
 
-        default:
+        case "checkout.session.expired":
+          response = await handleCheckoutSessionExpired(event, supabaseAdmin, corsHeaders);
+          break;
+
           log("Unhandled event type", { type: event.type });
           response = new Response(
             JSON.stringify({ received: true, handled: false }),
@@ -1193,7 +1196,8 @@ async function handlePaymentIntentFailed(
 
 /**
  * Handle charge.refunded event
- * Create RECTIFICATIVA invoice, update order/invoice status, and reverse referral reward
+ * Create RECTIFICATIVA invoice, update order/invoice status, restock inventory,
+ * reverse referral reward, and emit domain event with full status history.
  */
 async function handleChargeRefunded(
   event: Stripe.Event,
@@ -1204,13 +1208,13 @@ async function handleChargeRefunded(
   log("Processing charge.refunded", { chargeId: charge.id, paymentIntentId: charge.payment_intent });
 
   const paymentIntentId = charge.payment_intent as string;
-  const amountRefunded = charge.amount_refunded / 100; // Convert to euros
-  const isFullRefund = charge.refunded; // true if fully refunded
+  const amountRefunded = charge.amount_refunded / 100;
+  const isFullRefund = charge.refunded;
 
   // Find order by payment intent
   const { data: order } = await supabase
     .from("orders")
-    .select("id, total_amount, invoice_id, wallet_amount_used")
+    .select("id, total_amount, invoice_id, wallet_amount_used, user_id, order_number")
     .eq("stripe_payment_intent_id", paymentIntentId)
     .maybeSingle();
 
@@ -1222,12 +1226,10 @@ async function handleChargeRefunded(
     );
   }
 
-  // Determine refund status
   const newStatus = isFullRefund ? "refunded" : "partially_refunded";
-
-  // Get the latest refund ID
   const refunds = charge.refunds?.data || [];
   const latestRefund = refunds[0];
+  const now = new Date().toISOString();
 
   // Update order
   await supabase
@@ -1236,13 +1238,49 @@ async function handleChargeRefunded(
       status: newStatus,
       refund_id: latestRefund?.id || null,
       refund_amount: amountRefunded,
+      updated_at: now,
     })
     .eq("id", order.id);
 
   log("Order refund status updated", { orderId: order.id, status: newStatus, refundAmount: amountRefunded });
 
+  // --- Restock inventory on full refund ---
+  let restockedItems = 0;
+  if (isFullRefund) {
+    const { data: orderItems } = await supabase
+      .from("order_items")
+      .select("product_id, quantity")
+      .eq("order_id", order.id);
+
+    if (orderItems) {
+      for (const item of orderItems) {
+        const { error: stockErr } = await supabase.rpc("increment_stock", {
+          p_plant_id: item.product_id,
+          p_quantity: item.quantity,
+        }).maybeSingle();
+
+        if (stockErr) {
+          // Fallback: direct update
+          const { data: plant } = await supabase
+            .from("plants")
+            .select("stock_qty")
+            .eq("id", item.product_id)
+            .maybeSingle();
+
+          if (plant) {
+            await supabase
+              .from("plants")
+              .update({ stock_qty: plant.stock_qty + item.quantity, updated_at: now })
+              .eq("id", item.product_id);
+          }
+        }
+        restockedItems += item.quantity;
+      }
+      log("Inventory restocked", { orderId: order.id, totalUnits: restockedItems });
+    }
+  }
+
   // Reverse referral reward
-  // Calculate new product subtotal if partial refund
   const newProductSubtotal = isFullRefund ? 0 : (order.total_amount - amountRefunded - (order.wallet_amount_used || 0));
   const referralReverseResult = await reverseReferralReward(
     supabase,
@@ -1252,6 +1290,7 @@ async function handleChargeRefunded(
   );
 
   // Update original invoice status
+  let rectificativaCreated = false;
   if (order.invoice_id) {
     const invoiceStatus = isFullRefund ? "refunded" : "partially_refunded";
 
@@ -1260,7 +1299,7 @@ async function handleChargeRefunded(
       .update({
         status: invoiceStatus,
         refund_amount: amountRefunded,
-        updated_at: new Date().toISOString(),
+        updated_at: now,
       })
       .eq("id", order.invoice_id);
 
@@ -1285,16 +1324,32 @@ async function handleChargeRefunded(
       if (rectError) {
         log("Error creating rectificativa", { error: rectError.message });
       } else {
-        log("Rectificativa created", { 
-          rectificativaId, 
-          rectifiesInvoice: order.invoice_id,
-          reason: rectificationReason 
-        });
+        rectificativaCreated = true;
+        log("Rectificativa created", { rectificativaId, reason: rectificationReason });
       }
     } catch (err) {
       log("Error creating rectificativa", { error: String(err) });
     }
   }
+
+  // Emit domain event: order_refunded
+  await emitDomainEvent(supabase, {
+    event_type: isFullRefund ? "order_refunded" : "order_partially_refunded",
+    user_id: order.user_id,
+    entity_type: "order",
+    entity_id: order.id,
+    metadata: {
+      order_number: order.order_number,
+      refund_amount: amountRefunded,
+      is_full_refund: isFullRefund,
+      refund_id: latestRefund?.id || null,
+      restocked_units: restockedItems,
+      rectificativa_created: rectificativaCreated,
+      referral_reversed: referralReverseResult.reversed,
+      timestamp: now,
+      actor: "system",
+    },
+  });
 
   return new Response(
     JSON.stringify({
@@ -1302,9 +1357,113 @@ async function handleChargeRefunded(
       orderId: order.id,
       action: newStatus,
       refundAmount: amountRefunded,
-      rectificativaCreated: !!order.invoice_id,
+      restockedItems,
+      rectificativaCreated,
       referralReversed: referralReverseResult.reversed,
       referralReversedAmount: referralReverseResult.reversedAmount,
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+  );
+}
+
+/**
+ * Handle checkout.session.expired event
+ * Release stock reservations, mark any pending order as cancelled,
+ * and emit domain event.
+ */
+async function handleCheckoutSessionExpired(
+  event: Stripe.Event,
+  supabase: AnySupabaseClient,
+  corsHeaders: Record<string, string>
+) {
+  const session = event.data.object as Stripe.Checkout.Session;
+  const metadata = session.metadata || {};
+  const userId = metadata.user_id;
+  const reservationSessionId = metadata.reservation_session_id || null;
+  const now = new Date().toISOString();
+
+  log("Processing checkout.session.expired", {
+    sessionId: session.id,
+    userId,
+    reservationSessionId,
+  });
+
+  // Release stock reservations
+  let releasedCount = 0;
+  if (reservationSessionId) {
+    try {
+      const { data } = await supabase.rpc("release_reservations_by_session", {
+        p_session_id: reservationSessionId,
+      });
+      releasedCount = data || 0;
+      log("Released reservations on session expiry", { releasedCount });
+    } catch (err) {
+      log("Error releasing reservations", { error: String(err) });
+    }
+  }
+
+  // Check if a pending order exists for this session and cancel it
+  let cancelledOrderId: string | null = null;
+  if (session.payment_intent) {
+    const paymentIntentId = session.payment_intent as string;
+    const { data: pendingOrder } = await supabase
+      .from("orders")
+      .select("id, status, user_id, order_number")
+      .eq("stripe_payment_intent_id", paymentIntentId)
+      .in("status", ["pending"])
+      .maybeSingle();
+
+    if (pendingOrder) {
+      await supabase
+        .from("orders")
+        .update({
+          status: "cancelled",
+          notes: `Checkout session expired at ${now}`,
+          updated_at: now,
+        })
+        .eq("id", pendingOrder.id);
+
+      cancelledOrderId = pendingOrder.id;
+      log("Pending order cancelled due to session expiry", { orderId: pendingOrder.id });
+
+      // Emit domain event
+      await emitDomainEvent(supabase, {
+        event_type: "order_expired",
+        user_id: pendingOrder.user_id,
+        entity_type: "order",
+        entity_id: pendingOrder.id,
+        metadata: {
+          order_number: pendingOrder.order_number,
+          checkout_session_id: session.id,
+          reservations_released: releasedCount,
+          timestamp: now,
+          actor: "system",
+        },
+      });
+    }
+  }
+
+  // Emit session-level domain event even if no order existed
+  if (!cancelledOrderId && userId && userId !== "guest") {
+    await emitDomainEvent(supabase, {
+      event_type: "checkout_expired",
+      user_id: userId,
+      entity_type: "checkout_session",
+      entity_id: session.id,
+      metadata: {
+        reservations_released: releasedCount,
+        timestamp: now,
+        actor: "system",
+      },
+    });
+  }
+
+  return new Response(
+    JSON.stringify({
+      received: true,
+      action: "session_expired",
+      cancelledOrderId,
+      reservationsReleased: releasedCount,
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
   );
