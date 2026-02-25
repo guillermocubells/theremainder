@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSellerProfile } from '@/hooks/useSellerProfile';
 import SellerOnboardingForm from './SellerOnboardingForm';
 import LotSubmissionForm from './LotSubmissionForm';
-import { Shield, Gavel } from 'lucide-react';
+import SellerAuctions from './SellerAuctions';
+import { Shield, Gavel, List } from 'lucide-react';
 
 const SellerDashboard = () => {
   const { profile } = useSellerProfile();
@@ -24,6 +25,10 @@ const SellerDashboard = () => {
             <Shield className="h-4 w-4" />
             Verificación
           </TabsTrigger>
+          <TabsTrigger value="my-auctions" className="flex items-center gap-1.5" disabled={!isVerified}>
+            <List className="h-4 w-4" />
+            Mis lotes
+          </TabsTrigger>
           <TabsTrigger value="new-lot" className="flex items-center gap-1.5" disabled={!isVerified}>
             <Gavel className="h-4 w-4" />
             Nuevo lote
@@ -32,6 +37,10 @@ const SellerDashboard = () => {
 
         <TabsContent value="profile">
           <SellerOnboardingForm />
+        </TabsContent>
+
+        <TabsContent value="my-auctions">
+          <SellerAuctions />
         </TabsContent>
 
         <TabsContent value="new-lot">

@@ -16,6 +16,7 @@ export interface AuctionLotData {
   plant_id?: string;
   images: string[];
   videos: string[];
+  provenance_documents?: string[];
 }
 
 export function useAuctionSubmission() {
@@ -50,6 +51,7 @@ export function useAuctionSubmission() {
           plant_id: lot.plant_id || null,
           images: lot.images,
           videos: lot.videos,
+          provenance_documents: lot.provenance_documents || [],
           created_by: user.id,
           seller_user_id: user.id,
           status: 'pending_review',
@@ -63,6 +65,7 @@ export function useAuctionSubmission() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-auctions'] });
+      queryClient.invalidateQueries({ queryKey: ['seller-auctions'] });
       toast.success('Lote enviado para revisión');
     },
     onError: (e: Error) => toast.error(e.message),
