@@ -464,6 +464,18 @@
       "message": "Your order has been processed successfully. You'll receive a confirmation email shortly.",
       "orderNumber": "Order number",
       "backToStore": "Back to store"
+    },
+    "consent": {
+      "title": "Consent and privacy",
+      "termsLabel": "I accept the",
+      "termsLink": "terms of sale",
+      "privacyLabel": "I have read and accept the",
+      "privacyLink": "privacy policy",
+      "analyticsLabel": "I accept the use of analytics cookies to improve the shopping experience",
+      "marketingLabel": "I wish to receive marketing communications and personalized offers",
+      "footnote": "* Required fields. You can exercise your rights of access, rectification, erasure and portability at any time.",
+      "termsRequired": "You must accept the terms of sale",
+      "privacyRequired": "You must accept the privacy policy"
     }
   },
   "contact": {

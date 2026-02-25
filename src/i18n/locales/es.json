@@ -464,6 +464,18 @@
       "message": "Tu pedido ha sido procesado correctamente. Recibirás un email de confirmación en breve.",
       "orderNumber": "Número de pedido",
       "backToStore": "Volver a la tienda"
+    },
+    "consent": {
+      "title": "Consentimiento y privacidad",
+      "termsLabel": "Acepto las",
+      "termsLink": "condiciones de venta",
+      "privacyLabel": "He leído y acepto la",
+      "privacyLink": "política de privacidad",
+      "analyticsLabel": "Acepto el uso de cookies analíticas para mejorar la experiencia de compra",
+      "marketingLabel": "Deseo recibir comunicaciones comerciales y ofertas personalizadas",
+      "footnote": "* Campos obligatorios. Puedes ejercer tus derechos de acceso, rectificación, supresión y portabilidad en cualquier momento.",
+      "termsRequired": "Debes aceptar las condiciones de venta",
+      "privacyRequired": "Debes aceptar la política de privacidad"
     }
   },
   "contact": {
