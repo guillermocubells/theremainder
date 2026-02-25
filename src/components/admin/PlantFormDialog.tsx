@@ -20,8 +20,9 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Upload, X, Plus } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
 import { COUNTRIES } from "@/data/countries";
 
@@ -37,6 +38,171 @@ interface PlantFormDialogProps {
   onSuccess: () => void;
 }
 
+const PLANT_TYPES = [
+  { value: "palm", label: "Palmera" },
+  { value: "fern", label: "Helecho arbóreo" },
+  { value: "cycad", label: "Cícada" },
+  { value: "tree", label: "Árbol ornamental" },
+  { value: "shrub", label: "Arbusto" },
+  { value: "succulent", label: "Suculenta" },
+  { value: "grass", label: "Hierba" },
+  { value: "bamboo", label: "Bambú" },
+  { value: "bromeliad", label: "Bromeliácea" },
+  { value: "heliconia", label: "Heliconia" },
+  { value: "strelitzia", label: "Estrelicia" },
+  { value: "ginger", label: "Jengibre" },
+  { value: "banana", label: "Plátano" },
+  { value: "agave", label: "Agave / Yuca" },
+  { value: "aroid", label: "Arácea" },
+  { value: "cactus", label: "Cactus" },
+  { value: "conifer", label: "Conífera" },
+  { value: "perennial", label: "Perenne" },
+  { value: "other", label: "Otro" },
+];
+
+const WATER_LEVELS = [
+  { value: "low", label: "Bajo" },
+  { value: "medium", label: "Medio" },
+  { value: "high", label: "Alto" },
+];
+
+const HUMIDITY_LEVELS = [
+  { value: "low", label: "Baja" },
+  { value: "medium", label: "Media" },
+  { value: "high", label: "Alta" },
+];
+
+const RARITY_LEVELS = [
+  { value: "common", label: "Común" },
+  { value: "uncommon", label: "Poco común" },
+  { value: "rare", label: "Rara" },
+  { value: "very_rare", label: "Muy rara" },
+  { value: "extremely_rare", label: "Extremadamente rara" },
+];
+
+const DIFFICULTY_LEVELS = [
+  { value: "easy", label: "Fácil" },
+  { value: "intermediate", label: "Intermedio" },
+  { value: "advanced", label: "Avanzado" },
+];
+
+const EXPOSURE_OPTIONS = [
+  { value: "sol", label: "Sol" },
+  { value: "semisol", label: "Semisol" },
+  { value: "semisombra", label: "Semisombra" },
+  { value: "sombra", label: "Sombra" },
+];
+
+const PLANT_USE_OPTIONS = [
+  { value: "interior", label: "Interior" },
+  { value: "exterior", label: "Exterior" },
+  { value: "jardin", label: "Jardín" },
+  { value: "maceta", label: "Maceta" },
+  { value: "seto", label: "Seto" },
+  { value: "cobertura", label: "Cobertura" },
+];
+
+const CLIMATE_ZONE_OPTIONS = [
+  "tropical",
+  "subtropical",
+  "mediterráneo",
+  "templado",
+  "continental",
+  "oceánico",
+  "árido",
+  "semiárido",
+];
+
+function MultiChipSelect({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string;
+  options: { value: string; label: string }[] | string[];
+  selected: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const opts =
+    typeof options[0] === "string"
+      ? (options as string[]).map((o) => ({ value: o, label: o }))
+      : (options as { value: string; label: string }[]);
+
+  return (
+    <div>
+      <Label>{label}</Label>
+      <div className="flex flex-wrap gap-1.5 mt-1">
+        {opts.map((o) => {
+          const active = selected.includes(o.value);
+          return (
+            <Badge
+              key={o.value}
+              variant={active ? "default" : "outline"}
+              className={`cursor-pointer select-none ${active ? "bg-moss hover:bg-moss/80" : "hover:bg-muted"}`}
+              onClick={() =>
+                onChange(
+                  active
+                    ? selected.filter((s) => s !== o.value)
+                    : [...selected, o.value]
+                )
+              }
+            >
+              {o.label}
+            </Badge>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const defaultForm = {
+  name: "",
+  scientific_name: "",
+  common_name: "",
+  slug: "",
+  description: "",
+  short_description: "",
+  category_id: "",
+  price: "",
+  sale_price: "",
+  stock: "0",
+  container_size: "",
+  germination_date: "",
+  growth_rate: "",
+  mature_height: "",
+  mature_width: "",
+  origin_country: "",
+  origin_region: "",
+  native_habitat: "",
+  is_active: true,
+  is_featured: false,
+  images: [] as string[],
+  product_images: [] as string[],
+  primary_image: null as string | null,
+  // New attribute fields
+  plant_type: "",
+  water: "",
+  humidity: "",
+  rarity: "",
+  difficulty: "",
+  exposure: [] as string[],
+  climate_zones: [] as string[],
+  hardiness_zones: [] as string[],
+  plant_use: [] as string[],
+  min_temp_c: "",
+  family: "",
+  variety: "",
+  weight_grams: "",
+  notes: "",
+  // SEO
+  meta_title: "",
+  meta_description: "",
+  image_alt_text: "",
+  reference_url: "",
+};
+
 export function PlantFormDialog({
   open,
   onOpenChange,
@@ -45,30 +211,8 @@ export function PlantFormDialog({
 }: PlantFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [formData, setFormData] = useState({
-    name: "",
-    scientific_name: "",
-    slug: "",
-    description: "",
-    short_description: "",
-    category_id: "",
-    price: "",
-    sale_price: "",
-    stock: "0",
-    container_size: "",
-    germination_date: "",
-    growth_rate: "",
-    mature_height: "",
-    mature_width: "",
-    origin_country: "",
-    origin_region: "",
-    native_habitat: "",
-    is_active: true,
-    is_featured: false,
-    images: [] as string[],
-    product_images: [] as string[],
-    primary_image: null as string | null,
-  });
+  const [formData, setFormData] = useState({ ...defaultForm });
+  const [hardinessInput, setHardinessInput] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -77,6 +221,7 @@ export function PlantFormDialog({
         setFormData({
           name: plant.name || "",
           scientific_name: plant.scientific_name || "",
+          common_name: plant.common_name || "",
           slug: plant.slug || "",
           description: plant.description || "",
           short_description: plant.short_description || "",
@@ -97,32 +242,27 @@ export function PlantFormDialog({
           images: plant.images || [],
           product_images: plant.product_images || [],
           primary_image: plant.primary_image || null,
+          plant_type: plant.plant_type || "",
+          water: plant.water || "",
+          humidity: plant.humidity || "",
+          rarity: plant.rarity || "",
+          difficulty: plant.difficulty || "",
+          exposure: plant.exposure || [],
+          climate_zones: plant.climate_zones || [],
+          hardiness_zones: plant.hardiness_zones || [],
+          plant_use: plant.plant_use || [],
+          min_temp_c: plant.min_temp_c?.toString() || "",
+          family: plant.family || "",
+          variety: plant.variety || "",
+          weight_grams: plant.weight_grams?.toString() || "",
+          notes: plant.notes || "",
+          meta_title: plant.meta_title || "",
+          meta_description: plant.meta_description || "",
+          image_alt_text: plant.image_alt_text || "",
+          reference_url: plant.reference_url || "",
         });
       } else {
-        setFormData({
-          name: "",
-          scientific_name: "",
-          slug: "",
-          description: "",
-          short_description: "",
-          category_id: "",
-          price: "",
-          sale_price: "",
-          stock: "0",
-          container_size: "",
-          germination_date: "",
-          growth_rate: "",
-          mature_height: "",
-          mature_width: "",
-          origin_country: "",
-          origin_region: "",
-          native_habitat: "",
-          is_active: true,
-          is_featured: false,
-          images: [],
-          product_images: [],
-          primary_image: null,
-        });
+        setFormData({ ...defaultForm });
       }
     }
   }, [open, plant]);
@@ -131,18 +271,17 @@ export function PlantFormDialog({
     const { data } = await supabase
       .from("categories")
       .select("id, name")
-      .order("name");
+      .order("display_order", { ascending: true });
     setCategories(data || []);
   };
 
-  const generateSlug = (name: string) => {
-    return name
+  const generateSlug = (name: string) =>
+    name
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
-  };
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => {
@@ -162,6 +301,7 @@ export function PlantFormDialog({
       const payload = {
         name: formData.name,
         scientific_name: formData.scientific_name || null,
+        common_name: formData.common_name || null,
         slug: formData.slug,
         description: formData.description || null,
         short_description: formData.short_description || null,
@@ -182,6 +322,24 @@ export function PlantFormDialog({
         images: formData.images,
         product_images: formData.product_images,
         primary_image: formData.primary_image,
+        plant_type: (formData.plant_type || null) as any,
+        water: (formData.water || null) as any,
+        humidity: (formData.humidity || null) as any,
+        rarity: (formData.rarity || null) as any,
+        difficulty: (formData.difficulty || null) as any,
+        exposure: formData.exposure,
+        climate_zones: formData.climate_zones,
+        hardiness_zones: formData.hardiness_zones,
+        plant_use: formData.plant_use,
+        min_temp_c: formData.min_temp_c ? parseInt(formData.min_temp_c) : null,
+        family: formData.family || null,
+        variety: formData.variety || null,
+        weight_grams: formData.weight_grams ? parseInt(formData.weight_grams) : null,
+        notes: formData.notes || null,
+        meta_title: formData.meta_title || null,
+        meta_description: formData.meta_description || null,
+        image_alt_text: formData.image_alt_text || null,
+        reference_url: formData.reference_url || null,
       };
 
       if (plant) {
@@ -189,12 +347,10 @@ export function PlantFormDialog({
           .from("plants")
           .update(payload)
           .eq("id", plant.id);
-
         if (error) throw error;
         toast.success("Planta actualizada correctamente");
       } else {
         const { error } = await supabase.from("plants").insert(payload);
-
         if (error) throw error;
         toast.success("Planta creada correctamente");
       }
@@ -209,11 +365,12 @@ export function PlantFormDialog({
     }
   };
 
-  const handleImagesChange = (urls: string[]) => {
-    setFormData((prev) => ({
-      ...prev,
-      images: urls,
-    }));
+  const addHardinessZone = () => {
+    const v = hardinessInput.trim().toUpperCase();
+    if (v && !formData.hardiness_zones.includes(v)) {
+      handleChange("hardiness_zones", [...formData.hardiness_zones, v]);
+    }
+    setHardinessInput("");
   };
 
   return (
@@ -228,13 +385,16 @@ export function PlantFormDialog({
         <form onSubmit={handleSubmit}>
           <ScrollArea className="h-[calc(90vh-150px)]">
             <Tabs defaultValue="general" className="w-full px-1">
-              <TabsList className="grid grid-cols-4 w-full mb-4">
+              <TabsList className="grid grid-cols-6 w-full mb-4">
                 <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="attributes">Atributos</TabsTrigger>
                 <TabsTrigger value="details">Detalles</TabsTrigger>
                 <TabsTrigger value="origin">Origen</TabsTrigger>
                 <TabsTrigger value="media">Imágenes</TabsTrigger>
+                <TabsTrigger value="seo">SEO</TabsTrigger>
               </TabsList>
 
+              {/* ── General Tab ── */}
               <TabsContent value="general" className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -251,20 +411,28 @@ export function PlantFormDialog({
                     <Input
                       id="scientific_name"
                       value={formData.scientific_name}
-                      onChange={(e) =>
-                        handleChange("scientific_name", e.target.value)
-                      }
+                      onChange={(e) => handleChange("scientific_name", e.target.value)}
                     />
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="slug">Slug (URL)</Label>
-                  <Input
-                    id="slug"
-                    value={formData.slug}
-                    onChange={(e) => handleChange("slug", e.target.value)}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="common_name">Nombre común</Label>
+                    <Input
+                      id="common_name"
+                      value={formData.common_name}
+                      onChange={(e) => handleChange("common_name", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="slug">Slug (URL)</Label>
+                    <Input
+                      id="slug"
+                      value={formData.slug}
+                      onChange={(e) => handleChange("slug", e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -272,9 +440,7 @@ export function PlantFormDialog({
                   <Input
                     id="short_description"
                     value={formData.short_description}
-                    onChange={(e) =>
-                      handleChange("short_description", e.target.value)
-                    }
+                    onChange={(e) => handleChange("short_description", e.target.value)}
                   />
                 </div>
 
@@ -348,9 +514,7 @@ export function PlantFormDialog({
                     <Input
                       id="container_size"
                       value={formData.container_size}
-                      onChange={(e) =>
-                        handleChange("container_size", e.target.value)
-                      }
+                      onChange={(e) => handleChange("container_size", e.target.value)}
                       placeholder="ej: C-2 (2L)"
                     />
                   </div>
@@ -363,7 +527,7 @@ export function PlantFormDialog({
                       checked={formData.is_active}
                       onCheckedChange={(v) => handleChange("is_active", v)}
                     />
-                    <Label htmlFor="is_active">Activa</Label>
+                    <Label htmlFor="is_active">Publicada</Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
@@ -376,9 +540,176 @@ export function PlantFormDialog({
                 </div>
               </TabsContent>
 
-              <TabsContent value="details" className="space-y-4">
-                {/* Removed: sun_requirement, water_requirement, temperature_range, hardiness_zone — use exposure, water, min_temp_c, climate_zones instead */}
+              {/* ── Attributes Tab ── */}
+              <TabsContent value="attributes" className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label>Tipo de planta</Label>
+                    <Select
+                      value={formData.plant_type}
+                      onValueChange={(v) => handleChange("plant_type", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PLANT_TYPES.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>
+                            {t.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Riego</Label>
+                    <Select
+                      value={formData.water}
+                      onValueChange={(v) => handleChange("water", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {WATER_LEVELS.map((w) => (
+                          <SelectItem key={w.value} value={w.value}>
+                            {w.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Humedad</Label>
+                    <Select
+                      value={formData.humidity}
+                      onValueChange={(v) => handleChange("humidity", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {HUMIDITY_LEVELS.map((h) => (
+                          <SelectItem key={h.value} value={h.value}>
+                            {h.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label>Rareza</Label>
+                    <Select
+                      value={formData.rarity}
+                      onValueChange={(v) => handleChange("rarity", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RARITY_LEVELS.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>
+                            {r.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Dificultad</Label>
+                    <Select
+                      value={formData.difficulty}
+                      onValueChange={(v) => handleChange("difficulty", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DIFFICULTY_LEVELS.map((d) => (
+                          <SelectItem key={d.value} value={d.value}>
+                            {d.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="min_temp_c">Temp. mín. (°C)</Label>
+                    <Input
+                      id="min_temp_c"
+                      type="number"
+                      value={formData.min_temp_c}
+                      onChange={(e) => handleChange("min_temp_c", e.target.value)}
+                      placeholder="ej: -5"
+                    />
+                  </div>
+                </div>
+
+                <MultiChipSelect
+                  label="Exposición"
+                  options={EXPOSURE_OPTIONS}
+                  selected={formData.exposure}
+                  onChange={(v) => handleChange("exposure", v)}
+                />
+
+                <MultiChipSelect
+                  label="Uso"
+                  options={PLANT_USE_OPTIONS}
+                  selected={formData.plant_use}
+                  onChange={(v) => handleChange("plant_use", v)}
+                />
+
+                <MultiChipSelect
+                  label="Zonas climáticas"
+                  options={CLIMATE_ZONE_OPTIONS}
+                  selected={formData.climate_zones}
+                  onChange={(v) => handleChange("climate_zones", v)}
+                />
+
+                {/* Hardiness zones as free-text chips */}
+                <div>
+                  <Label>Zonas de rusticidad (USDA)</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1 mb-2">
+                    {formData.hardiness_zones.map((z) => (
+                      <Badge key={z} variant="default" className="bg-moss gap-1">
+                        {z}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() =>
+                            handleChange(
+                              "hardiness_zones",
+                              formData.hardiness_zones.filter((hz) => hz !== z)
+                            )
+                          }
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={hardinessInput}
+                      onChange={(e) => setHardinessInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addHardinessZone();
+                        }
+                      }}
+                      placeholder="ej: 9a, 10b"
+                      className="max-w-[200px]"
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={addHardinessZone}>
+                      Añadir
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* ── Details Tab ── */}
+              <TabsContent value="details" className="space-y-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="growth_rate">Velocidad crecimiento</Label>
@@ -401,9 +732,7 @@ export function PlantFormDialog({
                     <Input
                       id="mature_height"
                       value={formData.mature_height}
-                      onChange={(e) =>
-                        handleChange("mature_height", e.target.value)
-                      }
+                      onChange={(e) => handleChange("mature_height", e.target.value)}
                       placeholder="ej: 2-3m"
                     />
                   </div>
@@ -412,27 +741,66 @@ export function PlantFormDialog({
                     <Input
                       id="mature_width"
                       value={formData.mature_width}
-                      onChange={(e) =>
-                        handleChange("mature_width", e.target.value)
-                      }
+                      onChange={(e) => handleChange("mature_width", e.target.value)}
                       placeholder="ej: 1-2m"
                     />
                   </div>
                 </div>
 
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="germination_date">Fecha germinación</Label>
+                    <Input
+                      id="germination_date"
+                      type="date"
+                      value={formData.germination_date}
+                      onChange={(e) => handleChange("germination_date", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="family">Familia</Label>
+                    <Input
+                      id="family"
+                      value={formData.family}
+                      onChange={(e) => handleChange("family", e.target.value)}
+                      placeholder="ej: Arecaceae"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="variety">Variedad</Label>
+                    <Input
+                      id="variety"
+                      value={formData.variety}
+                      onChange={(e) => handleChange("variety", e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <Label htmlFor="germination_date">Fecha germinación</Label>
+                  <Label htmlFor="weight_grams">Peso (g)</Label>
                   <Input
-                    id="germination_date"
-                    type="date"
-                    value={formData.germination_date}
-                    onChange={(e) =>
-                      handleChange("germination_date", e.target.value)
-                    }
+                    id="weight_grams"
+                    type="number"
+                    min="0"
+                    value={formData.weight_grams}
+                    onChange={(e) => handleChange("weight_grams", e.target.value)}
+                    className="max-w-[200px]"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="notes">Notas internas</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => handleChange("notes", e.target.value)}
+                    rows={3}
+                    placeholder="Notas privadas, no visibles al público"
                   />
                 </div>
               </TabsContent>
 
+              {/* ── Origin Tab ── */}
               <TabsContent value="origin" className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -458,9 +826,7 @@ export function PlantFormDialog({
                     <Input
                       id="origin_region"
                       value={formData.origin_region}
-                      onChange={(e) =>
-                        handleChange("origin_region", e.target.value)
-                      }
+                      onChange={(e) => handleChange("origin_region", e.target.value)}
                     />
                   </div>
                 </div>
@@ -470,29 +836,75 @@ export function PlantFormDialog({
                   <Textarea
                     id="native_habitat"
                     value={formData.native_habitat}
-                    onChange={(e) =>
-                      handleChange("native_habitat", e.target.value)
-                    }
+                    onChange={(e) => handleChange("native_habitat", e.target.value)}
                     rows={3}
                   />
                 </div>
               </TabsContent>
 
+              {/* ── Media Tab ── */}
               <TabsContent value="media" className="space-y-4">
                 <ImageUploader
                   images={formData.images}
-                  onImagesChange={handleImagesChange}
+                  onImagesChange={(urls) => handleChange("images", urls)}
                   productImages={formData.product_images}
-                  onProductImagesChange={(pi) => setFormData((prev) => ({ ...prev, product_images: pi }))}
+                  onProductImagesChange={(pi) => handleChange("product_images", pi)}
                   primaryImage={formData.primary_image ?? undefined}
-                  onPrimaryImageChange={(pi) => setFormData((prev) => ({ ...prev, primary_image: pi }))}
+                  onPrimaryImageChange={(pi) => handleChange("primary_image", pi)}
                 />
-
                 {formData.images.length > 0 && (
                   <p className="text-xs text-muted-foreground">
                     Usa el menú ⋯ en cada imagen para marcarla como imagen de producto o principal.
                   </p>
                 )}
+              </TabsContent>
+
+              {/* ── SEO Tab ── */}
+              <TabsContent value="seo" className="space-y-4">
+                <div>
+                  <Label htmlFor="meta_title">Meta título</Label>
+                  <Input
+                    id="meta_title"
+                    value={formData.meta_title}
+                    onChange={(e) => handleChange("meta_title", e.target.value)}
+                    maxLength={60}
+                    placeholder="Máx 60 caracteres"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.meta_title.length}/60
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="meta_description">Meta descripción</Label>
+                  <Textarea
+                    id="meta_description"
+                    value={formData.meta_description}
+                    onChange={(e) => handleChange("meta_description", e.target.value)}
+                    maxLength={160}
+                    rows={2}
+                    placeholder="Máx 160 caracteres"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.meta_description.length}/160
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="image_alt_text">Alt text imagen</Label>
+                  <Input
+                    id="image_alt_text"
+                    value={formData.image_alt_text}
+                    onChange={(e) => handleChange("image_alt_text", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="reference_url">URL de referencia</Label>
+                  <Input
+                    id="reference_url"
+                    value={formData.reference_url}
+                    onChange={(e) => handleChange("reference_url", e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
               </TabsContent>
             </Tabs>
           </ScrollArea>

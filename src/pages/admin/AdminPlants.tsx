@@ -36,6 +36,7 @@ interface Plant {
   is_featured: boolean;
   images: string[] | null;
   category_id: string | null;
+  plant_type: string | null;
   categories?: { name: string } | null;
 }
 
@@ -192,10 +193,10 @@ export default function AdminPlants() {
                     <div className="flex gap-1">
                       {plant.is_active ? (
                         <Badge variant="default" className="bg-moss">
-                          Activa
+                          Publicada
                         </Badge>
                       ) : (
-                        <Badge variant="secondary">Inactiva</Badge>
+                        <Badge variant="secondary">Borrador</Badge>
                       )}
                       {plant.is_featured && (
                         <Badge variant="outline">Destacada</Badge>
