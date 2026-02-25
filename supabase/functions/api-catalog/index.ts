@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,23 +9,6 @@ const corsHeaders = {
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
-}
-
-// ── Rate limiting ──
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_WINDOW_MS = 60_000; // 1 minute
-const RATE_LIMIT_MAX = 60; // 60 req/min per IP (generous for catalog browsing)
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_LIMIT_MAX) return false;
-  entry.count++;
-  return true;
 }
 
 // ── Input sanitization ──
@@ -59,9 +43,9 @@ Deno.serve(async (req: Request) => {
   }
 
   // Rate limit check
-  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!checkRateLimit(clientIp)) {
-    return json({ success: false, error: "Rate limit exceeded. Try again later." }, 429);
+  const rl = checkRateLimit(req, PRESETS.public_read);
+  if (!rl.allowed) {
+    return rateLimitResponse(rl.headers, corsHeaders);
   }
 
   try {
