@@ -1,5 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,22 +6,17 @@ const corsHeaders = {
   "Content-Type": "application/json",
 };
 
-interface PlantFilters {
-  category?: string;
-  plant_type?: string;
-  min_price?: number;
-  max_price?: number;
-  in_stock?: boolean;
-  climate_zone?: string;
-  difficulty?: string;
-  limit?: number;
-  offset?: number;
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), { status, headers: corsHeaders });
 }
 
-serve(async (req: Request) => {
-  // Handle CORS preflight
+// Valid sort options to prevent injection
+const VALID_SORT_FIELDS = ["price", "name", "created_at", "display_order"] as const;
+type SortField = typeof VALID_SORT_FIELDS[number];
+
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
@@ -32,96 +26,127 @@ serve(async (req: Request) => {
     );
 
     const url = new URL(req.url);
-    const path = url.pathname.replace("/api-catalog", "");
-    
-    // GET /plants - List all active plants with filters
-    if (req.method === "GET" && (path === "" || path === "/" || path === "/plants")) {
-      const filters: PlantFilters = {
-        category: url.searchParams.get("category") || undefined,
-        plant_type: url.searchParams.get("plant_type") || undefined,
-        min_price: url.searchParams.get("min_price") ? parseFloat(url.searchParams.get("min_price")!) : undefined,
-        max_price: url.searchParams.get("max_price") ? parseFloat(url.searchParams.get("max_price")!) : undefined,
-        in_stock: url.searchParams.get("in_stock") === "true" ? true : undefined,
-        climate_zone: url.searchParams.get("climate_zone") || undefined,
-        difficulty: url.searchParams.get("difficulty") || undefined,
-        limit: parseInt(url.searchParams.get("limit") || "50"),
-        offset: parseInt(url.searchParams.get("offset") || "0"),
-      };
+    const path = url.pathname.replace("/api-catalog", "").replace(/\/$/, "") || "";
+
+    // ──────────────────────────────────────────────
+    // GET /plants — List with filters, search, sort, pagination
+    // ──────────────────────────────────────────────
+    if (req.method === "GET" && (path === "" || path === "/plants")) {
+      const category = url.searchParams.get("category") || undefined;
+      const plantType = url.searchParams.get("plant_type") || undefined;
+      const minPrice = url.searchParams.get("min_price") ? parseFloat(url.searchParams.get("min_price")!) : undefined;
+      const maxPrice = url.searchParams.get("max_price") ? parseFloat(url.searchParams.get("max_price")!) : undefined;
+      const inStock = url.searchParams.get("in_stock") === "true" ? true : undefined;
+      const climateZone = url.searchParams.get("climate_zone") || undefined;
+      const difficulty = url.searchParams.get("difficulty") || undefined;
+      const search = url.searchParams.get("q")?.trim() || undefined;
+      const featured = url.searchParams.get("featured") === "true" ? true : undefined;
+      const rarity = url.searchParams.get("rarity") || undefined;
+      const water = url.searchParams.get("water") || undefined;
+      const exposure = url.searchParams.get("exposure") || undefined;
+
+      // Pagination (clamped)
+      const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50"), 1), 100);
+      const offset = Math.max(parseInt(url.searchParams.get("offset") || "0"), 0);
+
+      // Sorting
+      const sortParam = url.searchParams.get("sort") || "display_order";
+      const sortField: SortField = VALID_SORT_FIELDS.includes(sortParam as SortField)
+        ? (sortParam as SortField)
+        : "display_order";
+      const sortOrder = url.searchParams.get("order") === "desc" ? false : true; // ascending by default
 
       let query = supabase
         .from("plants")
-        .select(`
-          id, name, scientific_name, slug, short_description, 
-          price, sale_price, stock_qty,
-          plant_type, difficulty, climate_zones, exposure,
-          water, humidity, growth_rate, min_temp_c,
-          images,
-          categories (id, name, slug)
-        `)
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
+        .select(
+          `id, name, scientific_name, common_name, slug, short_description,
+           price, sale_price, stock_qty,
+           plant_type, difficulty, rarity, climate_zones, exposure,
+           water, humidity, growth_rate, min_temp_c,
+           images, primary_image, product_images,
+           is_featured, container_size, family,
+           categories (id, name, slug)`,
+          { count: "exact" }
+        )
+        .eq("is_active", true);
 
-      // Apply filters
-      if (filters.category) {
+      // --- Filters ---
+      if (category) {
         const { data: cat } = await supabase
           .from("categories")
           .select("id")
-          .eq("slug", filters.category)
+          .eq("slug", category)
           .single();
         if (cat) query = query.eq("category_id", cat.id);
       }
-      if (filters.plant_type) query = query.eq("plant_type", filters.plant_type);
-      if (filters.min_price) query = query.gte("price", filters.min_price);
-      if (filters.max_price) query = query.lte("price", filters.max_price);
-      if (filters.in_stock) query = query.gt("stock_qty", 0);
-      if (filters.difficulty) query = query.eq("difficulty", filters.difficulty);
-      if (filters.climate_zone) query = query.contains("climate_zones", [filters.climate_zone]);
+      if (plantType) query = query.eq("plant_type", plantType);
+      if (minPrice !== undefined) query = query.gte("price", minPrice);
+      if (maxPrice !== undefined) query = query.lte("price", maxPrice);
+      if (inStock) query = query.gt("stock_qty", 0);
+      if (difficulty) query = query.eq("difficulty", difficulty);
+      if (rarity) query = query.eq("rarity", rarity);
+      if (water) query = query.eq("water", water);
+      if (climateZone) query = query.contains("climate_zones", [climateZone]);
+      if (exposure) query = query.contains("exposure", [exposure]);
+      if (featured) query = query.eq("is_featured", true);
 
-      query = query.range(filters.offset!, filters.offset! + filters.limit! - 1);
+      // --- Text search (name, scientific_name, common_name, description) ---
+      if (search) {
+        query = query.or(
+          `name.ilike.%${search}%,scientific_name.ilike.%${search}%,common_name.ilike.%${search}%,short_description.ilike.%${search}%`
+        );
+      }
+
+      // --- Sort & paginate ---
+      query = query
+        .order(sortField, { ascending: sortOrder })
+        .range(offset, offset + limit - 1);
 
       const { data, error, count } = await query;
-
       if (error) throw error;
 
-      return new Response(JSON.stringify({
+      return json({
         success: true,
         data,
         pagination: {
-          limit: filters.limit,
-          offset: filters.offset,
-          total: count
-        }
-      }), { headers: corsHeaders });
+          limit,
+          offset,
+          total: count ?? 0,
+          has_more: (count ?? 0) > offset + limit,
+        },
+      });
     }
 
-    // GET /plants/:slug - Get single plant details
+    // ──────────────────────────────────────────────
+    // GET /plants/:slug — Single plant detail
+    // ──────────────────────────────────────────────
     if (req.method === "GET" && path.startsWith("/plants/")) {
       const slug = path.replace("/plants/", "");
-      
+
+      if (!slug || slug.includes("/")) {
+        return json({ success: false, error: "Invalid slug" }, 400);
+      }
+
       const { data, error } = await supabase
         .from("plants")
-        .select(`
-          *,
-          categories (id, name, slug, description)
-        `)
+        .select(
+          `*,
+           categories (id, name, slug, description)`
+        )
         .eq("slug", slug)
         .eq("is_active", true)
         .single();
 
       if (error || !data) {
-        return new Response(JSON.stringify({
-          success: false,
-          error: "Plant not found"
-        }), { status: 404, headers: corsHeaders });
+        return json({ success: false, error: "Plant not found" }, 404);
       }
 
-      return new Response(JSON.stringify({
-        success: true,
-        data
-      }), { headers: corsHeaders });
+      return json({ success: true, data });
     }
 
-    // GET /categories - List all active categories
+    // ──────────────────────────────────────────────
+    // GET /categories
+    // ──────────────────────────────────────────────
     if (req.method === "GET" && path === "/categories") {
       const { data, error } = await supabase
         .from("categories")
@@ -130,14 +155,12 @@ serve(async (req: Request) => {
         .order("display_order", { ascending: true });
 
       if (error) throw error;
-
-      return new Response(JSON.stringify({
-        success: true,
-        data
-      }), { headers: corsHeaders });
+      return json({ success: true, data });
     }
 
-    // GET /shipping-zones - List active shipping zones
+    // ──────────────────────────────────────────────
+    // GET /shipping-zones
+    // ──────────────────────────────────────────────
     if (req.method === "GET" && path === "/shipping-zones") {
       const { data, error } = await supabase
         .from("shipping_zones")
@@ -146,31 +169,25 @@ serve(async (req: Request) => {
         .order("country_name", { ascending: true });
 
       if (error) throw error;
-
-      return new Response(JSON.stringify({
-        success: true,
-        data
-      }), { headers: corsHeaders });
+      return json({ success: true, data });
     }
 
-    // 404 for unknown routes
-    return new Response(JSON.stringify({
+    // ──────────────────────────────────────────────
+    // 404
+    // ──────────────────────────────────────────────
+    return json({
       success: false,
       error: "Endpoint not found",
       available_endpoints: [
-        "GET /plants - List plants with filters",
-        "GET /plants/:slug - Get plant details",
-        "GET /categories - List categories",
-        "GET /shipping-zones - List shipping zones"
-      ]
-    }), { status: 404, headers: corsHeaders });
-
+        "GET /plants?q=&category=&plant_type=&difficulty=&rarity=&water=&exposure=&climate_zone=&min_price=&max_price=&in_stock=true&featured=true&sort=price&order=desc&limit=50&offset=0",
+        "GET /plants/:slug",
+        "GET /categories",
+        "GET /shipping-zones",
+      ],
+    }, 404);
   } catch (error: unknown) {
     console.error("API Error:", error);
     const message = error instanceof Error ? error.message : "Internal server error";
-    return new Response(JSON.stringify({
-      success: false,
-      error: message
-    }), { status: 500, headers: corsHeaders });
+    return json({ success: false, error: message }, 500);
   }
 });
