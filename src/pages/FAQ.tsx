@@ -1,8 +1,7 @@
-import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { STORE_BRAND } from "@/config/store";
+import { PageSEO } from "@/components/seo";
 import {
   Accordion,
   AccordionContent,
@@ -132,13 +131,22 @@ const FAQ = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{`${t('faq.title', 'Preguntas Frecuentes (FAQ)')} | ${STORE_BRAND.name}`}</title>
-        <meta
-          name="description"
-          content={t('faq.metaDescription', `Encuentra respuestas a las preguntas más frecuentes sobre pedidos, envíos, cuidados de plantas, pagos y devoluciones en ${STORE_BRAND.name}.`)}
-        />
-      </Helmet>
+      <PageSEO
+        title={t('faq.title', 'Preguntas Frecuentes (FAQ)')}
+        description={t('faq.metaDescription', 'Respuestas sobre pedidos, envíos, cuidados de plantas, pagos y devoluciones.')}
+        path="/faq"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqCategories.flatMap(cat =>
+            cat.items.map(item => ({
+              "@type": "Question",
+              name: item.question,
+              acceptedAnswer: { "@type": "Answer", text: item.answer },
+            }))
+          ),
+        }}
+      />
 
       <Header />
 

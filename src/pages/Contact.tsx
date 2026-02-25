@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageSEO } from "@/components/seo";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -70,6 +71,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageSEO
+        title="Contacto"
+        description="Contacta con The Remainder. Resuelve tus dudas sobre pedidos, envíos y cuidados de plantas."
+        path="/contact"
+      />
       <Header />
       
       <main className="container mx-auto px-4 py-8 md:py-12">

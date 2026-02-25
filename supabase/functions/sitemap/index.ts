@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const baseUrl = "https://frondaprima.lovable.app";
+    const baseUrl = "https://theremainder.lovable.app";
 
     // Fetch active plants
     const { data: plants, error } = await supabase
