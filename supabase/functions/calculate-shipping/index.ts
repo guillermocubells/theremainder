@@ -5,6 +5,37 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// EU VAT rates by country (standard rates as of 2025)
+const VAT_RATES: Record<string, number> = {
+  ES: 21,   // Spain
+  PT: 23,   // Portugal
+  FR: 20,   // France
+  DE: 19,   // Germany
+  BE: 21,   // Belgium
+  NL: 21,   // Netherlands
+  LU: 17,   // Luxembourg
+  AT: 20,   // Austria
+  IT: 22,   // Italy
+  SE: 25,   // Sweden
+  DK: 25,   // Denmark
+  FI: 25.5, // Finland
+  PL: 23,   // Poland
+  CZ: 21,   // Czech Republic
+  SK: 23,   // Slovakia
+  HU: 27,   // Hungary
+  RO: 19,   // Romania
+  BG: 20,   // Bulgaria
+  HR: 25,   // Croatia
+  SI: 22,   // Slovenia
+  EE: 22,   // Estonia
+  LV: 21,   // Latvia
+  LT: 21,   // Lithuania
+  IE: 23,   // Ireland
+  MT: 18,   // Malta
+  CY: 19,   // Cyprus
+  GR: 24,   // Greece
+};
+
 interface CalculateShippingRequest {
   items: Array<{ plantId: string; quantity: number }>;
   countryCode: string;
@@ -58,7 +89,6 @@ Deno.serve(async (req) => {
 
     // Get product data from database
     const plantIds = items.map((i) => i.plantId);
-    // Separate UUIDs from slugs to avoid type errors
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const uuids = plantIds.filter(id => uuidRegex.test(id));
     const slugs = plantIds.filter(id => !uuidRegex.test(id));
@@ -101,7 +131,7 @@ Deno.serve(async (req) => {
         );
       }
       const priceCents = Math.round((plant.sale_price ?? plant.price) * 100);
-      const weight = plant.weight_grams ?? 2000; // default 2kg if not set
+      const weight = plant.weight_grams ?? 2000;
       subtotalCents += priceCents * item.quantity;
       totalWeightGrams += weight * item.quantity;
     }
@@ -129,19 +159,39 @@ Deno.serve(async (req) => {
       amountForFreeShippingCents = freeShippingThresholdCents - subtotalCents;
     }
 
+    // Tax calculation — prices are VAT-inclusive (IVA incluido)
+    // The displayed subtotal already includes VAT, so we extract the tax component
+    const vatRate = VAT_RATES[countryCode] ?? 21; // default to 21% if unknown
+    const taxableAmountCents = subtotalCents + shippingCostCents;
+    // base = total_incl / (1 + rate/100)
+    const baseImponibleCents = Math.round(taxableAmountCents / (1 + vatRate / 100));
+    const taxAmountCents = taxableAmountCents - baseImponibleCents;
+
+    const totalCents = subtotalCents + shippingCostCents;
+
     return new Response(
       JSON.stringify({
         supported: true,
+        // Amounts
         subtotalCents,
         shippingCostCents,
-        totalCents: subtotalCents + shippingCostCents,
+        totalCents,
         totalWeightGrams,
+        // Shipping tier details
         isFreeShipping: qualifiesForFreeShipping,
         amountForFreeShippingCents,
         freeShippingThresholdCents,
+        shippingBaseCostCents: baseCostCents,
+        shippingPerItemCostCents: perItemCostCents,
+        shippingItemCount: totalItems,
         deliveryDaysMin: zone.delivery_days_min,
         deliveryDaysMax: zone.delivery_days_max,
         zoneName: zone.country_name,
+        // Tax breakdown
+        vatRate,
+        baseImponibleCents,
+        taxAmountCents,
+        countryCode,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );

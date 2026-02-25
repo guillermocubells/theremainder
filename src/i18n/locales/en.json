@@ -458,6 +458,11 @@
     "deliveryEstimate": "Estimated delivery: {{min}}-{{max}} business days",
     "freeShippingProgress": "{{amount}} away from free shipping",
     "totalWeight": "Total weight: {{weight}} kg",
+    "basePrice": "Net price",
+    "vatLine": "VAT ({{rate}}%)",
+    "vatIncluded": "Includes {{rate}}% VAT: {{amount}}",
+    "shippingBase": "Shipping base cost",
+    "shippingPerExtra": "Extra items (×{{count}})",
     "errors": {
       "fixErrors": "Please fix the form errors",
       "orderFailed": "Failed to process order. Please try again.",

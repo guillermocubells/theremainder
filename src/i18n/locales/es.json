@@ -458,6 +458,11 @@
     "deliveryEstimate": "Entrega estimada: {{min}}-{{max}} días laborables",
     "freeShippingProgress": "Te faltan {{amount}} para envío gratis",
     "totalWeight": "Peso total: {{weight}} kg",
+    "basePrice": "Base imponible",
+    "vatLine": "IVA ({{rate}}%)",
+    "vatIncluded": "Incluye {{rate}}% IVA: {{amount}}",
+    "shippingBase": "Coste base envío",
+    "shippingPerExtra": "Artículos extra (×{{count}})",
     "errors": {
       "fixErrors": "Por favor, corrige los errores del formulario",
       "orderFailed": "Error al procesar el pedido. Inténtalo de nuevo.",

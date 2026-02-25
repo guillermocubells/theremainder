@@ -11,9 +11,17 @@ export interface ShippingQuote {
   isFreeShipping: boolean;
   amountForFreeShippingCents: number | null;
   freeShippingThresholdCents: number | null;
+  shippingBaseCostCents?: number;
+  shippingPerItemCostCents?: number;
+  shippingItemCount?: number;
   deliveryDaysMin: number;
   deliveryDaysMax: number;
   zoneName: string;
+  // Tax breakdown
+  vatRate?: number;
+  baseImponibleCents?: number;
+  taxAmountCents?: number;
+  countryCode?: string;
 }
 
 interface UseShippingQuoteOptions {
