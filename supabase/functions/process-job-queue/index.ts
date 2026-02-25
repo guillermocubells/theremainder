@@ -144,18 +144,12 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Dequeue: fetch pending/retryable jobs
+    // Dequeue using row-level locking (FOR UPDATE SKIP LOCKED)
     const { data: jobs, error: fetchError } = await supabase
-      .from("job_queue")
-      .select("*")
-      .or("status.eq.pending,and(status.eq.failed,next_retry_at.lte.now())")
-      .lte("scheduled_at", new Date().toISOString())
-      .order("priority", { ascending: false })
-      .order("scheduled_at", { ascending: true })
-      .limit(BATCH_SIZE);
+      .rpc("dequeue_jobs", { p_batch_size: BATCH_SIZE });
 
     if (fetchError) {
-      console.error("[JobQueue] Fetch error:", fetchError);
+      console.error("[JobQueue] Dequeue error:", fetchError);
       return new Response(JSON.stringify({ error: fetchError.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -163,6 +157,9 @@ Deno.serve(async (req) => {
     }
 
     if (!jobs || jobs.length === 0) {
+      // Periodic cleanup: remove completed/dead jobs older than 7 days
+      await supabase.rpc("cleanup_completed_jobs", { p_retention_days: 7 });
+
       return new Response(JSON.stringify({ processed: 0, message: "No jobs to process" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -173,11 +170,7 @@ Deno.serve(async (req) => {
     let dead = 0;
 
     for (const job of jobs) {
-      // Mark as processing
-      await supabase
-        .from("job_queue")
-        .update({ status: "processing", started_at: new Date().toISOString() })
-        .eq("id", job.id);
+      // Already marked as 'processing' by dequeue_jobs RPC
 
       const result = await executeJob(job.job_type, job.payload, supabaseUrl, serviceRoleKey);
       const newAttempts = job.attempts + 1;

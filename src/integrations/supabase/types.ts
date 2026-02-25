@@ -1340,6 +1340,54 @@ export type Database = {
           },
         ]
       }
+      job_dead_letters: {
+        Row: {
+          attempts: number
+          created_at: string
+          dead_at: string
+          first_failed_at: string | null
+          id: string
+          job_type: string
+          last_error: string | null
+          max_attempts: number
+          original_job_id: string
+          payload: Json
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          dead_at?: string
+          first_failed_at?: string | null
+          id?: string
+          job_type: string
+          last_error?: string | null
+          max_attempts?: number
+          original_job_id: string
+          payload?: Json
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          dead_at?: string
+          first_failed_at?: string | null
+          id?: string
+          job_type?: string
+          last_error?: string | null
+          max_attempts?: number
+          original_job_id?: string
+          payload?: Json
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: []
+      }
       job_queue: {
         Row: {
           attempts: number
@@ -2975,6 +3023,10 @@ export type Database = {
           is_blocked: boolean
         }[]
       }
+      cleanup_completed_jobs: {
+        Args: { p_retention_days?: number }
+        Returns: number
+      }
       confirm_reservation_by_session: {
         Args: { p_payment_intent_id?: string; p_session_id: string }
         Returns: number
@@ -3001,6 +3053,32 @@ export type Database = {
         Args: { p_plant_id: string; p_quantity: number }
         Returns: number
       }
+      dequeue_jobs: {
+        Args: { p_batch_size?: number }
+        Returns: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          job_type: string
+          last_error: string | null
+          max_attempts: number
+          next_retry_at: string | null
+          payload: Json
+          priority: number
+          scheduled_at: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "job_queue"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       emit_metric: {
         Args: {
           p_name: string
@@ -3010,17 +3088,29 @@ export type Database = {
         }
         Returns: undefined
       }
-      enqueue_job: {
-        Args: {
-          p_idempotency_key?: string
-          p_job_type: string
-          p_max_attempts?: number
-          p_payload?: Json
-          p_priority?: number
-          p_scheduled_at?: string
-        }
-        Returns: string
-      }
+      enqueue_job:
+        | {
+            Args: {
+              p_delay_seconds?: number
+              p_idempotency_key?: string
+              p_job_type: string
+              p_max_attempts?: number
+              p_payload?: Json
+              p_priority?: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_idempotency_key?: string
+              p_job_type: string
+              p_max_attempts?: number
+              p_payload?: Json
+              p_priority?: number
+              p_scheduled_at?: string
+            }
+            Returns: string
+          }
       generate_invoice_number: { Args: never; Returns: string }
       generate_invoice_number_from_series: {
         Args: { p_series_type: string }
@@ -3121,6 +3211,10 @@ export type Database = {
           p_ttl_minutes?: number
           p_user_id?: string
         }
+        Returns: string
+      }
+      retry_dead_letter: {
+        Args: { p_dead_letter_id: string; p_max_attempts?: number }
         Returns: string
       }
     }
