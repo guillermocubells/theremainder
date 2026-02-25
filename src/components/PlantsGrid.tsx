@@ -1,7 +1,7 @@
-
 import { useState } from "react";
 import PlantCard from "./PlantCard";
 import PlantSearchEngine from "./PlantSearchEngine";
+import CategoryCards from "./CategoryCards";
 import { Plant } from "@/data/plants";
 import { PlantGridSkeleton } from "./PlantGridSkeleton";
 import { useCatalogPlants } from "@/hooks/useCatalogPlants";
@@ -10,13 +10,18 @@ const PlantsGrid = () => {
   const { plants, loading } = useCatalogPlants();
   const [filteredPlants, setFilteredPlants] = useState<Plant[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const handleFilteredPlantsChange = (newFilteredPlants: Plant[]) => {
     setFilteredPlants(newFilteredPlants);
     setIsSearching(false);
   };
 
-  const displayPlants = filteredPlants ?? plants;
+  // Apply category filter on top of search/filter results
+  const basePlants = filteredPlants ?? plants;
+  const displayPlants = selectedCategory
+    ? basePlants.filter((p) => p.plantGroup === getCategoryName(selectedCategory, plants))
+    : basePlants;
 
   if (loading) {
     return (
@@ -31,6 +36,10 @@ const PlantsGrid = () => {
   return (
     <section className="py-8 sm:py-12 lg:py-16 px-4 bg-white/40">
       <div className="container mx-auto">
+        <CategoryCards
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
         <PlantSearchEngine 
           plants={plants} 
           onFilteredPlantsChange={handleFilteredPlantsChange}
@@ -55,5 +64,23 @@ const PlantsGrid = () => {
     </section>
   );
 };
+
+// Helper: category slug → plantGroup name mapping
+// Categories use the same name as plantGroup (e.g. "Palmeras")
+function getCategoryName(slug: string, plants: Plant[]): string {
+  // Simple approach: slug like "palmeras" → "Palmeras"
+  // Since categories map 1:1 to plantGroup names, we capitalize
+  const groups = Array.from(new Set(plants.map((p) => p.plantGroup).filter(Boolean))) as string[];
+  const match = groups.find(
+    (g) =>
+      g
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") === slug
+  );
+  return match || slug;
+}
 
 export default PlantsGrid;

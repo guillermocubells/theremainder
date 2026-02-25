@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Leaf } from "lucide-react";
 import { toast } from "sonner";
 
 interface Category {
@@ -206,6 +206,7 @@ export default function AdminCategories() {
             <TableHeader>
               <TableRow>
                 <TableHead>Orden</TableHead>
+                <TableHead>Imagen</TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Slug</TableHead>
                 <TableHead>Estado</TableHead>
@@ -216,6 +217,19 @@ export default function AdminCategories() {
               {categories.map((category) => (
                 <TableRow key={category.id}>
                   <TableCell>{category.display_order}</TableCell>
+                  <TableCell>
+                    {category.image_url ? (
+                      <img
+                        src={category.image_url}
+                        alt={category.name}
+                        className="h-10 w-10 rounded-md object-cover border border-border"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">
+                        <Leaf className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="font-medium">{category.name}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {category.slug}
@@ -315,6 +329,14 @@ export default function AdminCategories() {
                 }
                 placeholder="https://..."
               />
+              {formData.image_url && (
+                <img
+                  src={formData.image_url}
+                  alt="Preview"
+                  className="mt-2 h-20 w-20 rounded-lg object-cover border border-border"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
