@@ -1,18 +1,35 @@
-import { useState, useCallback, useRef } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OptimizedImage } from "@/components/ui/optimized-image";
-import { Upload, X, Link as LinkIcon, Loader2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Upload, X, Link as LinkIcon, Loader2, MoreVertical, Package, Star } from "lucide-react";
 import { toast } from "sonner";
 
 interface ImageUploaderProps {
   images: string[];
   onImagesChange: (images: string[]) => void;
+  productImages?: string[];
+  onProductImagesChange?: (productImages: string[]) => void;
+  primaryImage?: string;
+  onPrimaryImageChange?: (primaryImage: string | null) => void;
 }
 
-export function ImageUploader({ images, onImagesChange }: ImageUploaderProps) {
+export function ImageUploader({
+  images,
+  onImagesChange,
+  productImages = [],
+  onProductImagesChange,
+  primaryImage,
+  onPrimaryImageChange,
+}: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -68,8 +85,40 @@ export function ImageUploader({ images, onImagesChange }: ImageUploaderProps) {
   };
 
   const handleRemoveImage = (index: number) => {
+    const removedUrl = images[index];
     const newImages = images.filter((_, i) => i !== index);
     onImagesChange(newImages);
+
+    // Clean up product_images and primary_image references
+    if (onProductImagesChange && productImages.includes(removedUrl)) {
+      onProductImagesChange(productImages.filter((u) => u !== removedUrl));
+    }
+    if (onPrimaryImageChange && primaryImage === removedUrl) {
+      onPrimaryImageChange(null);
+    }
+  };
+
+  const handleToggleProduct = (url: string) => {
+    if (!onProductImagesChange) return;
+    const isProduct = productImages.includes(url);
+    if (isProduct) {
+      onProductImagesChange(productImages.filter((u) => u !== url));
+      // If it was also primary, clear primary
+      if (onPrimaryImageChange && primaryImage === url) {
+        onPrimaryImageChange(null);
+      }
+    } else {
+      onProductImagesChange([...productImages, url]);
+    }
+  };
+
+  const handleSetPrimary = (url: string) => {
+    if (!onPrimaryImageChange || !onProductImagesChange) return;
+    onPrimaryImageChange(url);
+    // Setting primary also sets isProduct
+    if (!productImages.includes(url)) {
+      onProductImagesChange([...productImages, url]);
+    }
   };
 
   const handleDragStart = (index: number) => {
@@ -100,6 +149,8 @@ export function ImageUploader({ images, onImagesChange }: ImageUploaderProps) {
     setDragIndex(null);
     setOverIndex(null);
   };
+
+  const hasProductFeature = !!onProductImagesChange;
 
   return (
     <div className="space-y-4">
@@ -153,48 +204,103 @@ export function ImageUploader({ images, onImagesChange }: ImageUploaderProps) {
       {/* Draggable image grid */}
       {images.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
-          {images.map((url, index) => (
-            <div
-              key={`${url}-${index}`}
-              draggable
-              onDragStart={() => handleDragStart(index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDrop={(e) => handleDrop(e, index)}
-              onDragEnd={handleDragEnd}
-              className={`relative group aspect-square rounded-xl overflow-hidden bg-muted border-2 transition-all cursor-grab active:cursor-grabbing ${
-                overIndex === index && dragIndex !== index
-                  ? "border-primary scale-[1.03]"
-                  : dragIndex === index
-                    ? "border-primary/50 opacity-50"
-                    : "border-border"
-              }`}
-            >
-              <OptimizedImage
-                src={url}
-                alt={`Imagen ${index + 1}`}
-                className="w-full h-full object-cover pointer-events-none"
-                fallbackSrc="/placeholder.svg"
-              />
+          {images.map((url, index) => {
+            const isProduct = productImages.includes(url);
+            const isPrimary = primaryImage === url;
 
-              {/* Delete button on hover */}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => { e.stopPropagation(); handleRemoveImage(index); }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+            return (
+              <div
+                key={`${url}-${index}`}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+                className={`relative group aspect-square rounded-xl overflow-hidden bg-muted border-2 transition-all cursor-grab active:cursor-grabbing ${
+                  overIndex === index && dragIndex !== index
+                    ? "border-primary scale-[1.03]"
+                    : dragIndex === index
+                      ? "border-primary/50 opacity-50"
+                      : isPrimary
+                        ? "border-primary"
+                        : isProduct
+                          ? "border-accent-foreground/30"
+                          : "border-border"
+                }`}
+              >
+                <OptimizedImage
+                  src={url}
+                  alt={`Imagen ${index + 1}`}
+                  className="w-full h-full object-cover pointer-events-none"
+                  fallbackSrc="/placeholder.svg"
+                />
 
-              {/* Index badge */}
-              <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                {index + 1}
+                {/* Badges */}
+                {hasProductFeature && (isPrimary || isProduct) && (
+                  <div className="absolute bottom-2 left-2 flex gap-1">
+                    {isPrimary && (
+                      <span className="bg-primary text-primary-foreground text-[10px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                        <Star className="h-2.5 w-2.5" />
+                        Principal
+                      </span>
+                    )}
+                    {isProduct && !isPrimary && (
+                      <span className="bg-accent text-accent-foreground text-[10px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                        <Package className="h-2.5 w-2.5" />
+                        Producto
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Hover overlay with actions */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveImage(index); }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+
+                  {hasProductFeature && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => handleToggleProduct(url)}>
+                          <Package className="h-4 w-4 mr-2" />
+                          {isProduct ? "Quitar producto" : "Marcar como producto"}
+                        </DropdownMenuItem>
+                        {!isPrimary && (
+                          <DropdownMenuItem onClick={() => handleSetPrimary(url)}>
+                            <Star className="h-4 w-4 mr-2" />
+                            Hacer principal
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+
+                {/* Index badge */}
+                <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                  {index + 1}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

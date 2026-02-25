@@ -1069,6 +1069,8 @@ export type Database = {
           plant_type: Database["public"]["Enums"]["plant_type"] | null
           plant_use: string[] | null
           price: number
+          primary_image: string | null
+          product_images: string[] | null
           rarity: Database["public"]["Enums"]["rarity_level"] | null
           reference_url: string | null
           sale_price: number | null
@@ -1117,6 +1119,8 @@ export type Database = {
           plant_type?: Database["public"]["Enums"]["plant_type"] | null
           plant_use?: string[] | null
           price?: number
+          primary_image?: string | null
+          product_images?: string[] | null
           rarity?: Database["public"]["Enums"]["rarity_level"] | null
           reference_url?: string | null
           sale_price?: number | null
@@ -1165,6 +1169,8 @@ export type Database = {
           plant_type?: Database["public"]["Enums"]["plant_type"] | null
           plant_use?: string[] | null
           price?: number
+          primary_image?: string | null
+          product_images?: string[] | null
           rarity?: Database["public"]["Enums"]["rarity_level"] | null
           reference_url?: string | null
           sale_price?: number | null

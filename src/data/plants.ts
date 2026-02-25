@@ -12,6 +12,8 @@ export interface Plant {
   notes: string;
   price?: number;
   images?: string[];
+  productImages?: string[];
+  primaryImage?: string | null;
   hardinessZones?: string[]; // USDA hardiness zones with sub-zones (e.g., ["8a", "8b", "9a"])
   climateZones?: string[]; // Climate type zones (e.g., ["tropical", "mediterraneo", "atlantico"])
   ornamentalValue?: 'Convencional' | 'Bonito' | 'Hermoso' | 'Impresionante' | 'Único';

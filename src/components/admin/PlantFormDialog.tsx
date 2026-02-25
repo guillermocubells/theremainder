@@ -66,6 +66,8 @@ export function PlantFormDialog({
     is_active: true,
     is_featured: false,
     images: [] as string[],
+    product_images: [] as string[],
+    primary_image: null as string | null,
   });
 
   useEffect(() => {
@@ -93,6 +95,8 @@ export function PlantFormDialog({
           is_active: plant.is_active ?? true,
           is_featured: plant.is_featured ?? false,
           images: plant.images || [],
+          product_images: plant.product_images || [],
+          primary_image: plant.primary_image || null,
         });
       } else {
         setFormData({
@@ -116,6 +120,8 @@ export function PlantFormDialog({
           is_active: true,
           is_featured: false,
           images: [],
+          product_images: [],
+          primary_image: null,
         });
       }
     }
@@ -174,6 +180,8 @@ export function PlantFormDialog({
         is_active: formData.is_active,
         is_featured: formData.is_featured,
         images: formData.images,
+        product_images: formData.product_images,
+        primary_image: formData.primary_image,
       };
 
       if (plant) {
@@ -474,11 +482,15 @@ export function PlantFormDialog({
                 <ImageUploader
                   images={formData.images}
                   onImagesChange={handleImagesChange}
+                  productImages={formData.product_images}
+                  onProductImagesChange={(pi) => setFormData((prev) => ({ ...prev, product_images: pi }))}
+                  primaryImage={formData.primary_image ?? undefined}
+                  onPrimaryImageChange={(pi) => setFormData((prev) => ({ ...prev, primary_image: pi }))}
                 />
 
                 {formData.images.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    La primera imagen se usa como imagen principal.
+                    Usa el menú ⋯ en cada imagen para marcarla como imagen de producto o principal.
                   </p>
                 )}
               </TabsContent>

@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Plant } from "@/data/plants";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
+import { getMainImage, getDisplayImages } from "@/utils/plantImageUtils";
 import { usePlantTooltips } from "@/hooks/usePlantTooltips";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "sonner";
@@ -24,10 +25,9 @@ const DesktopPlantCard = ({ plant }: DesktopPlantCardProps) => {
   const GrowthIcon = growthInfo.icon;
 
   const getHoverImage = () => {
-    if (plant.id === 'cyathea-sp') {
-      return plant.images && plant.images[2] ? plant.images[2] : plant.images?.[0];
-    }
-    return plant.images && plant.images[1] ? plant.images[1] : plant.images?.[0];
+    const dispImages = getDisplayImages(plant.images, plant.productImages);
+    if (dispImages.length > 1) return dispImages[1];
+    return dispImages[0];
   };
 
   const handleShare = async (e: React.MouseEvent) => {

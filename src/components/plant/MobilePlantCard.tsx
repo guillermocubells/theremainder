@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Plant } from "@/data/plants";
 import { getLightInfo, getGrowthInfo } from "@/utils/plantUtils";
+import { getDisplayImages, getMainImage } from "@/utils/plantImageUtils";
 import { useCart } from "@/contexts/CartContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useImageCarousel } from "@/hooks/useImageCarousel";
@@ -24,7 +25,8 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
   const LightIcon = lightInfo.icon;
   const GrowthIcon = growthInfo.icon;
 
-  const allImages = plant.images && plant.images.length > 0 ? plant.images : [];
+  const allImages = getDisplayImages(plant.images, plant.productImages);
+  const mainImg = getMainImage(plant.images, plant.productImages, plant.primaryImage);
   const hasMultipleImages = allImages.length > 1;
 
   const {
@@ -51,7 +53,7 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
       quantity: 1,
       maxQuantity: plant.quantity || 1,
       price: plant.price || 0,
-      image: plant.images?.[0],
+      image: mainImg || plant.images?.[0],
       containerSize: plant.containerSize
     });
   };
@@ -82,7 +84,7 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
     }
   };
 
-  const currentImage = allImages[currentImageIndex] || plant.images?.[0];
+  const currentImage = allImages[currentImageIndex] || mainImg || plant.images?.[0];
 
   return (
     <Link 
