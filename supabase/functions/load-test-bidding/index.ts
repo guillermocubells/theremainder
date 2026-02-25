@@ -20,15 +20,32 @@ Deno.serve(async (req) => {
     if (!creator) throw new Error("No user in profiles table");
     const creatorId = creator.user_id;
 
-    // Generate fake bidder UUIDs (place_bid checks deposit + seller, so we call RPC directly)
+    // Generate fake bidder UUIDs and insert consent records so place_bid accepts them
     const bidderIds: string[] = [];
     for (let i = 0; i < concurrency; i++) {
       bidderIds.push(crypto.randomUUID());
     }
 
+    // Fetch current terms version
+    const { data: termsSetting } = await admin
+      .from("store_settings")
+      .select("value")
+      .eq("key", "auction_terms_version")
+      .single();
+    const termsVersion = termsSetting?.value ? String(termsSetting.value) : "1.0";
+
+    // Insert bidder consent records for all fake bidders
+    const consentRows = bidderIds.map((uid) => ({
+      user_id: uid,
+      consent_type: "bidder",
+      terms_version: termsVersion,
+      accepted_at: new Date().toISOString(),
+    }));
+    await admin.from("auction_consents").insert(consentRows);
+
     // ── 1. Create a test auction ──
     const snipeEndsAt = snipe_test
-      ? new Date(Date.now() + 3 * 60 * 1000).toISOString() // 3 min from now → within snipe window
+      ? new Date(Date.now() + 90 * 1000).toISOString() // 90s from now → within 2min snipe window
       : new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
 
     const slug = `load-test-${Date.now()}`;
@@ -38,7 +55,7 @@ Deno.serve(async (req) => {
         title: `[LOAD TEST] Concurrency ${concurrency}×${rounds}`,
         slug,
         created_by: creatorId,
-        seller_user_id: creatorId,
+        seller_user_id: null, // null to bypass seller consent trigger
         starting_price: 10,
         current_price: 10,
         bid_increment: 1,
@@ -46,6 +63,7 @@ Deno.serve(async (req) => {
         starts_at: new Date(Date.now() - 60000).toISOString(),
         ends_at: snipeEndsAt,
         deposit_amount: null, // No deposit for testing
+        soft_close_window_sec: 120, // PRD: 2min default
       })
       .select("*")
       .single();
@@ -206,6 +224,9 @@ Deno.serve(async (req) => {
       .in("entity_id", allBids?.map((b) => b.id) || []);
     // audit_logs has deny_mutation trigger, so delete will fail — that's fine, proves immutability
     await admin.from("auctions").delete().eq("id", auctionId);
+    // Cleanup fake bidder consents and auction events
+    await admin.from("auction_consents").delete().in("user_id", bidderIds);
+    await admin.from("auction_events").delete().eq("entity_id", auctionId);
 
     const allPassed = Object.values(checks).every((c) => c.pass);
 
