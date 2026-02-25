@@ -34,9 +34,7 @@ export function CheckoutOrderSummary({
   const shippingCost = quote ? quote.shippingCostCents / 100 : null;
   const total = quote ? quote.totalCents / 100 : null;
 
-  // Calculate tax (21% IVA included)
-  const taxRate = 0.21;
-  const taxAmount = total ? total - total / (1 + taxRate) : subtotal - subtotal / (1 + taxRate);
+  // Tax info now comes from the backend quote
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -120,11 +118,32 @@ export function CheckoutOrderSummary({
 
           {/* Totals */}
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">{t("common.subtotal")}</span>
-              <span className="text-foreground">{formatPrice(subtotal)}</span>
-            </div>
+            {/* Base imponible (net price) */}
+            {quote?.baseImponibleCents != null && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t("checkout.basePrice")}</span>
+                <span className="text-foreground">{formatPrice(quote.baseImponibleCents / 100)}</span>
+              </div>
+            )}
 
+            {/* VAT line */}
+            {quote?.vatRate != null && quote?.taxAmountCents != null ? (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  {t("checkout.vatLine", { rate: quote.vatRate })}
+                </span>
+                <span className="text-foreground">{formatPrice(quote.taxAmountCents / 100)}</span>
+              </div>
+            ) : (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t("common.subtotal")}</span>
+                <span className="text-foreground">{formatPrice(subtotal)}</span>
+              </div>
+            )}
+
+            <Separator className="my-1" />
+
+            {/* Shipping */}
             <div className="flex justify-between">
               <span className="text-muted-foreground flex items-center gap-1">
                 <Truck className="h-3 w-3" />
@@ -146,6 +165,22 @@ export function CheckoutOrderSummary({
                 )}
               </span>
             </div>
+
+            {/* Shipping tier detail */}
+            {quote && !quote.isFreeShipping && quote.shippingBaseCostCents != null && (
+              <div className="text-xs text-muted-foreground pl-4 space-y-0.5">
+                <div className="flex justify-between">
+                  <span>{t("checkout.shippingBase")}</span>
+                  <span>{formatPrice(quote.shippingBaseCostCents / 100)}</span>
+                </div>
+                {(quote.shippingItemCount ?? 0) > 1 && (
+                  <div className="flex justify-between">
+                    <span>{t("checkout.shippingPerExtra", { count: (quote.shippingItemCount ?? 1) - 1 })}</span>
+                    <span>{formatPrice(((quote.shippingItemCount ?? 1) - 1) * (quote.shippingPerItemCostCents ?? 0) / 100)}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <Separator className="my-4" />
@@ -163,9 +198,11 @@ export function CheckoutOrderSummary({
             </span>
           </div>
 
-          <p className="text-xs text-muted-foreground mb-4">
-            {t("common.includedTaxes")}: {formatPrice(taxAmount)}
-          </p>
+          {quote?.vatRate != null && (
+            <p className="text-xs text-muted-foreground mb-4">
+              {t("checkout.vatIncluded", { rate: quote.vatRate, amount: formatPrice((quote.taxAmountCents ?? 0) / 100) })}
+            </p>
+          )}
 
           {/* Delivery estimate */}
           {quote && quote.supported && (
