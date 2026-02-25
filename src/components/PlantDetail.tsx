@@ -1,7 +1,6 @@
-
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { ArrowLeft, TreePalm, User, ChevronUp, Loader2 } from "lucide-react";
+import { ArrowLeft, TreePalm, User, ChevronUp, Loader2, ExternalLink, Heart, ChevronDown, Thermometer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from 'react-i18next';
@@ -9,11 +8,17 @@ import { plants, Plant } from "@/data/plants";
 import { plantDetails, PlantDetailData } from "@/data/plantDetailData";
 import { supabase } from "@/integrations/supabase/client";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
-import PlantDetailHeader from "./PlantDetailHeader";
-import PlantPhotoCarousel from "./PlantPhotoCarousel";
+import { useCatalogFavorite } from "@/hooks/wishlist";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { formatHardinessZones, getZoneTemperatureRange } from "@/utils/hardinessZones";
+import { ResponsiveTooltip } from "@/components/ui/responsive-tooltip";
+import { cn } from "@/lib/utils";
 import PlantImageGallery from "./PlantImageGallery";
+import PlantCareBadges from "./PlantCareBadges";
 import CareInstructions from "./CareInstructions";
 import PlantCharacteristics from "./PlantCharacteristics";
 import PlantCuriousFacts from "./PlantCuriousFacts";
@@ -27,6 +32,11 @@ import RecentlyPurchased from "./RecentlyPurchased";
 import CompleteYourOrder from "./CompleteYourOrder";
 import Footer from "./Footer";
 import StickyMobileCTA from "./StickyMobileCTA";
+import AddToCartButton from "./AddToCartButton";
+import StockNotificationButton from "./StockNotificationButton";
+import SocialShareButtons from "./SocialShareButtons";
+import TrustBadges from "./TrustBadges";
+import ScarcityIndicator from "./ScarcityIndicator";
 
 const PlantDetail = () => {
   const { plantId } = useParams();
@@ -35,10 +45,12 @@ const PlantDetail = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { addToRecentlyViewed } = useRecentlyViewed();
+  const { formatPrice } = useCurrency();
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [dbPlant, setDbPlant] = useState<Plant | null>(null);
   const [dbDetail, setDbDetail] = useState<PlantDetailData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
 
   // Try static data first
   const staticPlant = plants.find(p => p.id === plantId);
@@ -112,7 +124,6 @@ const PlantDetail = () => {
         
         setDbPlant(mapped);
         
-        // Build detail from DB fields
         const care = row.care_instructions as Record<string, string> | null;
         const facts = row.curious_facts as string[] | null;
         const specs = row.specifications as Record<string, string> | null;
@@ -127,7 +138,6 @@ const PlantDetail = () => {
             row.native_habitat && `Hábitat: ${row.native_habitat}`,
             row.mature_height && `Altura: ${row.mature_height}`,
             row.mature_width && `Ancho: ${row.mature_width}`,
-            row.hardiness_zone && `Zona: ${row.hardiness_zone}`,
           ].filter(Boolean) as string[],
           curiousFacts: facts || undefined,
         };
@@ -141,6 +151,19 @@ const PlantDetail = () => {
 
   const plant = staticPlant || dbPlant;
   const detail = staticPlant ? plantDetails[staticPlant.id] : dbDetail;
+
+  const { isFavorite, isToggling, toggleFavorite } = useCatalogFavorite(plant?.id || "");
+
+  const handleFavoriteClick = () => {
+    if (!user) { navigate('/auth'); return; }
+    if (!plant) return;
+    toggleFavorite({
+      name: plant.name,
+      scientificName: plant.commonName,
+      imageUrl: plant.images?.[0],
+      price: plant.price,
+    });
+  };
 
   // Track scroll position to show/hide the scroll-to-top button
   useEffect(() => {
@@ -192,13 +215,12 @@ const PlantDetail = () => {
       addToRecentlyViewed(plantId);
     }
   }, [plantId, addToRecentlyViewed]);
+
   const handleAccountClick = () => {
-    if (user) {
-      navigate('/account');
-    } else {
-      navigate('/auth');
-    }
+    navigate(user ? '/account' : '/auth');
   };
+
+  const totalPrice = plant?.price !== undefined ? plant.price * selectedQuantity : undefined;
 
   if (loading) {
     return (
@@ -285,24 +307,198 @@ const PlantDetail = () => {
               <span>{t('navigation.backToCatalog')}</span>
             </Link>
 
-            {/* Two column layout - Header and Image Gallery - equal heights */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 sm:mb-8 items-stretch">
-              {/* Left column - Plant Header (2/3 width) */}
-              <div className="lg:col-span-2 animate-fade-in" style={{ animationDelay: '0ms' }}>
-                <PlantDetailHeader 
-                  plant={plant} 
-                  origin={detail?.origin}
-                  climate={detail?.climate}
+            {/* ====== HERO: Gallery (left) + Product Info (right) ====== */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 mb-8 sm:mb-12">
+              {/* LEFT — Image Gallery (prominent) */}
+              <div className="animate-fade-in min-h-[320px] lg:min-h-[480px]">
+                <PlantImageGallery
+                  images={plant.images}
+                  productImages={plant.productImages}
+                  primaryImage={plant.primaryImage}
+                  plantName={plant.name}
                 />
               </div>
-              
-              {/* Right column - Image Gallery (1/3 width) - matches header height */}
-              <div className="animate-fade-in" style={{ animationDelay: '50ms' }}>
-                <PlantImageGallery images={plant.images} productImages={plant.productImages} primaryImage={plant.primaryImage} plantName={plant.name} />
+
+              {/* RIGHT — Product Info */}
+              <div className="animate-fade-in flex flex-col gap-4" style={{ animationDelay: '50ms' }}>
+                {/* Title + favorite */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
+                      {plant.name}
+                    </h1>
+                    {plant.variety && (
+                      <p className="text-base sm:text-lg font-medium text-primary mt-1">{plant.variety}</p>
+                    )}
+                    <p className="text-base sm:text-lg text-muted-foreground mt-0.5">{plant.commonName}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0 pt-1">
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleFavoriteClick}
+                          disabled={isToggling}
+                          className={cn(
+                            "h-10 w-10 rounded-full transition-colors",
+                            isFavorite ? "text-destructive hover:text-destructive/80" : "text-muted-foreground hover:text-destructive"
+                          )}
+                        >
+                          <Heart className={cn("h-5 w-5 sm:h-6 sm:w-6", isFavorite && "fill-current")} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        {isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+                      </TooltipContent>
+                    </Tooltip>
+                    {plant.link && (
+                      <Button asChild variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:text-primary hidden sm:flex">
+                        <a href={plant.link} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-5 w-5" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Care badges */}
+                <PlantCareBadges
+                  light={plant.light}
+                  waterNeeds={plant.waterNeeds}
+                  growthRate={plant.growthRate}
+                  climateZones={plant.climateZones}
+                />
+
+                {/* USDA Hardiness zone badge */}
+                {plant.hardinessZones && plant.hardinessZones.length > 0 && (() => {
+                  const sorted = [...plant.hardinessZones].sort((a, b) => {
+                    const numA = parseInt(a); const numB = parseInt(b);
+                    if (numA !== numB) return numA - numB;
+                    return a.localeCompare(b);
+                  });
+                  return (
+                    <ResponsiveTooltip
+                      contentClassName="text-left max-w-sm w-auto p-3"
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-semibold text-sm">Zona de rusticidad (USDA)</p>
+                          <div className="space-y-1 pt-1">
+                            {sorted.map((zoneCode) => {
+                              const range = getZoneTemperatureRange(zoneCode);
+                              return (
+                                <p key={zoneCode} className="text-xs font-medium">
+                                  <span className="font-bold">{zoneCode.toUpperCase()}</span>
+                                  <span className="text-muted-foreground font-normal">
+                                    {range ? `: ${range.fromTemp !== null ? `${range.fromTemp}°C` : '< −53.9°C'} a ${range.toTemp !== null ? `${range.toTemp}°C` : '> 18.3°C'}` : ''}
+                                  </span>
+                                </p>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      }
+                    >
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border bg-accent text-accent-foreground border-border cursor-default w-fit">
+                        <Thermometer className="h-3.5 w-3.5" />
+                        <span>USDA {sorted.map(z => z.toUpperCase()).join(' · ')}</span>
+                      </div>
+                    </ResponsiveTooltip>
+                  );
+                })()}
+
+                {/* Description */}
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{plant.description}</p>
+
+                {/* Product details (container, germination) */}
+                {(plant.containerSize || plant.germinationDate) && (
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    {plant.containerSize && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('specifications.container')}</span>
+                        <span className="px-2.5 py-1 text-xs font-medium text-foreground border border-primary/40 rounded-md bg-primary/5">
+                          {plant.containerSize}
+                        </span>
+                      </div>
+                    )}
+                    {plant.germinationDate && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('plant.germinationDate')}</span>
+                        <span className="px-2.5 py-1 text-xs font-medium text-foreground border border-border rounded-md bg-muted">
+                          {plant.germinationDate}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Scarcity */}
+                {plant.quantity > 0 && plant.quantity <= 3 && (
+                  <ScarcityIndicator quantity={Number(plant.quantity)} />
+                )}
+
+                {/* Notes collapsible */}
+                {plant.notes && (
+                  <Collapsible className="bg-secondary/50 border border-border rounded-lg overflow-hidden">
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-muted/50 transition-colors">
+                      <h3 className="font-semibold text-foreground text-sm">{t('plant.notes')}</h3>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-3 pb-3">
+                      <p className="text-muted-foreground leading-relaxed text-xs sm:text-sm">{plant.notes}</p>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+
+                {/* Divider */}
+                <div className="border-t border-border" />
+
+                {/* Price + Add to Cart */}
+                {plant.quantity > 0 ? (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-6 flex-wrap">
+                      {totalPrice !== undefined && (
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl sm:text-3xl font-bold text-primary">{formatPrice(totalPrice)}</span>
+                          <span className="text-xs text-muted-foreground">IVA incl.</span>
+                        </div>
+                      )}
+                    </div>
+                    <AddToCartButton
+                      plantId={plant.id}
+                      plantName={plant.name}
+                      maxQuantity={Number(plant.quantity)}
+                      price={plant.price || 0}
+                      image={plant.images?.[0]}
+                      containerSize={plant.containerSize}
+                      onQuantityChange={setSelectedQuantity}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    <p className="text-base text-muted-foreground font-medium">{t('stockNotification.outOfStock')}</p>
+                    <StockNotificationButton plantId={plant.id} />
+                  </div>
+                )}
+
+                {/* Social share */}
+                <SocialShareButtons
+                  plantName={plant.name}
+                  plantId={plant.id}
+                  price={plant.price}
+                  variety={plant.variety}
+                  containerSize={plant.containerSize}
+                  quantity={plant.quantity !== undefined ? Number(plant.quantity) : undefined}
+                  description={plant.description}
+                  imageUrl={plant.images?.[0]}
+                />
+
+                {/* Trust badges */}
+                <TrustBadges />
               </div>
             </div>
 
-            {/* Care Instructions and Characteristics Section */}
+            {/* ====== DETAILS SECTION ====== */}
             {detail && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
                 <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
@@ -314,63 +510,55 @@ const PlantDetail = () => {
               </div>
             )}
 
-            {/* Photo Carousel - Future Visual References */}
-            <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-              <PlantPhotoCarousel images={plant.images || []} productImages={plant.productImages} primaryImage={plant.primaryImage} plantName={plant.name} />
-            </div>
-
-            {/* Curious Facts Section - now takes full width */}
+            {/* Curious Facts */}
             {detail && (
-              <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '250ms' }}>
+              <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
                 <PlantCuriousFacts curiousFacts={detail.curiousFacts} />
               </div>
             )}
 
-            {/* Complete Your Order - promotion block */}
-            <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '325ms' }}>
+            {/* Complete Your Order */}
+            <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '250ms' }}>
               <CompleteYourOrder />
             </div>
 
-            {/* Related Plants Section */}
-            <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '350ms' }}>
+            {/* Related Plants */}
+            <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '300ms' }}>
               <RelatedPlants currentPlant={plant} />
             </div>
 
-            {/* Reviews Section */}
-            <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
+            {/* Reviews */}
+            <div className="animate-fade-in" style={{ animationDelay: '350ms' }}>
               <PlantReviews plantId={plant.id} plantName={plant.name} />
             </div>
 
-            {/* Recently Viewed Section */}
-            <div className="animate-fade-in" style={{ animationDelay: '450ms' }}>
+            {/* Recently Viewed */}
+            <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
               <RecentlyViewed excludePlantId={plant.id} />
             </div>
 
-            {/* Recently Purchased – social proof */}
-            <div className="animate-fade-in" style={{ animationDelay: '500ms' }}>
+            {/* Recently Purchased */}
+            <div className="animate-fade-in" style={{ animationDelay: '450ms' }}>
               <RecentlyPurchased currentPlant={plant} />
             </div>
+          </div>
+          <div className="h-20 sm:hidden" />
         </div>
-        {/* Mobile bottom spacing for sticky CTA */}
-        <div className="h-20 sm:hidden" />
-      </div>
 
-      {/* Sticky mobile CTA bar */}
-      {plant.quantity && Number(plant.quantity) > 0 && (
-        <StickyMobileCTA
-          plantId={plant.id}
-          plantName={plant.name}
-          price={plant.price || 0}
-          maxQuantity={Number(plant.quantity)}
-          image={plant.images?.[0]}
-          containerSize={plant.containerSize}
-        />
-      )}
+        {/* Sticky mobile CTA */}
+        {plant.quantity > 0 && (
+          <StickyMobileCTA
+            plantId={plant.id}
+            plantName={plant.name}
+            price={plant.price || 0}
+            maxQuantity={Number(plant.quantity)}
+            image={plant.images?.[0]}
+            containerSize={plant.containerSize}
+          />
+        )}
 
-      {/* Footer */}
-      <Footer />
+        <Footer />
 
-        {/* Scroll to Top Button - positioned to not overlap WhatsApp button (bottom-right) */}
         {showScrollTop && (
           <button
             onClick={scrollToTop}
