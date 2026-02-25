@@ -124,6 +124,7 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange, onSearchStart }: Pl
               onClear={clearSearch}
               placeholder={isAIPanelOpen ? t('filters.searchAI') : t('filters.search')}
               showPostalCodeIndicator={!!detectedPostalCode}
+              plants={plants}
             />
 
             {/* Action Buttons */}

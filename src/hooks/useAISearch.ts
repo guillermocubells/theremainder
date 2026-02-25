@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useRef } from "react";
 import { Plant } from "@/data/plants";
 import { calculateViability, analyzePostalCodeClimate } from "@/utils/viabilityCalculator";
+import { fuzzySearch, normalize, SearchableItem } from "@/utils/fuzzySearch";
 
 // Constants
 const MIN_VIABILITY_SCORE = 4;
@@ -186,11 +187,14 @@ export const useAISearch = (
     if (isEnabled) {
       result = performAISearch(query, plants, postalCode, climate);
     } else {
-      result = plants.filter(plant =>
-        plant.name.toLowerCase().includes(query.toLowerCase()) ||
-        plant.commonName.toLowerCase().includes(query.toLowerCase()) ||
-        plant.description.toLowerCase().includes(query.toLowerCase())
-      );
+      // Use fuzzy search for basic mode
+      const searchable = plants.map(p => ({
+        id: p.id,
+        fields: [p.name, p.commonName, p.variety || "", p.description, p.plantGroup || "", p.location],
+        _plant: p,
+      }));
+      const fuzzyResults = fuzzySearch(searchable, query, 200);
+      result = fuzzyResults.map(r => (r.item as any)._plant as Plant);
     }
 
     if (cacheRef.current.size >= MAX_CACHE) {
