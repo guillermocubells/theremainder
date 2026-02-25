@@ -7,6 +7,8 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { Badge } from "@/components/ui/badge";
 import { Leaf } from "lucide-react";
 import { getMainImage } from "@/utils/plantImageUtils";
+import { getRelatedPlants } from "@/utils/relatedPlants";
+import { useMemo } from "react";
 
 interface RelatedPlantsProps {
   currentPlant: Plant;
@@ -19,22 +21,17 @@ const RelatedPlants = ({ currentPlant, maxItems = 4 }: RelatedPlantsProps) => {
   const { plants: catalogPlants } = useCatalogPlants();
 
   // Merge static + catalog, deduplicate by id, prefer catalog
-  const allPlants = (() => {
+  const allPlants = useMemo(() => {
     const map = new Map<string, Plant>();
     for (const p of staticPlants) map.set(p.id, p);
     for (const p of catalogPlants) map.set(p.id, p);
     return Array.from(map.values());
-  })();
+  }, [catalogPlants]);
 
-  // Filter by same plantGroup, excluding current, prefer in-stock
-  const relatedPlants = allPlants
-    .filter(
-      (p) =>
-        p.plantGroup === currentPlant.plantGroup &&
-        p.id !== currentPlant.id
-    )
-    .sort((a, b) => (b.quantity > 0 ? 1 : 0) - (a.quantity > 0 ? 1 : 0))
-    .slice(0, maxItems);
+  const relatedPlants = useMemo(
+    () => getRelatedPlants(allPlants, currentPlant, maxItems),
+    [allPlants, currentPlant, maxItems],
+  );
 
   if (relatedPlants.length === 0) return null;
 
@@ -82,7 +79,7 @@ const RelatedPlants = ({ currentPlant, maxItems = 4 }: RelatedPlantsProps) => {
                     )}
                     {plant.quantity === 0 && (
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-muted-foreground/30 text-muted-foreground">
-                        Agotado
+                        {t('plant.soldOut', 'Agotado')}
                       </Badge>
                     )}
                   </div>
