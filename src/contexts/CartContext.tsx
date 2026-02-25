@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ShoppingCart } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 
 export interface CartItem {
   plantId: string;
@@ -30,6 +32,8 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const TAX_RATE = 0.21; // 21% IVA
 const CART_STORAGE_KEY = 'frondaprima-cart';
 
+// --- localStorage helpers ---
+
 const loadCartFromStorage = (): CartItem[] => {
   try {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
@@ -51,14 +55,134 @@ const saveCartToStorage = (items: CartItem[]) => {
   }
 };
 
+// --- Server helpers ---
+
+const fetchServerCart = async (userId: string): Promise<CartItem[]> => {
+  const { data, error } = await supabase
+    .from('cart_items')
+    .select('*')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching server cart:', error);
+    return [];
+  }
+
+  return (data || []).map((row: any) => ({
+    plantId: row.plant_id,
+    name: row.name,
+    quantity: row.quantity,
+    maxQuantity: row.max_quantity,
+    price: Number(row.price),
+    image: row.image ?? undefined,
+    containerSize: row.container_size ?? undefined,
+  }));
+};
+
+const syncCartToServer = async (userId: string, items: CartItem[]) => {
+  try {
+    // Delete all current items then upsert new ones in one go
+    await supabase.from('cart_items').delete().eq('user_id', userId);
+
+    if (items.length > 0) {
+      const rows = items.map(item => ({
+        user_id: userId,
+        plant_id: item.plantId,
+        name: item.name,
+        quantity: item.quantity,
+        max_quantity: item.maxQuantity,
+        price: item.price,
+        image: item.image ?? null,
+        container_size: item.containerSize ?? null,
+      }));
+
+      await supabase.from('cart_items').insert(rows);
+    }
+  } catch (err) {
+    console.error('Error syncing cart to server:', err);
+  }
+};
+
+/** Merge guest (localStorage) items into server items. Guest items win on conflict (fresher intent). */
+const mergeCarts = (serverItems: CartItem[], guestItems: CartItem[]): CartItem[] => {
+  const merged = new Map<string, CartItem>();
+
+  for (const item of serverItems) {
+    merged.set(item.plantId, item);
+  }
+
+  for (const item of guestItems) {
+    const existing = merged.get(item.plantId);
+    if (existing) {
+      // Guest quantity adds on top, capped at maxQuantity
+      merged.set(item.plantId, {
+        ...item,
+        quantity: Math.min(existing.quantity + item.quantity, item.maxQuantity),
+      });
+    } else {
+      merged.set(item.plantId, item);
+    }
+  }
+
+  return Array.from(merged.values());
+};
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>(loadCartFromStorage);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const prevUserIdRef = useRef<string | null>(null);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Persist cart to localStorage whenever it changes
+  // ---- Auth change: load server cart & merge guest cart on login ----
+  useEffect(() => {
+    const currentUserId = user?.id ?? null;
+    const previousUserId = prevUserIdRef.current;
+    prevUserIdRef.current = currentUserId;
+
+    if (currentUserId && !previousUserId) {
+      // User just logged in → merge guest cart with server cart
+      (async () => {
+        const guestItems = loadCartFromStorage();
+        const serverItems = await fetchServerCart(currentUserId);
+        const merged = mergeCarts(serverItems, guestItems);
+
+        setItems(merged);
+        saveCartToStorage(merged);
+
+        // Persist merged cart to server
+        await syncCartToServer(currentUserId, merged);
+      })();
+    } else if (!currentUserId && previousUserId) {
+      // User logged out → keep localStorage cart as-is (items state stays)
+    } else if (currentUserId && previousUserId && currentUserId === previousUserId) {
+      // Same user on mount – load from server
+      (async () => {
+        const serverItems = await fetchServerCart(currentUserId);
+        if (serverItems.length > 0) {
+          setItems(serverItems);
+          saveCartToStorage(serverItems);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // ---- Persist to localStorage always; debounce server sync ----
   useEffect(() => {
     saveCartToStorage(items);
-  }, [items]);
+
+    if (user?.id) {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = setTimeout(() => {
+        syncCartToServer(user.id, items);
+      }, 1000); // debounce 1s
+    }
+
+    return () => {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    };
+  }, [items, user?.id]);
 
   const showCartToast = (message: string) => {
     toast.success(
@@ -125,10 +249,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return items.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setItems([]);
     localStorage.removeItem(CART_STORAGE_KEY);
-  };
+    if (user?.id) {
+      supabase.from('cart_items').delete().eq('user_id', user.id).then(() => {});
+    }
+  }, [user?.id]);
 
   return (
     <CartContext.Provider value={{

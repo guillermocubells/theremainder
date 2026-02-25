@@ -130,6 +130,48 @@ export type Database = {
         }
         Relationships: []
       }
+      cart_items: {
+        Row: {
+          container_size: string | null
+          created_at: string
+          id: string
+          image: string | null
+          max_quantity: number
+          name: string
+          plant_id: string
+          price: number
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          container_size?: string | null
+          created_at?: string
+          id?: string
+          image?: string | null
+          max_quantity?: number
+          name: string
+          plant_id: string
+          price?: number
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          container_size?: string | null
+          created_at?: string
+          id?: string
+          image?: string | null
+          max_quantity?: number
+          name?: string
+          plant_id?: string
+          price?: number
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
