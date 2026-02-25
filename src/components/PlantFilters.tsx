@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { X, Leaf, ShoppingBag, Sun, Droplets, Thermometer, MapPin, TreeDeciduous, Package, ArrowUpDown, FolderTree } from "lucide-react";
+import { X, Leaf, ShoppingBag, Sun, Droplets, Thermometer, MapPin, TreeDeciduous, Package, ArrowUpDown, FolderTree, Euro, Ruler } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,6 +30,9 @@ interface FilterState {
   plantGroup: string;
   stock: string;
   sortBy: string;
+  priceMin: string;
+  priceMax: string;
+  containerSize: string;
 }
 
 const INITIAL_FILTERS: FilterState = {
@@ -39,7 +43,10 @@ const INITIAL_FILTERS: FilterState = {
   category: "",
   plantGroup: "",
   stock: "",
-  sortBy: ""
+  sortBy: "",
+  priceMin: "",
+  priceMax: "",
+  containerSize: "",
 };
 
 const PLANT_GROUP_OPTIONS = [
@@ -69,11 +76,16 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
   }, []);
 
   // Memoize derived options
-  const { lightOptions, climateOptions, zoneOptions, plantGroupOptions } = useMemo(() => ({
+  const { lightOptions, climateOptions, zoneOptions, plantGroupOptions, containerSizeOptions, priceRange } = useMemo(() => ({
     lightOptions: Array.from(new Set(plants.map(p => p.light).filter(Boolean))).sort(),
     climateOptions: Array.from(new Set(plants.flatMap(p => p.climateZones || []))).sort(),
     zoneOptions: Array.from(new Set(plants.flatMap(p => p.hardinessZones || []))).sort(),
-    plantGroupOptions: Array.from(new Set(plants.map(p => p.plantGroup).filter(Boolean) as string[])).sort()
+    plantGroupOptions: Array.from(new Set(plants.map(p => p.plantGroup).filter(Boolean) as string[])).sort(),
+    containerSizeOptions: Array.from(new Set(plants.map(p => p.containerSize).filter(Boolean) as string[])).sort(),
+    priceRange: {
+      min: Math.min(...plants.map(p => p.price || 0)),
+      max: Math.max(...plants.map(p => p.price || 0)),
+    }
   }), [plants]);
 
   const applyFilters = useCallback((newFilters: FilterState) => {
@@ -115,6 +127,19 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
         filtered = filtered.filter(plant => plant.quantity === 0);
       }
     }
+    // Price range
+    if (newFilters.priceMin) {
+      const min = parseFloat(newFilters.priceMin);
+      if (!isNaN(min)) filtered = filtered.filter(p => (p.price || 0) >= min);
+    }
+    if (newFilters.priceMax) {
+      const max = parseFloat(newFilters.priceMax);
+      if (!isNaN(max)) filtered = filtered.filter(p => (p.price || 0) <= max);
+    }
+    // Container size
+    if (newFilters.containerSize) {
+      filtered = filtered.filter(p => p.containerSize === newFilters.containerSize);
+    }
 
     // Sort
     if (newFilters.sortBy) {
@@ -146,6 +171,9 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
     }
     if (newFilters.plantGroup) filterSummary['Grupo'] = newFilters.plantGroup;
     if (newFilters.stock) filterSummary['Stock'] = newFilters.stock === 'disponible' ? 'Disponible' : 'Agotado';
+    if (newFilters.priceMin) filterSummary['Precio mín'] = `${newFilters.priceMin}€`;
+    if (newFilters.priceMax) filterSummary['Precio máx'] = `${newFilters.priceMax}€`;
+    if (newFilters.containerSize) filterSummary['Tamaño'] = newFilters.containerSize;
 
     onFilterChange(filtered, newFilters.sortBy, Object.keys(filterSummary).length > 0 ? filterSummary : undefined);
   }, [plants, onFilterChange]);
@@ -171,7 +199,7 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
   [filters]);
 
   const commercialFiltersCount = useMemo(() => 
-    [filters.category, filters.plantGroup, filters.stock, filters.sortBy].filter(v => v !== "").length,
+    [filters.category, filters.plantGroup, filters.stock, filters.sortBy, filters.priceMin, filters.priceMax, filters.containerSize].filter(v => v !== "").length,
   [filters]);
 
   const activeFilterTags = useMemo(() => {
@@ -205,6 +233,15 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
         label: filters.stock === 'disponible' ? t('filters.available') : t('filters.outOfStock'), 
         type: 'commercial' 
       });
+    }
+    if (filters.priceMin) {
+      tags.push({ key: 'priceMin', label: `Desde ${filters.priceMin}€`, type: 'commercial' });
+    }
+    if (filters.priceMax) {
+      tags.push({ key: 'priceMax', label: `Hasta ${filters.priceMax}€`, type: 'commercial' });
+    }
+    if (filters.containerSize) {
+      tags.push({ key: 'containerSize', label: filters.containerSize, type: 'commercial' });
     }
     
     return tags;
@@ -444,6 +481,67 @@ const PlantFilters = ({ plants, onFilterChange, isVisible }: PlantFiltersProps) 
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Second row: Price range + Container size */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+            {/* Price Min */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <Euro className="h-3 w-3" />
+                Precio mínimo
+              </label>
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                placeholder={`${priceRange.min}€`}
+                value={filters.priceMin}
+                onChange={(e) => handleFilterChange('priceMin', e.target.value || '')}
+                className="h-9 border-border/50 bg-background/60 text-sm"
+              />
+            </div>
+
+            {/* Price Max */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <Euro className="h-3 w-3" />
+                Precio máximo
+              </label>
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                placeholder={`${priceRange.max}€`}
+                value={filters.priceMax}
+                onChange={(e) => handleFilterChange('priceMax', e.target.value || '')}
+                className="h-9 border-border/50 bg-background/60 text-sm"
+              />
+            </div>
+
+            {/* Container Size */}
+            {containerSizeOptions.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Ruler className="h-3 w-3" />
+                  Tamaño
+                </label>
+                <Select
+                  value={filters.containerSize || "all"}
+                  onValueChange={(v) => handleFilterChange('containerSize', v)}
+                >
+                  <SelectTrigger className="h-9 border-border/50 bg-background/60 text-sm hover:bg-background/80 transition-colors">
+                    <SelectValue placeholder={t('filters.all')} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border border-border shadow-lg z-50">
+                    <SelectItem value="all">{t('filters.all')}</SelectItem>
+                    {containerSizeOptions.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </div>
 
