@@ -8,6 +8,27 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ── Rate limiting per user ──
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 10; // 10 deposit actions/min per user
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
+
+// ── Validation ──
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const VALID_ACTIONS = ["create", "confirm", "refund"];
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -46,10 +67,30 @@ serve(async (req) => {
     const userId = claimsData.claims.sub as string;
     const userEmail = claimsData.claims.email as string;
 
+    // Rate limit per user
+    if (!checkRateLimit(`user:${userId}`)) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { action, auction_id } = await req.json();
 
-    if (!auction_id) {
-      throw new Error("auction_id is required");
+    // Validate action
+    if (!action || typeof action !== "string" || !VALID_ACTIONS.includes(action)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid action. Expected: create, confirm, or refund" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate auction_id
+    if (!auction_id || typeof auction_id !== "string" || !UUID_RE.test(auction_id)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or missing auction_id (expected UUID)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {

@@ -7,6 +7,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ── Rate limiting ──
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 10; // 10 checkout attempts/min per IP
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
+
+// ── Input validation helpers ──
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,198}[a-z0-9]$/;
+const COUNTRY_CODE_RE = /^[A-Z]{2}$/;
+const EMAIL_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+const REFERRAL_CODE_RE = /^FP-[A-Z0-9]{4}$/;
+
+function isValidPlantId(id: string): boolean {
+  return UUID_RE.test(id) || SLUG_RE.test(id);
+}
+
+function jsonError(message: string, status = 400) {
+  return new Response(
+    JSON.stringify({ error: message }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" }, status }
+  );
+}
+
 interface CartItem {
   plantId: string;
   quantity: number;
@@ -39,6 +74,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Rate limit
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!checkRateLimit(clientIp)) {
+    return jsonError("Rate limit exceeded. Please try again later.", 429);
+  }
+
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
@@ -50,16 +91,56 @@ serve(async (req) => {
   );
 
   try {
-    const { items, shippingCountry, shippingAddress, locale = "es", referralCode, useWalletBalance }: CheckoutRequest = await req.json();
+    const body = await req.json();
+    const { items, shippingCountry, shippingAddress, locale = "es", referralCode, useWalletBalance }: CheckoutRequest = body;
 
-    console.log("Checkout request:", { items: items.length, shippingCountry, locale, referralCode });
+    console.log("Checkout request:", { items: items?.length, shippingCountry, locale, referralCode });
 
-    if (!items || items.length === 0) {
-      throw new Error("No items in cart");
+    // ── Validate items ──
+    if (!Array.isArray(items) || items.length === 0) {
+      return jsonError("No items in cart");
+    }
+    if (items.length > 50) {
+      return jsonError("Too many items (max 50)");
+    }
+    for (const item of items) {
+      if (!item.plantId || typeof item.plantId !== "string" || !isValidPlantId(item.plantId)) {
+        return jsonError(`Invalid plantId: ${String(item.plantId).slice(0, 50)}`);
+      }
+      if (typeof item.quantity !== "number" || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 100) {
+        return jsonError(`Invalid quantity for ${item.plantId}: must be integer 1-100`);
+      }
     }
 
-    if (!shippingCountry) {
-      throw new Error("Shipping country is required");
+    // ── Validate shippingCountry ──
+    if (!shippingCountry || typeof shippingCountry !== "string" || !COUNTRY_CODE_RE.test(shippingCountry)) {
+      return jsonError("Invalid shipping country code");
+    }
+
+    // ── Validate locale ──
+    if (locale && !["es", "en"].includes(locale)) {
+      return jsonError("Invalid locale (expected 'es' or 'en')");
+    }
+
+    // ── Validate referral code format ──
+    if (referralCode && (typeof referralCode !== "string" || !REFERRAL_CODE_RE.test(referralCode.toUpperCase()))) {
+      return jsonError("Invalid referral code format");
+    }
+
+    // ── Validate shipping address if provided ──
+    if (shippingAddress) {
+      if (shippingAddress.email && !EMAIL_RE.test(shippingAddress.email)) {
+        return jsonError("Invalid email address");
+      }
+      if (shippingAddress.fullName && shippingAddress.fullName.length > 200) {
+        return jsonError("Name too long (max 200 chars)");
+      }
+      if (shippingAddress.street && shippingAddress.street.length > 500) {
+        return jsonError("Street too long (max 500 chars)");
+      }
+      if (shippingAddress.notes && shippingAddress.notes.length > 1000) {
+        return jsonError("Notes too long (max 1000 chars)");
+      }
     }
 
     // Get shipping zone from database
