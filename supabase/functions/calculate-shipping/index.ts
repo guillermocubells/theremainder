@@ -1,26 +1,13 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
+import { validate, schemas } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// ── Input validation ──
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,198}[a-z0-9]$/;
-const COUNTRY_CODE_RE = /^[A-Z]{2}$/;
-
-function isValidPlantId(id: string): boolean {
-  return UUID_RE.test(id) || SLUG_RE.test(id);
-}
-
-function jsonError(message: string, status = 400) {
-  return new Response(
-    JSON.stringify({ error: message }),
-    { headers: { ...corsHeaders, "Content-Type": "application/json" }, status }
-  );
-}
 
 // EU VAT rates by country (standard rates as of 2025)
 const VAT_RATES: Record<string, number> = {
@@ -43,29 +30,12 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { items, countryCode } = body;
 
-    // ── Validate countryCode ──
-    if (!countryCode || typeof countryCode !== "string" || !COUNTRY_CODE_RE.test(countryCode)) {
-      return jsonError("Invalid or missing country code (expected 2-letter ISO code)");
-    }
+    // ── Schema validation ──
+    const v = validate(schemas.calculateShipping, body, corsHeaders);
+    if (v.error) return v.error;
 
-    // ── Validate items array ──
-    if (!Array.isArray(items) || items.length === 0) {
-      return jsonError("items must be a non-empty array");
-    }
-    if (items.length > 50) {
-      return jsonError("Too many items (max 50)");
-    }
-
-    for (const item of items) {
-      if (!item.plantId || typeof item.plantId !== "string" || !isValidPlantId(item.plantId)) {
-        return jsonError(`Invalid plantId: ${String(item.plantId).slice(0, 50)}`);
-      }
-      if (typeof item.quantity !== "number" || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 100) {
-        return jsonError(`Invalid quantity for ${item.plantId}: must be integer 1-100`);
-      }
-    }
+    const { items, countryCode } = v.data;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,

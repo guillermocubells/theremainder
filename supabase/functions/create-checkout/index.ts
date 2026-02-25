@@ -2,55 +2,20 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
+import { validate, schemas } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// ── Input validation helpers ──
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,198}[a-z0-9]$/;
-const COUNTRY_CODE_RE = /^[A-Z]{2}$/;
-const EMAIL_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-const REFERRAL_CODE_RE = /^FP-[A-Z0-9]{4}$/;
-
-function isValidPlantId(id: string): boolean {
-  return UUID_RE.test(id) || SLUG_RE.test(id);
-}
 
 function jsonError(message: string, status = 400) {
   return new Response(
     JSON.stringify({ error: message }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" }, status }
   );
-}
-
-interface CartItem {
-  plantId: string;
-  quantity: number;
-  image?: string;
-  containerSize?: string;
-}
-
-interface CheckoutRequest {
-  items: CartItem[];
-  shippingCountry: string;
-  shippingAddress?: {
-    email: string;
-    fullName: string;
-    phone?: string;
-    street: string;
-    apartment?: string;
-    postalCode: string;
-    city: string;
-    province: string;
-    country: string;
-    notes?: string;
-  };
-  locale?: string;
-  referralCode?: string;
-  useWalletBalance?: boolean;
 }
 
 serve(async (req) => {
@@ -76,6 +41,10 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
+
+    // ── Schema validation ──
+    const v = validate(schemas.checkout, body, corsHeaders);
+    if (v.error) return v.error;
 
     // ── Refund action (admin only) ──
     if (body.action === "refund") {
@@ -120,56 +89,17 @@ serve(async (req) => {
       );
     }
 
-    const { items, shippingCountry, shippingAddress, locale = "es", referralCode, useWalletBalance }: CheckoutRequest = body;
+    // Validated data from Zod schema
+    const { items, shippingCountry, shippingAddress, locale = "es", referralCode, useWalletBalance } = v.data as {
+      items: Array<{ plantId: string; quantity: number; image?: string; containerSize?: string }>;
+      shippingCountry: string;
+      shippingAddress?: { email?: string; fullName?: string; phone?: string; street?: string; apartment?: string; postalCode?: string; city?: string; province?: string; country?: string; notes?: string };
+      locale?: string;
+      referralCode?: string;
+      useWalletBalance?: boolean;
+    };
 
     console.log("Checkout request:", { items: items?.length, shippingCountry, locale, referralCode });
-
-    // ── Validate items ──
-    if (!Array.isArray(items) || items.length === 0) {
-      return jsonError("No items in cart");
-    }
-    if (items.length > 50) {
-      return jsonError("Too many items (max 50)");
-    }
-    for (const item of items) {
-      if (!item.plantId || typeof item.plantId !== "string" || !isValidPlantId(item.plantId)) {
-        return jsonError(`Invalid plantId: ${String(item.plantId).slice(0, 50)}`);
-      }
-      if (typeof item.quantity !== "number" || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 100) {
-        return jsonError(`Invalid quantity for ${item.plantId}: must be integer 1-100`);
-      }
-    }
-
-    // ── Validate shippingCountry ──
-    if (!shippingCountry || typeof shippingCountry !== "string" || !COUNTRY_CODE_RE.test(shippingCountry)) {
-      return jsonError("Invalid shipping country code");
-    }
-
-    // ── Validate locale ──
-    if (locale && !["es", "en"].includes(locale)) {
-      return jsonError("Invalid locale (expected 'es' or 'en')");
-    }
-
-    // ── Validate referral code format ──
-    if (referralCode && (typeof referralCode !== "string" || !REFERRAL_CODE_RE.test(referralCode.toUpperCase()))) {
-      return jsonError("Invalid referral code format");
-    }
-
-    // ── Validate shipping address if provided ──
-    if (shippingAddress) {
-      if (shippingAddress.email && !EMAIL_RE.test(shippingAddress.email)) {
-        return jsonError("Invalid email address");
-      }
-      if (shippingAddress.fullName && shippingAddress.fullName.length > 200) {
-        return jsonError("Name too long (max 200 chars)");
-      }
-      if (shippingAddress.street && shippingAddress.street.length > 500) {
-        return jsonError("Street too long (max 500 chars)");
-      }
-      if (shippingAddress.notes && shippingAddress.notes.length > 1000) {
-        return jsonError("Notes too long (max 1000 chars)");
-      }
-    }
 
     // Get shipping zone from database
     const { data: zone, error: zoneError } = await supabaseAdmin

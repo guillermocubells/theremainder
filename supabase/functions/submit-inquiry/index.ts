@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
+import { validate, schemas } from "../_shared/validation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,18 +8,11 @@ const corsHeaders = {
 };
 
 function sanitizeText(text: string): string {
-  // Normalize unicode first to prevent lookalike attacks
   const normalized = text.normalize('NFC');
   return normalized
-    .replace(/<[^>]*>/g, '') // strip HTML
-    .replace(/[^\p{L}\p{N}\p{P}\p{Z}\p{Emoji}]/gu, '') // allow letters, numbers, punctuation, spaces, emoji
+    .replace(/<[^>]*>/g, '')
+    .replace(/[^\p{L}\p{N}\p{P}\p{Z}\p{Emoji}]/gu, '')
     .trim();
-}
-
-const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-function isValidEmail(email: string): boolean {
-  return EMAIL_REGEX.test(email) && email.length <= 254;
 }
 
 function hashIdentifier(input: string): string {
@@ -44,42 +38,18 @@ Deno.serve(async (req) => {
     );
 
     const body = await req.json();
-    const {
-      owned_plant_id,
-      shared_list_id,
-      message,
-      viewer_email,
-      offer_type,
-    } = body;
 
-    // Validation
-    if (!owned_plant_id || !message) {
-      return new Response(
-        JSON.stringify({ error: 'Faltan campos obligatorios' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // ── Schema validation ──
+    const v = validate(schemas.submitInquiry, body, corsHeaders);
+    if (v.error) return v.error;
 
-    // Validate email format if provided
-    if (viewer_email && !isValidEmail(viewer_email)) {
-      return new Response(
-        JSON.stringify({ error: 'Formato de email inválido' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { owned_plant_id, shared_list_id, message, viewer_email, offer_type } = v.data;
 
     const sanitizedMessage = sanitizeText(message);
-    if (!sanitizedMessage || sanitizedMessage.length > 700) {
+    if (!sanitizedMessage) {
       return new Response(
-        JSON.stringify({ error: 'Mensaje inválido o demasiado largo (máx. 700 caracteres)' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (offer_type && !['buy', 'trade', 'question'].includes(offer_type)) {
-      return new Response(
-        JSON.stringify({ error: 'Tipo de oferta inválido' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Validation failed', issues: [{ path: 'message', message: 'Message is empty after sanitization', code: 'custom' }] }),
+        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
