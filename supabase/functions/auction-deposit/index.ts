@@ -2,16 +2,13 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
+import { validate, schemas } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-// ── Validation ──
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const VALID_ACTIONS = ["create", "confirm", "refund"];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -57,23 +54,13 @@ serve(async (req) => {
       return rateLimitResponse(rl.headers, corsHeaders);
     }
 
-    const { action, auction_id } = await req.json();
+    const body = await req.json();
 
-    // Validate action
-    if (!action || typeof action !== "string" || !VALID_ACTIONS.includes(action)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid action. Expected: create, confirm, or refund" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // ── Schema validation ──
+    const v = validate(schemas.auctionDeposit, body, corsHeaders);
+    if (v.error) return v.error;
 
-    // Validate auction_id
-    if (!auction_id || typeof auction_id !== "string" || !UUID_RE.test(auction_id)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid or missing auction_id (expected UUID)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const { action, auction_id } = v.data;
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
       apiVersion: "2025-08-27.basil",

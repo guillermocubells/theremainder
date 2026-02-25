@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { checkRateLimit, rateLimitResponse, PRESETS, extractUserIdFromJwt } from "../_shared/rate-limit.ts";
+import { validate, schemas } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -159,10 +160,8 @@ Deno.serve(async (req) => {
       return errorResponse("Invalid JSON body", 400);
     }
 
-    const validation = validateProfileUpdate(body);
-    if (validation.error) {
-      return errorResponse(validation.error, 422);
-    }
+    const validation = validate(schemas.profileUpdate, body, corsHeaders);
+    if (validation.error) return validation.error;
 
     const { data, error } = await supabase
       .from("profiles")

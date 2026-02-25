@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
+import { validate, schemas } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,21 +48,12 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { consent_type, terms_version } = body;
 
-    if (!consent_type || !terms_version) {
-      return new Response(JSON.stringify({ error: "consent_type and terms_version required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // ── Schema validation ──
+    const v = validate(schemas.recordAuctionConsent, body, corsHeaders);
+    if (v.error) return v.error;
 
-    if (!["bidder", "seller"].includes(consent_type)) {
-      return new Response(JSON.stringify({ error: "Invalid consent_type" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const { consent_type, terms_version } = v.data;
 
     // Verify terms_version matches current
     const { data: setting } = await supabaseAdmin
