@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
+import { createLogger, withCorrelationId } from "../_shared/logger.ts";
+import { handleError } from "../_shared/errors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +13,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
+  const { log, requestId } = createLogger("sitemap", req);
+  const rh = withCorrelationId(corsHeaders, requestId);
 
   const rl = checkRateLimit(req, PRESETS.public_read);
   if (!rl.allowed) {
@@ -25,7 +30,6 @@ serve(async (req) => {
 
     const baseUrl = "https://theremainder.lovable.app";
 
-    // Fetch active plants
     const { data: plants, error } = await supabase
       .from("plants")
       .select("slug, updated_at")
@@ -33,7 +37,7 @@ serve(async (req) => {
       .order("display_order", { ascending: true });
 
     if (error) {
-      console.error("Error fetching plants:", error);
+      log.error("Error fetching plants", { error: error.message });
       throw error;
     }
 
@@ -51,7 +55,6 @@ serve(async (req) => {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-    // Static pages
     for (const page of staticPages) {
       xml += `
   <url>
@@ -62,7 +65,6 @@ serve(async (req) => {
   </url>`;
     }
 
-    // Product pages
     if (plants) {
       for (const plant of plants) {
         const lastmod = plant.updated_at
@@ -81,20 +83,17 @@ serve(async (req) => {
     xml += `
 </urlset>`;
 
-    console.log(`Sitemap generated with ${staticPages.length + (plants?.length || 0)} URLs`);
+    const urlCount = staticPages.length + (plants?.length || 0);
+    log.info("Sitemap generated", { url_count: urlCount });
 
     return new Response(xml, {
       headers: {
-        ...corsHeaders,
+        ...rh,
         "Content-Type": "application/xml; charset=utf-8",
         "Cache-Control": "public, max-age=3600",
       },
     });
-  } catch (error) {
-    console.error("Sitemap generation error:", error);
-    return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`, {
-      headers: { ...corsHeaders, "Content-Type": "application/xml" },
-      status: 500,
-    });
+  } catch (err) {
+    return handleError(err, { ...corsHeaders, "Content-Type": "application/json" }, requestId, log);
   }
 });

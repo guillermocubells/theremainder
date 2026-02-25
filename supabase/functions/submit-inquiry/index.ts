@@ -1,6 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
 import { validate, schemas } from "../_shared/validation.ts";
+import { createLogger, withCorrelationId } from "../_shared/logger.ts";
+import { AppError, handleError } from "../_shared/errors.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,12 +18,11 @@ function sanitizeText(text: string): string {
 }
 
 function hashIdentifier(input: string): string {
-  // Simple hash for viewer identification (not cryptographic)
   let hash = 0;
   for (let i = 0; i < input.length; i++) {
     const char = input.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
   return 'v_' + Math.abs(hash).toString(36);
 }
@@ -31,6 +32,9 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  const { log, requestId } = createLogger("submit-inquiry", req);
+  const rh = withCorrelationId(corsHeaders, requestId);
+
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -39,31 +43,26 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
 
-    // ── Schema validation ──
-    const v = validate(schemas.submitInquiry, body, corsHeaders);
+    const v = validate(schemas.submitInquiry, body, rh);
     if (v.error) return v.error;
 
     const { owned_plant_id, shared_list_id, message, viewer_email, offer_type } = v.data;
 
     const sanitizedMessage = sanitizeText(message);
     if (!sanitizedMessage) {
-      return new Response(
-        JSON.stringify({ error: 'Validation failed', issues: [{ path: 'message', message: 'Message is empty after sanitization', code: 'custom' }] }),
-        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new AppError("Message is empty after sanitization", 422, "EMPTY_MESSAGE");
     }
 
-    // Build viewer identifier from IP + email
     const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     const viewerIdentifier = hashIdentifier((viewer_email || '') + clientIP);
 
-    // Rate limit check
     const rl = checkRateLimit(req, PRESETS.form_submit);
     if (!rl.allowed) {
       return rateLimitResponse(rl.headers, corsHeaders);
     }
 
-    // Verify plant exists and get owner from the database (don't trust client-supplied owner_user_id)
+    log.info("Inquiry submitted", { owned_plant_id, offer_type, viewer: viewerIdentifier });
+
     const { data: plant, error: plantError } = await supabase
       .from('owned_plants')
       .select('id, visibility_in_shared_lists, allow_inquiries, inquiry_handling_mode, user_id')
@@ -71,16 +70,11 @@ Deno.serve(async (req) => {
       .single();
 
     if (plantError || !plant) {
-      return new Response(
-        JSON.stringify({ error: 'Planta no encontrada' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new AppError("Planta no encontrada", 404, "PLANT_NOT_FOUND");
     }
 
-    // Derive owner_user_id from plant record (server-side, not from client)
     const owner_user_id = plant.user_id;
 
-    // Check if viewer is blocked
     const { data: blocks } = await supabase
       .from('garden_viewer_blocks')
       .select('id')
@@ -89,28 +83,17 @@ Deno.serve(async (req) => {
       .limit(1);
 
     if (blocks && blocks.length > 0) {
-      // Don't reveal block status — show generic error
-      return new Response(
-        JSON.stringify({ error: 'No se pudo enviar la consulta' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new AppError("No se pudo enviar la consulta", 400, "INQUIRY_BLOCKED");
     }
 
     if (plant.visibility_in_shared_lists !== 'visible') {
-      return new Response(
-        JSON.stringify({ error: 'No se pudo enviar la consulta' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new AppError("No se pudo enviar la consulta", 400, "PLANT_NOT_VISIBLE");
     }
 
     if (!plant.allow_inquiries || plant.inquiry_handling_mode === 'blocked') {
-      return new Response(
-        JSON.stringify({ error: 'No se pudo enviar la consulta' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new AppError("No se pudo enviar la consulta", 400, "INQUIRIES_DISABLED");
     }
 
-    // Check global inquiries mode on shared list
     if (shared_list_id) {
       const { data: sharedList } = await supabase
         .from('shared_search_lists')
@@ -119,14 +102,10 @@ Deno.serve(async (req) => {
         .single();
 
       if (sharedList?.global_inquiries_mode === 'disabled') {
-        return new Response(
-          JSON.stringify({ error: 'No se pudo enviar la consulta' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        throw new AppError("No se pudo enviar la consulta", 400, "LIST_INQUIRIES_DISABLED");
       }
     }
 
-    // Insert inquiry
     const { data: inquiry, error: insertError } = await supabase
       .from('garden_inquiries')
       .insert({
@@ -143,25 +122,18 @@ Deno.serve(async (req) => {
       .single();
 
     if (insertError) {
-      console.error('Error inserting inquiry:', insertError);
-      return new Response(
-        JSON.stringify({ error: 'Error al enviar la consulta' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      log.error("Insert inquiry failed", { error: insertError.message });
+      throw new AppError("Error al enviar la consulta", 500, "INSERT_FAILED");
     }
 
-    console.log(`Inquiry ${inquiry.id} created for plant ${owned_plant_id} from ${viewerIdentifier}`);
+    log.info("Inquiry created", { inquiry_id: inquiry.id, plant_id: owned_plant_id });
 
     return new Response(
       JSON.stringify({ success: true, id: inquiry.id }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...rh, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Submit inquiry error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Error interno del servidor' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+  } catch (err) {
+    return handleError(err, { ...corsHeaders, 'Content-Type': 'application/json' }, requestId, log);
   }
 });

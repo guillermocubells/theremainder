@@ -1,6 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
 import { validate, schemas } from "../_shared/validation.ts";
+import { createLogger, withCorrelationId } from "../_shared/logger.ts";
+import { AppError, handleError } from "../_shared/errors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +15,9 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Rate limit
+  const { log, requestId } = createLogger("record-auction-consent", req);
+  const rh = withCorrelationId(corsHeaders, requestId);
+
   const rl = checkRateLimit(req, PRESETS.form_submit);
   if (!rl.allowed) {
     return rateLimitResponse(rl.headers, corsHeaders);
@@ -22,10 +26,7 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Not authenticated" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new AppError("Not authenticated", 401, "UNAUTHORIZED");
     }
 
     const supabaseAdmin = createClient(
@@ -41,21 +42,18 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Invalid token" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new AppError("Invalid token", 401, "INVALID_TOKEN");
     }
 
     const body = await req.json();
 
-    // ── Schema validation ──
-    const v = validate(schemas.recordAuctionConsent, body, corsHeaders);
+    const v = validate(schemas.recordAuctionConsent, body, rh);
     if (v.error) return v.error;
 
     const { consent_type, terms_version } = v.data;
 
-    // Verify terms_version matches current
+    log.info("Consent recording", { consent_type, terms_version, user_id: user.id });
+
     const { data: setting } = await supabaseAdmin
       .from("store_settings")
       .select("value")
@@ -64,13 +62,9 @@ Deno.serve(async (req) => {
 
     const currentVersion = setting ? (typeof setting.value === "string" ? setting.value : String(setting.value)) : null;
     if (terms_version !== currentVersion) {
-      return new Response(JSON.stringify({ error: "Terms version mismatch. Please refresh." }), {
-        status: 409,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new AppError("Terms version mismatch. Please refresh.", 409, "VERSION_MISMATCH");
     }
 
-    // Check if already consented
     const { data: existing } = await supabaseAdmin
       .from("auction_consents")
       .select("id")
@@ -80,12 +74,12 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existing) {
+      log.info("Already consented", { consent_id: existing.id });
       return new Response(JSON.stringify({ success: true, already_consented: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...rh, "Content-Type": "application/json" },
       });
     }
 
-    // Extract IP from request headers
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
       || req.headers.get("cf-connecting-ip")
       || req.headers.get("x-real-ip")
@@ -105,19 +99,18 @@ Deno.serve(async (req) => {
         metadata: {
           source: "edge_function",
           recorded_at: new Date().toISOString(),
+          request_id: requestId,
         },
       });
 
     if (insertError) throw insertError;
 
+    log.info("Consent recorded", { user_id: user.id, consent_type });
+
     return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...rh, "Content-Type": "application/json" },
     });
-  } catch (e) {
-    console.error("record-auction-consent error:", e);
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+  } catch (err) {
+    return handleError(err, { ...corsHeaders, "Content-Type": "application/json" }, requestId, log);
   }
 });

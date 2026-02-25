@@ -1,6 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
 import { validate, schemas } from "../_shared/validation.ts";
+import { createLogger, withCorrelationId } from "../_shared/logger.ts";
+import { AppError, handleError } from "../_shared/errors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,7 +11,6 @@ const corsHeaders = {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// EU VAT rates by country (standard rates as of 2025)
 const VAT_RATES: Record<string, number> = {
   ES: 21, PT: 23, FR: 20, DE: 19, BE: 21, NL: 21, LU: 17, AT: 20,
   IT: 22, SE: 25, DK: 25, FI: 25.5, PL: 23, CZ: 21, SK: 23, HU: 27,
@@ -22,7 +23,9 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Rate limit
+  const { log, requestId } = createLogger("calculate-shipping", req);
+  const rh = withCorrelationId(corsHeaders, requestId);
+
   const rl = checkRateLimit(req, PRESETS.public_read);
   if (!rl.allowed) {
     return rateLimitResponse(rl.headers, corsHeaders);
@@ -31,18 +34,18 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
 
-    // ── Schema validation ──
-    const v = validate(schemas.calculateShipping, body, corsHeaders);
+    const v = validate(schemas.calculateShipping, body, rh);
     if (v.error) return v.error;
 
     const { items, countryCode } = v.data;
+
+    log.info("Shipping calculation", { countryCode, itemCount: items.length });
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Get shipping zone from database
     const { data: zone, error: zoneError } = await supabase
       .from("shipping_zones")
       .select("*")
@@ -53,15 +56,13 @@ Deno.serve(async (req) => {
     if (zoneError || !zone) {
       return new Response(
         JSON.stringify({
-          error: "SHIPPING_NOT_AVAILABLE",
-          message: "No shipping available to this country",
+          error: { message: "No shipping available to this country", code: "SHIPPING_NOT_AVAILABLE", request_id: requestId },
           supported: false,
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        { headers: { ...rh, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
-    // Get product data from database
     const plantIds = items.map((i: { plantId: string }) => i.plantId);
     const uuids = plantIds.filter((id: string) => UUID_RE.test(id));
     const slugs = plantIds.filter((id: string) => !UUID_RE.test(id));
@@ -77,25 +78,23 @@ Deno.serve(async (req) => {
       .eq("is_active", true);
 
     if (plantsError) {
-      console.error("Error fetching plants:", plantsError);
-      return jsonError("Error fetching product data", 500);
+      log.error("Error fetching plants", { error: plantsError.message });
+      throw new AppError("Error fetching product data", 500, "DB_ERROR");
     }
 
-    // Build lookup by slug and id
     const plantLookup = new Map<string, typeof plants[0]>();
     for (const p of plants || []) {
       plantLookup.set(p.slug, p);
       plantLookup.set(p.id, p);
     }
 
-    // Calculate totals
     let subtotalCents = 0;
     let totalWeightGrams = 0;
 
     for (const item of items) {
       const plant = plantLookup.get(item.plantId);
       if (!plant) {
-        return jsonError(`Product not found: ${item.plantId}`);
+        throw new AppError(`Product not found: ${item.plantId}`, 400, "PRODUCT_NOT_FOUND");
       }
       const priceCents = Math.round((plant.sale_price ?? plant.price) * 100);
       const weight = plant.weight_grams ?? 2000;
@@ -103,7 +102,6 @@ Deno.serve(async (req) => {
       totalWeightGrams += weight * item.quantity;
     }
 
-    // Calculate shipping cost using zone config
     const baseCostCents = Math.round(zone.base_cost * 100);
     const perItemCostCents = Math.round(zone.per_item_cost * 100);
     const freeShippingThresholdCents = zone.free_shipping_threshold
@@ -125,13 +123,14 @@ Deno.serve(async (req) => {
       amountForFreeShippingCents = freeShippingThresholdCents - subtotalCents;
     }
 
-    // Tax calculation — prices are VAT-inclusive (IVA incluido)
     const vatRate = VAT_RATES[countryCode] ?? 21;
     const taxableAmountCents = subtotalCents + shippingCostCents;
     const baseImponibleCents = Math.round(taxableAmountCents / (1 + vatRate / 100));
     const taxAmountCents = taxableAmountCents - baseImponibleCents;
 
     const totalCents = subtotalCents + shippingCostCents;
+
+    log.info("Shipping calculated", { totalCents, shippingCostCents, freeShipping: qualifiesForFreeShipping });
 
     return new Response(
       JSON.stringify({
@@ -154,14 +153,9 @@ Deno.serve(async (req) => {
         taxAmountCents,
         countryCode,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      { headers: { ...rh, "Content-Type": "application/json" }, status: 200 }
     );
-  } catch (error) {
-    console.error("Calculate shipping error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-    );
+  } catch (err) {
+    return handleError(err, { ...corsHeaders, "Content-Type": "application/json" }, requestId, log);
   }
 });

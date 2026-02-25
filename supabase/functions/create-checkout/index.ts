@@ -3,6 +3,8 @@ import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
 import { validate, schemas } from "../_shared/validation.ts";
+import { createLogger, withCorrelationId } from "../_shared/logger.ts";
+import { AppError, handleError } from "../_shared/errors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,10 +13,10 @@ const corsHeaders = {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function jsonError(message: string, status = 400) {
+function jsonError(message: string, status = 400, requestId?: string, code = "ERROR") {
   return new Response(
-    JSON.stringify({ error: message }),
-    { headers: { ...corsHeaders, "Content-Type": "application/json" }, status }
+    JSON.stringify({ error: { message, code, request_id: requestId } }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json", ...(requestId ? { "X-Request-Id": requestId } : {}) }, status }
   );
 }
 
@@ -22,6 +24,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const { log, requestId } = createLogger("create-checkout", req);
+  const rh = withCorrelationId(corsHeaders, requestId);
 
   // Rate limit
   const rl = checkRateLimit(req, PRESETS.auth_write);
@@ -43,7 +48,7 @@ serve(async (req) => {
     const body = await req.json();
 
     // ── Schema validation ──
-    const v = validate(schemas.checkout, body, corsHeaders);
+    const v = validate(schemas.checkout, body, rh);
     if (v.error) return v.error;
 
     // ── Refund action (admin only) ──
@@ -436,13 +441,12 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
-    console.error("Checkout error:", error);
+    log.error("Checkout error", { message: error instanceof Error ? error.message : "Unknown" });
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    // Emit checkout error metric
     await supabaseAdmin.rpc("emit_metric", { p_name: "checkout.error", p_value: 1, p_type: "counter", p_tags: { error: errorMessage.slice(0, 200) } }).catch(() => {});
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    return handleError(error, { ...corsHeaders, "Content-Type": "application/json" }, requestId, log);
+  }
+});
     );
   }
 });
