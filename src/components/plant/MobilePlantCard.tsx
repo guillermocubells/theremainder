@@ -106,6 +106,8 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
               alt={`${plant.name} - ${currentImageIndex + 1}/${allImages.length}`}
               className="w-full h-full object-cover transition-opacity duration-200"
               draggable={false}
+              responsiveHint={640}
+              sizes="(max-width: 640px) 50vw, 33vw"
             />
           )}
           

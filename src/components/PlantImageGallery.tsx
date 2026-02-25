@@ -127,11 +127,12 @@ const PlantImageGallery = ({ images, productImages, primaryImage, plantName }: P
                     : "border-border hover:border-primary/50"
                 )}
               >
-                <OptimizedImage
+              <OptimizedImage
                   src={image}
                   alt={`${plantName} - miniatura ${index + 1}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  responsiveHint="thumb"
                 />
               </button>
             ))}

@@ -147,6 +147,8 @@ const DesktopPlantCard = ({ plant }: DesktopPlantCardProps) => {
                   alt={`${plant.name} - ${t('plant.preview')}`}
                   className="w-full h-full object-cover"
                   placeholder={false}
+                  responsiveHint={768}
+                  sizes="(max-width: 768px) 50vw, 33vw"
                 />
               </div>
             )}

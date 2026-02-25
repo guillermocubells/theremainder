@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, ImgHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { getResponsiveSources, getThumbSources, buildSrcSet } from "@/utils/imageOptimization";
 
 interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "onLoad" | "onError"> {
   /** Show a shimmer/blur placeholder while loading */
@@ -10,6 +11,8 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   aspectRatio?: string;
   /** Additional wrapper className */
   wrapperClassName?: string;
+  /** Hint for responsive sizing: "thumb" for thumbnails, or max pixel width */
+  responsiveHint?: "thumb" | number;
 }
 
 const FALLBACK = "/placeholder.svg";
@@ -18,6 +21,7 @@ const FALLBACK = "/placeholder.svg";
  * Optimized image component with:
  * - Native lazy loading + decoding="async"
  * - IntersectionObserver for deferred src (below-the-fold)
+ * - <picture> with AVIF / WebP / fallback srcset
  * - Shimmer placeholder while loading
  * - Graceful error fallback
  */
@@ -30,6 +34,8 @@ export function OptimizedImage({
   aspectRatio,
   wrapperClassName,
   loading = "lazy",
+  sizes,
+  responsiveHint,
   ...props
 }: OptimizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -68,9 +74,61 @@ export function OptimizedImage({
   }, [src]);
 
   const effectiveSrc = hasError ? fallbackSrc : src;
+
+  // Generate responsive sources
+  const sources =
+    responsiveHint === "thumb"
+      ? getThumbSources(effectiveSrc)
+      : getResponsiveSources(effectiveSrc, undefined, typeof responsiveHint === "number" ? responsiveHint : undefined);
+
+  const hasResponsive = sources && (sources.avif.length > 0 || sources.webp.length > 0);
   const showPlaceholder = placeholder && !isLoaded && !hasError;
 
-  const imgElement = (
+  const defaultSizes = sizes || "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
+
+  const imgClassNames = cn(
+    "transition-opacity duration-300",
+    showPlaceholder ? "opacity-0" : "opacity-100",
+    className
+  );
+
+  const imgElement = hasResponsive && isVisible ? (
+    <picture>
+      {sources!.avif.length > 0 && (
+        <source
+          type="image/avif"
+          srcSet={buildSrcSet(sources!.avif)}
+          sizes={defaultSizes}
+        />
+      )}
+      {sources!.webp.length > 0 && (
+        <source
+          type="image/webp"
+          srcSet={buildSrcSet(sources!.webp)}
+          sizes={defaultSizes}
+        />
+      )}
+      {sources!.fallback.length > 0 && (
+        <source
+          srcSet={buildSrcSet(sources!.fallback)}
+          sizes={defaultSizes}
+        />
+      )}
+      <img
+        ref={imgRef}
+        src={isVisible ? sources!.src : undefined}
+        alt={alt}
+        loading={loading}
+        decoding="async"
+        onLoad={() => setIsLoaded(true)}
+        onError={() => {
+          if (!hasError) setHasError(true);
+        }}
+        className={imgClassNames}
+        {...props}
+      />
+    </picture>
+  ) : (
     <img
       ref={imgRef}
       src={isVisible ? effectiveSrc : undefined}
@@ -81,11 +139,7 @@ export function OptimizedImage({
       onError={() => {
         if (!hasError) setHasError(true);
       }}
-      className={cn(
-        "transition-opacity duration-300",
-        showPlaceholder ? "opacity-0" : "opacity-100",
-        className
-      )}
+      className={imgClassNames}
       {...props}
     />
   );
