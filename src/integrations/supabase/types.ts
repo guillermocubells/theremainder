@@ -1260,6 +1260,109 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          expires_at: string | null
+          file_hash: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          seller_profile_id: string
+          status: string
+          storage_path: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          expires_at?: string | null
+          file_hash: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          seller_profile_id: string
+          status?: string
+          storage_path: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          expires_at?: string | null
+          file_hash?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          seller_profile_id?: string
+          status?: string
+          storage_path?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kyc_documents_seller_profile_id_fkey"
+            columns: ["seller_profile_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kyc_verification_events: {
+        Row: {
+          actor_id: string | null
+          actor_role: string
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          notes: string | null
+          seller_profile_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role?: string
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          seller_profile_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          seller_profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kyc_verification_events_seller_profile_id_fkey"
+            columns: ["seller_profile_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string
