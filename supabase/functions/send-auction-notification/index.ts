@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface NotifyRequest {
-  type: "outbid" | "auction_starting" | "auction_ending" | "auction_won" | "auction_lost" | "new_bid_seller";
+  type: "outbid" | "auction_starting" | "auction_ending" | "auction_won" | "auction_lost" | "new_bid_seller" | "listing_approved" | "listing_rejected" | "listing_changes_requested";
   auction_id: string;
   user_ids?: string[];   // specific users to notify
   data?: Record<string, unknown>;
@@ -112,6 +112,54 @@ function getEmailContent(type: string, data: Record<string, unknown>, lang: stri
         `),
       };
 
+    case "listing_approved":
+      return {
+        subject: isEn ? `Your listing "${data.auction_title}" has been approved! ✅` : `¡Tu lote "${data.auction_title}" ha sido aprobado! ✅`,
+        html: wrap(`
+          <h1 style="color: #1a472a;">✅ ${isEn ? "Listing approved!" : "¡Lote aprobado!"}</h1>
+          <p>${isEn ? `Great news! Your listing <strong>${data.auction_title}</strong> has been reviewed and approved.` : `¡Buenas noticias! Tu lote <strong>${data.auction_title}</strong> ha sido revisado y aprobado.`}</p>
+          ${data.starts_at ? `
+          <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1a472a;">
+            <p style="margin: 0;"><strong>${isEn ? "Auction starts:" : "Inicio de subasta:"}</strong> ${data.starts_at}</p>
+            <p style="margin: 8px 0 0 0;"><strong>${isEn ? "Starting price:" : "Precio de salida:"}</strong> ${data.starting_price}€</p>
+          </div>
+          ` : ""}
+          ${cta(String(auctionUrl), isEn ? "View your listing" : "Ver tu lote")}
+        `),
+      };
+
+    case "listing_rejected":
+      return {
+        subject: isEn ? `Your listing "${data.auction_title}" was not approved` : `Tu lote "${data.auction_title}" no ha sido aprobado`,
+        html: wrap(`
+          <h1 style="color: #1a472a;">❌ ${isEn ? "Listing not approved" : "Lote no aprobado"}</h1>
+          <p>${isEn ? `Unfortunately, your listing <strong>${data.auction_title}</strong> has not been approved.` : `Lamentablemente, tu lote <strong>${data.auction_title}</strong> no ha sido aprobado.`}</p>
+          ${data.admin_notes ? `
+          <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+            <p style="margin: 0; font-weight: 600;">${isEn ? "Reason:" : "Motivo:"}</p>
+            <p style="margin: 8px 0 0 0;">${data.admin_notes}</p>
+          </div>
+          ` : ""}
+          <p>${isEn ? "If you have questions, please contact us." : "Si tienes preguntas, no dudes en contactarnos."}</p>
+        `),
+      };
+
+    case "listing_changes_requested":
+      return {
+        subject: isEn ? `Changes requested for "${data.auction_title}"` : `Cambios solicitados para "${data.auction_title}"`,
+        html: wrap(`
+          <h1 style="color: #1a472a;">📝 ${isEn ? "Changes requested" : "Cambios solicitados"}</h1>
+          <p>${isEn ? `Your listing <strong>${data.auction_title}</strong> requires some changes before it can be approved.` : `Tu lote <strong>${data.auction_title}</strong> necesita algunos cambios antes de poder ser aprobado.`}</p>
+          ${data.change_request_message ? `
+          <div style="background: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; font-weight: 600;">${isEn ? "Requested changes:" : "Cambios solicitados:"}</p>
+            <p style="margin: 8px 0 0 0;">${data.change_request_message}</p>
+          </div>
+          ` : ""}
+          ${cta(String(auctionUrl), isEn ? "Update your listing" : "Actualizar tu lote")}
+        `),
+      };
+
     default:
       return { subject: "Notification", html: wrap("<p>Notification</p>") };
   }
@@ -154,6 +202,8 @@ serve(async (req: Request) => {
         targetUserIds = [auction.seller_user_id];
       } else if (type === "auction_won" && auction.winner_user_id) {
         targetUserIds = [auction.winner_user_id];
+      } else if ((type === "listing_approved" || type === "listing_rejected" || type === "listing_changes_requested") && auction.seller_user_id) {
+        targetUserIds = [auction.seller_user_id];
       } else if (type === "auction_lost" || type === "auction_ending" || type === "auction_starting") {
         // Get all bidders except winner
         const { data: bidders } = await supabase
