@@ -606,6 +606,7 @@ async function handleCheckoutCompleted(
   const shippingCents = parseInt(metadata.shipping_cents || "0");
   const walletAmountCents = parseInt(metadata.wallet_amount_cents || "0");
   const referralCodeUsed = metadata.referral_code_used || null;
+  const reservationSessionId = metadata.reservation_session_id || null;
 
   // Parse items from metadata
   let items: Array<{ id: string; qty: number; price: number; name: string; image?: string }> = [];
@@ -678,6 +679,19 @@ async function handleCheckoutCompleted(
 
     log("Order created", { orderId: order.id, orderNumber, customerType, walletUsed: walletAmountEur });
     orderId = order.id;
+
+    // Confirm stock reservations (stock already deducted at checkout start)
+    if (reservationSessionId) {
+      try {
+        const { data: confirmedCount } = await supabase.rpc("confirm_reservation_by_session", {
+          p_session_id: reservationSessionId,
+          p_payment_intent_id: paymentIntentId,
+        });
+        log("Stock reservations confirmed", { reservationSessionId, confirmedCount });
+      } catch (err) {
+        log("Error confirming reservations", { error: String(err) });
+      }
+    }
 
     // Deduct wallet balance if used
     if (walletAmountEur > 0) {
@@ -900,6 +914,21 @@ async function handlePaymentIntentFailed(
 ) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   log("Processing payment_intent.payment_failed", { paymentIntentId: paymentIntent.id });
+
+  // Release any active stock reservations linked to this payment intent
+  const { data: activeReservations } = await supabase
+    .from("stock_reservations")
+    .select("session_id")
+    .eq("stripe_payment_intent_id", paymentIntent.id)
+    .eq("status", "active")
+    .limit(1);
+
+  if (activeReservations && activeReservations.length > 0) {
+    const { data: releasedCount } = await supabase.rpc("release_reservations_by_session", {
+      p_session_id: activeReservations[0].session_id,
+    });
+    log("Released reservations on payment failure", { releasedCount });
+  }
 
   // Check if order exists and update
   const { data: existingOrder } = await supabase

@@ -152,6 +152,52 @@ serve(async (req) => {
 
     console.log("Calculated:", { subtotalCents, totalWeightGrams });
 
+    // Reserve stock for each item (atomic, with 30-min TTL)
+    // Generate a temporary session ID for reservations (will be updated with Stripe session ID later)
+    const reservationSessionId = crypto.randomUUID();
+    const reservationIds: string[] = [];
+
+    for (const item of validatedItems) {
+      const plant = plantLookup.get(item.plantId);
+      if (!plant) continue;
+
+      try {
+        const { data: reservationId, error: reserveError } = await supabaseAdmin.rpc("reserve_stock", {
+          p_plant_id: plant.id,
+          p_quantity: item.quantity,
+          p_session_id: reservationSessionId,
+          p_user_id: null,
+          p_ttl_minutes: 30,
+        });
+
+        if (reserveError) {
+          // Release all previously made reservations for this session
+          console.error(`Stock reservation failed for ${item.name}:`, reserveError.message);
+          await supabaseAdmin.rpc("release_reservations_by_session", { p_session_id: reservationSessionId });
+
+          const isInsufficientStock = reserveError.message.includes("Insufficient stock");
+          return new Response(
+            JSON.stringify({
+              error: isInsufficientStock ? "INSUFFICIENT_STOCK" : "RESERVATION_FAILED",
+              message: isInsufficientStock
+                ? `No hay suficiente stock de "${item.name}"`
+                : "Error al reservar el inventario",
+              plantId: item.plantId,
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+          );
+        }
+
+        reservationIds.push(reservationId);
+      } catch (err) {
+        console.error(`Stock reservation exception for ${item.name}:`, err);
+        await supabaseAdmin.rpc("release_reservations_by_session", { p_session_id: reservationSessionId });
+        throw new Error(`Failed to reserve stock for ${item.name}`);
+      }
+    }
+
+    console.log("Stock reserved:", { reservationSessionId, count: reservationIds.length });
+
     // Calculate shipping using zone config
     const baseCostCents = Math.round(zone.base_cost * 100);
     const perItemCostCents = Math.round(zone.per_item_cost * 100);
@@ -320,6 +366,7 @@ serve(async (req) => {
         shipping_zone: zone.id,
         shipping_country: shippingCountry,
         is_free_shipping: qualifiesForFreeShipping.toString(),
+        reservation_session_id: reservationSessionId,
         items_json: JSON.stringify(validatedItems.map(i => ({
           id: i.plantId,
           qty: i.quantity,
