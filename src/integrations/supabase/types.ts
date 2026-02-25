@@ -631,6 +631,119 @@ export type Database = {
         }
         Relationships: []
       }
+      dispute_events: {
+        Row: {
+          actor_id: string | null
+          actor_role: string
+          attachments: string[] | null
+          created_at: string
+          dispute_id: string
+          event_type: string
+          id: string
+          message: string | null
+          metadata: Json | null
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role?: string
+          attachments?: string[] | null
+          created_at?: string
+          dispute_id: string
+          event_type: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string
+          attachments?: string[] | null
+          created_at?: string
+          dispute_id?: string
+          event_type?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_events_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disputes: {
+        Row: {
+          admin_notes: string | null
+          assigned_to: string | null
+          auction_id: string | null
+          created_at: string
+          description: string
+          evidence_urls: string[] | null
+          id: string
+          order_id: string | null
+          resolution_summary: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["dispute_status"]
+          subject: string
+          type: Database["public"]["Enums"]["dispute_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          assigned_to?: string | null
+          auction_id?: string | null
+          created_at?: string
+          description: string
+          evidence_urls?: string[] | null
+          id?: string
+          order_id?: string | null
+          resolution_summary?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["dispute_status"]
+          subject: string
+          type: Database["public"]["Enums"]["dispute_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          assigned_to?: string | null
+          auction_id?: string | null
+          created_at?: string
+          description?: string
+          evidence_urls?: string[] | null
+          id?: string
+          order_id?: string | null
+          resolution_summary?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["dispute_status"]
+          subject?: string
+          type?: Database["public"]["Enums"]["dispute_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fraud_flags: {
         Row: {
           created_at: string
@@ -2520,6 +2633,21 @@ export type Database = {
         | "advanced"
         | "beginner"
         | "expert"
+      dispute_status:
+        | "open"
+        | "under_review"
+        | "awaiting_evidence"
+        | "resolved"
+        | "rejected"
+        | "escalated"
+      dispute_type:
+        | "damaged_item"
+        | "wrong_item"
+        | "missing_item"
+        | "quality_issue"
+        | "shipping_delay"
+        | "billing_error"
+        | "other"
       email_frequency: "instant" | "daily" | "weekly"
       fraud_flag_severity: "low" | "medium" | "high" | "critical"
       fraud_flag_status: "pending" | "reviewed" | "approved" | "revoked"
@@ -2734,6 +2862,23 @@ export const Constants = {
         "advanced",
         "beginner",
         "expert",
+      ],
+      dispute_status: [
+        "open",
+        "under_review",
+        "awaiting_evidence",
+        "resolved",
+        "rejected",
+        "escalated",
+      ],
+      dispute_type: [
+        "damaged_item",
+        "wrong_item",
+        "missing_item",
+        "quality_issue",
+        "shipping_delay",
+        "billing_error",
+        "other",
       ],
       email_frequency: ["instant", "daily", "weekly"],
       fraud_flag_severity: ["low", "medium", "high", "critical"],
