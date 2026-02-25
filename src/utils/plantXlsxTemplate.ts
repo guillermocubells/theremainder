@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 const HEADERS = [
   "slug",
@@ -103,7 +103,6 @@ const EXAMPLE_ROW: Record<string, string | number | boolean> = {
   spec_genero: "Rhopalostylis",
 };
 
-// Helper hints for the "Instrucciones" sheet
 const INSTRUCTIONS: string[][] = [
   ["Campo", "Tipo", "Valores permitidos", "Notas"],
   ["slug", "texto", "minúsculas-con-guiones", "Identificador único"],
@@ -121,28 +120,53 @@ const INSTRUCTIONS: string[][] = [
   ["is_in_stock / is_active / is_featured", "bool", "true|false", ""],
 ];
 
-export function downloadPlantXlsxTemplate(): void {
-  const wb = XLSX.utils.book_new();
+export async function downloadPlantXlsxTemplate(): Promise<void> {
+  const workbook = new ExcelJS.Workbook();
 
   // --- Productos sheet ---
-  const data = [HEADERS, HEADERS.map((h) => EXAMPLE_ROW[h] ?? "")];
-  // Add 19 empty rows for user input
-  for (let i = 0; i < 19; i++) {
-    data.push(HEADERS.map(() => ""));
-  }
-  const ws = XLSX.utils.aoa_to_sheet(data);
+  const ws = workbook.addWorksheet("Productos");
 
-  // Set column widths
-  ws["!cols"] = HEADERS.map((h) => ({
-    wch: Math.max(h.length + 2, 18),
+  // Header row
+  ws.addRow(HEADERS);
+
+  // Example row
+  ws.addRow(HEADERS.map((h) => EXAMPLE_ROW[h] ?? ""));
+
+  // 19 empty rows
+  for (let i = 0; i < 19; i++) {
+    ws.addRow(HEADERS.map(() => ""));
+  }
+
+  // Column widths
+  ws.columns = HEADERS.map((h) => ({
+    width: Math.max(h.length + 2, 18),
   }));
 
-  XLSX.utils.book_append_sheet(wb, ws, "Productos");
+  // Bold header row
+  const headerRow = ws.getRow(1);
+  headerRow.font = { bold: true };
 
   // --- Instrucciones sheet ---
-  const wsInstr = XLSX.utils.aoa_to_sheet(INSTRUCTIONS);
-  wsInstr["!cols"] = [{ wch: 35 }, { wch: 10 }, { wch: 55 }, { wch: 30 }];
-  XLSX.utils.book_append_sheet(wb, wsInstr, "Instrucciones");
+  const wsInstr = workbook.addWorksheet("Instrucciones");
+  INSTRUCTIONS.forEach((row) => wsInstr.addRow(row));
+  wsInstr.columns = [
+    { width: 35 },
+    { width: 10 },
+    { width: 55 },
+    { width: 30 },
+  ];
+  const instrHeader = wsInstr.getRow(1);
+  instrHeader.font = { bold: true };
 
-  XLSX.writeFile(wb, "plantilla_productos_frondaprima.xlsx");
+  // Generate and download
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "plantilla_productos_frondaprima.xlsx";
+  a.click();
+  URL.revokeObjectURL(url);
 }
