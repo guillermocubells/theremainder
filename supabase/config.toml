@@ -53,3 +53,9 @@ verify_jwt = false
 
 [functions.load-test-bidding]
 verify_jwt = false
+
+[functions.process-job-queue]
+verify_jwt = false
+
+[functions.evaluate-alerts]
+verify_jwt = false
