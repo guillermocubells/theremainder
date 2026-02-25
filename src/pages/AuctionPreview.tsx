@@ -149,12 +149,7 @@ const AuctionPreview = () => {
                             <p className="text-xs text-muted-foreground">Precio salida</p>
                             <p className="text-lg font-bold text-foreground">{auction.starting_price.toFixed(2)} €</p>
                           </div>
-                          {auction.buy_now_price && (
-                            <div>
-                              <p className="text-xs text-muted-foreground">Compra inmediata</p>
-                              <p className="text-lg font-bold text-primary">{auction.buy_now_price.toFixed(2)} €</p>
-                            </div>
-                          )}
+                          {/* Buy-now disabled for auctions per PRD */}
                           <div>
                             <p className="text-xs text-muted-foreground">Incremento</p>
                             <p className="text-sm font-medium">{auction.bid_increment.toFixed(2)} €</p>

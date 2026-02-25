@@ -8,15 +8,40 @@ export interface AuctionLotData {
   description: string;
   starting_price: number;
   reserve_price?: number;
-  buy_now_price?: number;
-  bid_increment?: number;
   condition?: string;
   provenance?: string;
-  dimensions?: { height?: string; width?: string; pot_size?: string };
+  dimensions?: { height?: string; width?: string; pot_size?: string; age_size?: string };
   plant_id?: string;
   images: string[];
   videos: string[];
   provenance_documents?: string[];
+  // Extended PRD fields stored in meta_description/seller_notes JSON
+  genus?: string;
+  species?: string;
+  cultivar?: string;
+  common_name?: string;
+  category?: string;
+  tags?: string[];
+  duration_hours?: number;
+  location_country?: string;
+  location_region?: string;
+  shipping_eu_only?: boolean;
+  excluded_countries?: string;
+  shipping_cost?: number;
+  shipping_tiers?: string;
+  handling_time?: string;
+  hardiness_zone?: string;
+  humidity_tolerance?: string;
+}
+
+/**
+ * Calculate the bid increment based on the PRD tiered ladder.
+ */
+export function calculateBidIncrement(currentPrice: number): number {
+  if (currentPrice < 50) return 1;
+  if (currentPrice < 200) return 5;
+  if (currentPrice < 1000) return 10;
+  return 50;
 }
 
 export function useAuctionSubmission() {
@@ -27,13 +52,34 @@ export function useAuctionSubmission() {
     mutationFn: async (lot: AuctionLotData) => {
       if (!user) throw new Error('Not authenticated');
 
-      // Generate slug from title
       const slug = lot.title
         .toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
         + '-' + Date.now().toString(36);
+
+      // Store extended seller metadata in seller_notes as structured JSON
+      const sellerMeta = {
+        genus: lot.genus,
+        species: lot.species,
+        cultivar: lot.cultivar,
+        common_name: lot.common_name,
+        category: lot.category,
+        tags: lot.tags,
+        duration_hours: lot.duration_hours,
+        location_country: lot.location_country,
+        location_region: lot.location_region,
+        shipping_eu_only: lot.shipping_eu_only,
+        excluded_countries: lot.excluded_countries,
+        shipping_cost: lot.shipping_cost,
+        shipping_tiers: lot.shipping_tiers,
+        handling_time: lot.handling_time,
+        hardiness_zone: lot.hardiness_zone,
+        humidity_tolerance: lot.humidity_tolerance,
+      };
+
+      const bidIncrement = calculateBidIncrement(lot.starting_price);
 
       const { data, error } = await supabase
         .from('auctions' as any)
@@ -43,8 +89,8 @@ export function useAuctionSubmission() {
           description: lot.description,
           starting_price: lot.starting_price,
           reserve_price: lot.reserve_price || null,
-          buy_now_price: lot.buy_now_price || null,
-          bid_increment: lot.bid_increment || 1,
+          buy_now_price: null, // Disabled for auctions per PRD
+          bid_increment: bidIncrement,
           condition: lot.condition || null,
           provenance: lot.provenance || null,
           dimensions: lot.dimensions || {},
@@ -56,6 +102,7 @@ export function useAuctionSubmission() {
           seller_user_id: user.id,
           status: 'pending_review',
           current_price: lot.starting_price,
+          seller_notes: JSON.stringify(sellerMeta),
         })
         .select()
         .single();
