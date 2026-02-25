@@ -308,9 +308,9 @@ const PlantDetail = () => {
             </Link>
 
             {/* ====== HERO: Gallery (left) + Product Info (right) ====== */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 mb-8 sm:mb-12 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 mb-8 sm:mb-12">
               {/* LEFT — Image Gallery (prominent) */}
-              <div className="animate-fade-in min-h-[320px] lg:min-h-0 lg:sticky lg:top-24">
+              <div className="animate-fade-in min-h-[320px] lg:min-h-[480px]">
                 <PlantImageGallery
                   images={plant.images}
                   productImages={plant.productImages}
