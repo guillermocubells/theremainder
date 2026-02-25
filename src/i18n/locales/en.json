@@ -343,6 +343,7 @@
     "fraud": "Fraud Detection",
     "auctions": "Auctions",
     "disputes": "Disputes",
+    "audit": "Audit Log",
     "settings": "Settings"
   },
   "plantFinder": {

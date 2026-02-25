@@ -37,6 +37,7 @@ import AdminReferrals from "./pages/admin/AdminReferrals";
 import AdminFraudFlags from "./pages/admin/AdminFraudFlags";
 import AdminAuctions from "./pages/admin/AdminAuctions";
 import AdminDisputes from "./pages/admin/AdminDisputes";
+import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AuctionPreview from "./pages/AuctionPreview";
 import AuctionDetail from "./pages/AuctionDetail";
 
@@ -137,6 +138,7 @@ const App = () => (
                 <Route path="fraud" element={<AdminFraudFlags />} />
                 <Route path="auctions" element={<AdminAuctions />} />
                 <Route path="disputes" element={<AdminDisputes />} />
+                <Route path="audit" element={<AdminAuditLog />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
               

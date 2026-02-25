@@ -444,6 +444,51 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_role: string
+          checksum: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          new_data: Json | null
+          old_data: Json | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_role?: string
+          checksum?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          new_data?: Json | null
+          old_data?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_role?: string
+          checksum?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          new_data?: Json | null
+          old_data?: Json | null
+        }
+        Relationships: []
+      }
       bids: {
         Row: {
           amount: number
@@ -2577,6 +2622,19 @@ export type Database = {
         Returns: boolean
       }
       is_own_wishlist_item: { Args: { wi_user_id: string }; Returns: boolean }
+      log_audit_event: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_actor_role: string
+          p_entity_id: string
+          p_entity_type: string
+          p_metadata?: Json
+          p_new_data?: Json
+          p_old_data?: Json
+        }
+        Returns: string
+      }
       match_wishlist_to_order: {
         Args: { p_order_id: string; p_user_id: string }
         Returns: number

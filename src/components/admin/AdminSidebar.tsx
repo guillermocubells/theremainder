@@ -14,6 +14,7 @@ import {
   Shield,
   Gavel,
   MessageSquare,
+  ScrollText,
 } from "lucide-react";
 
 const navItems = [
@@ -27,6 +28,7 @@ const navItems = [
   { path: "/admin/fraud", icon: Shield, label: "admin.fraud" },
   { path: "/admin/auctions", icon: Gavel, label: "admin.auctions" },
   { path: "/admin/disputes", icon: MessageSquare, label: "admin.disputes" },
+  { path: "/admin/audit", icon: ScrollText, label: "admin.audit" },
   { path: "/admin/settings", icon: Settings, label: "admin.settings" },
 ];
 
