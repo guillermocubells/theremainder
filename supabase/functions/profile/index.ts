@@ -1,93 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { checkRateLimit, rateLimitResponse, PRESETS, extractUserIdFromJwt } from "../_shared/rate-limit.ts";
 import { validate, schemas } from "../_shared/validation.ts";
+import { createLogger, withCorrelationId } from "../_shared/logger.ts";
+import { AppError, handleError } from "../_shared/errors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, PATCH, OPTIONS",
 };
-
-function jsonResponse(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-
-function errorResponse(message: string, status: number) {
-  return jsonResponse({ error: message }, status);
-}
-
-// ---------- Validation helpers ----------
-
-const MAX_NAME_LENGTH = 120;
-const MAX_PHONE_LENGTH = 20;
-const PHONE_REGEX = /^\+?[\d\s\-().]{7,20}$/;
-
-interface ProfileUpdate {
-  full_name?: string;
-  phone?: string;
-}
-
-function validateProfileUpdate(body: unknown): { data?: ProfileUpdate; error?: string } {
-  if (!body || typeof body !== "object") {
-    return { error: "Request body must be a JSON object" };
-  }
-
-  const input = body as Record<string, unknown>;
-  const update: ProfileUpdate = {};
-  const allowedFields = ["full_name", "phone"];
-
-  // Reject unknown fields
-  for (const key of Object.keys(input)) {
-    if (!allowedFields.includes(key)) {
-      return { error: `Unknown field: ${key}` };
-    }
-  }
-
-  if ("full_name" in input) {
-    if (input.full_name !== null && typeof input.full_name !== "string") {
-      return { error: "full_name must be a string or null" };
-    }
-    if (typeof input.full_name === "string") {
-      const trimmed = input.full_name.trim();
-      if (trimmed.length === 0) {
-        return { error: "full_name cannot be empty" };
-      }
-      if (trimmed.length > MAX_NAME_LENGTH) {
-        return { error: `full_name must be at most ${MAX_NAME_LENGTH} characters` };
-      }
-      update.full_name = trimmed;
-    } else {
-      update.full_name = undefined; // null → clear
-    }
-  }
-
-  if ("phone" in input) {
-    if (input.phone !== null && typeof input.phone !== "string") {
-      return { error: "phone must be a string or null" };
-    }
-    if (typeof input.phone === "string") {
-      const trimmed = input.phone.trim();
-      if (trimmed.length > 0 && !PHONE_REGEX.test(trimmed)) {
-        return { error: "Invalid phone number format" };
-      }
-      if (trimmed.length > MAX_PHONE_LENGTH) {
-        return { error: `phone must be at most ${MAX_PHONE_LENGTH} characters` };
-      }
-      update.phone = trimmed.length > 0 ? trimmed : undefined;
-    } else {
-      update.phone = undefined;
-    }
-  }
-
-  if (Object.keys(update).length === 0) {
-    return { error: "No valid fields to update" };
-  }
-
-  return { data: update };
-}
 
 // ---------- Auth helper ----------
 
@@ -120,63 +41,76 @@ Deno.serve(async (req) => {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  // Rate limit
-  const userId = extractUserIdFromJwt(req.headers.get("Authorization"));
-  const rl = checkRateLimit(req, PRESETS.auth_write, userId);
+  const { log, requestId } = createLogger("profile", req);
+  const rh = withCorrelationId(corsHeaders, requestId);
+
+  const jwtUserId = extractUserIdFromJwt(req.headers.get("Authorization"));
+  const rl = checkRateLimit(req, PRESETS.auth_write, jwtUserId);
   if (!rl.allowed) {
     return rateLimitResponse(rl.headers, corsHeaders);
   }
 
-  // Authenticate
-  const auth = await authenticateRequest(req);
-  if ("error" in auth) {
-    return errorResponse(auth.error, 401);
-  }
-
-  const { userId, supabase } = auth;
-
-  // GET — fetch own profile
-  if (req.method === "GET") {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, user_id, full_name, email, phone, created_at, updated_at")
-      .eq("user_id", userId)
-      .single();
-
-    if (error) {
-      console.error("GET profile error:", error);
-      return errorResponse("Profile not found", 404);
+  try {
+    const auth = await authenticateRequest(req);
+    if ("error" in auth) {
+      throw new AppError(auth.error, 401, "UNAUTHORIZED");
     }
 
-    return jsonResponse({ profile: data });
-  }
+    const { userId, supabase } = auth;
 
-  // PATCH — update own profile
-  if (req.method === "PATCH") {
-    let body: unknown;
-    try {
-      body = await req.json();
-    } catch {
-      return errorResponse("Invalid JSON body", 400);
+    log.info("Profile request", { method: req.method, user_id: userId });
+
+    // GET — fetch own profile
+    if (req.method === "GET") {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, user_id, full_name, email, phone, created_at, updated_at")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) {
+        log.error("GET profile error", { error: error.message });
+        throw new AppError("Profile not found", 404, "PROFILE_NOT_FOUND");
+      }
+
+      return new Response(JSON.stringify({ profile: data }), {
+        headers: { ...rh, "Content-Type": "application/json" },
+      });
     }
 
-    const validation = validate(schemas.profileUpdate, body, corsHeaders);
-    if (validation.error) return validation.error;
+    // PATCH — update own profile
+    if (req.method === "PATCH") {
+      let body: unknown;
+      try {
+        body = await req.json();
+      } catch {
+        throw new AppError("Invalid JSON body", 400, "INVALID_JSON");
+      }
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .update(validation.data!)
-      .eq("user_id", userId)
-      .select("id, user_id, full_name, email, phone, created_at, updated_at")
-      .single();
+      const validation = validate(schemas.profileUpdate, body, rh);
+      if (validation.error) return validation.error;
 
-    if (error) {
-      console.error("PATCH profile error:", error);
-      return errorResponse("Failed to update profile", 500);
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(validation.data!)
+        .eq("user_id", userId)
+        .select("id, user_id, full_name, email, phone, created_at, updated_at")
+        .single();
+
+      if (error) {
+        log.error("PATCH profile error", { error: error.message });
+        throw new AppError("Failed to update profile", 500, "UPDATE_FAILED");
+      }
+
+      log.info("Profile updated", { user_id: userId });
+
+      return new Response(JSON.stringify({ profile: data }), {
+        headers: { ...rh, "Content-Type": "application/json" },
+      });
     }
 
-    return jsonResponse({ profile: data });
+    throw new AppError("Method not allowed", 405, "METHOD_NOT_ALLOWED");
+  } catch (err) {
+    return handleError(err, { ...corsHeaders, "Content-Type": "application/json" }, requestId, log);
   }
-
-  return errorResponse("Method not allowed", 405);
 });

@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
+import { createLogger, withCorrelationId } from "../_shared/logger.ts";
+import { AppError, handleError, errorResponse } from "../_shared/errors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,28 +9,21 @@ const corsHeaders = {
   "Content-Type": "application/json",
 };
 
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), { status, headers: corsHeaders });
-}
-
 // ── Input sanitization ──
 function sanitizeSearchQuery(q: string): string {
-  // Strip dangerous characters that could break ilike queries
   return q
-    .replace(/[%_\\]/g, '') // remove SQL wildcard chars
-    .replace(/<[^>]*>/g, '')  // strip HTML
+    .replace(/[%_\\]/g, '')
+    .replace(/<[^>]*>/g, '')
     .trim()
-    .slice(0, 200); // max 200 chars
+    .slice(0, 200);
 }
 
 const VALID_SLUG_RE = /^[a-z0-9-]+$/;
-const VALID_ENUM_RE = /^[a-z_]+$/;
 
 function isValidEnum(val: string | null, allowed: string[]): boolean {
   return val === null || allowed.includes(val);
 }
 
-// Valid sort options to prevent injection
 const VALID_SORT_FIELDS = ["price", "name", "created_at", "display_order"] as const;
 type SortField = typeof VALID_SORT_FIELDS[number];
 
@@ -42,10 +37,16 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  // Rate limit check
+  const { log, requestId } = createLogger("api-catalog", req);
+  const rh = withCorrelationId(corsHeaders, requestId);
+
   const rl = checkRateLimit(req, PRESETS.public_read);
   if (!rl.allowed) {
     return rateLimitResponse(rl.headers, corsHeaders);
+  }
+
+  function json(data: unknown, status = 200) {
+    return new Response(JSON.stringify(data), { status, headers: rh });
   }
 
   try {
@@ -57,9 +58,9 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const path = url.pathname.replace("/api-catalog", "").replace(/\/$/, "") || "";
 
-    // ──────────────────────────────────────────────
-    // GET /plants — List with filters, search, sort, pagination
-    // ──────────────────────────────────────────────
+    log.info("Request", { method: req.method, path });
+
+    // GET /plants
     if (req.method === "GET" && (path === "" || path === "/plants")) {
       const category = url.searchParams.get("category") || undefined;
       const plantType = url.searchParams.get("plant_type") || undefined;
@@ -74,46 +75,40 @@ Deno.serve(async (req: Request) => {
       const water = url.searchParams.get("water") || undefined;
       const exposure = url.searchParams.get("exposure") || undefined;
 
-      // ── Validate enum filters ──
       if (plantType && !isValidEnum(plantType, VALID_PLANT_TYPES)) {
-        return json({ success: false, error: "Invalid plant_type value" }, 400);
+        throw new AppError("Invalid plant_type value", 400, "INVALID_FILTER");
       }
       if (difficulty && !isValidEnum(difficulty, VALID_DIFFICULTIES)) {
-        return json({ success: false, error: "Invalid difficulty value" }, 400);
+        throw new AppError("Invalid difficulty value", 400, "INVALID_FILTER");
       }
       if (rarity && !isValidEnum(rarity, VALID_RARITIES)) {
-        return json({ success: false, error: "Invalid rarity value" }, 400);
+        throw new AppError("Invalid rarity value", 400, "INVALID_FILTER");
       }
       if (water && !isValidEnum(water, VALID_WATER)) {
-        return json({ success: false, error: "Invalid water value" }, 400);
+        throw new AppError("Invalid water value", 400, "INVALID_FILTER");
       }
 
-      // ── Validate numeric filters ──
       const minPrice = minPriceRaw ? parseFloat(minPriceRaw) : undefined;
       const maxPrice = maxPriceRaw ? parseFloat(maxPriceRaw) : undefined;
       if (minPrice !== undefined && (isNaN(minPrice) || minPrice < 0 || minPrice > 100000)) {
-        return json({ success: false, error: "Invalid min_price" }, 400);
+        throw new AppError("Invalid min_price", 400, "INVALID_FILTER");
       }
       if (maxPrice !== undefined && (isNaN(maxPrice) || maxPrice < 0 || maxPrice > 100000)) {
-        return json({ success: false, error: "Invalid max_price" }, 400);
+        throw new AppError("Invalid max_price", 400, "INVALID_FILTER");
       }
 
-      // ── Sanitize search query ──
       const search = searchRaw ? sanitizeSearchQuery(searchRaw) : undefined;
       if (searchRaw && (!search || search.length < 1)) {
-        return json({ success: false, error: "Invalid search query" }, 400);
+        throw new AppError("Invalid search query", 400, "INVALID_FILTER");
       }
 
-      // ── Validate category slug format ──
       if (category && !VALID_SLUG_RE.test(category)) {
-        return json({ success: false, error: "Invalid category slug" }, 400);
+        throw new AppError("Invalid category slug", 400, "INVALID_FILTER");
       }
 
-      // Pagination (clamped)
       const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50") || 50, 1), 100);
       const offset = Math.max(parseInt(url.searchParams.get("offset") || "0") || 0, 0);
 
-      // Sorting
       const sortParam = url.searchParams.get("sort") || "display_order";
       const sortField: SortField = VALID_SORT_FIELDS.includes(sortParam as SortField)
         ? (sortParam as SortField)
@@ -134,7 +129,6 @@ Deno.serve(async (req: Request) => {
         )
         .eq("is_active", true);
 
-      // --- Filters ---
       if (category) {
         const { data: cat } = await supabase
           .from("categories")
@@ -154,20 +148,20 @@ Deno.serve(async (req: Request) => {
       if (exposure) query = query.contains("exposure", [exposure]);
       if (featured) query = query.eq("is_featured", true);
 
-      // --- Text search (sanitized) ---
       if (search) {
         query = query.or(
           `name.ilike.%${search}%,scientific_name.ilike.%${search}%,common_name.ilike.%${search}%,short_description.ilike.%${search}%`
         );
       }
 
-      // --- Sort & paginate ---
       query = query
         .order(sortField, { ascending: sortOrder })
         .range(offset, offset + limit - 1);
 
       const { data, error, count } = await query;
       if (error) throw error;
+
+      log.info("Plants listed", { count, offset, limit });
 
       return json({
         success: true,
@@ -181,36 +175,29 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // ──────────────────────────────────────────────
-    // GET /plants/:slug — Single plant detail
-    // ──────────────────────────────────────────────
+    // GET /plants/:slug
     if (req.method === "GET" && path.startsWith("/plants/")) {
       const slug = path.replace("/plants/", "");
 
       if (!slug || slug.includes("/") || slug.length > 200 || !VALID_SLUG_RE.test(slug)) {
-        return json({ success: false, error: "Invalid slug" }, 400);
+        throw new AppError("Invalid slug", 400, "INVALID_SLUG");
       }
 
       const { data, error } = await supabase
         .from("plants")
-        .select(
-          `*,
-           categories (id, name, slug, description)`
-        )
+        .select(`*, categories (id, name, slug, description)`)
         .eq("slug", slug)
         .eq("is_active", true)
         .single();
 
       if (error || !data) {
-        return json({ success: false, error: "Plant not found" }, 404);
+        throw new AppError("Plant not found", 404, "PLANT_NOT_FOUND");
       }
 
       return json({ success: true, data });
     }
 
-    // ──────────────────────────────────────────────
     // GET /categories
-    // ──────────────────────────────────────────────
     if (req.method === "GET" && path === "/categories") {
       const { data, error } = await supabase
         .from("categories")
@@ -222,9 +209,7 @@ Deno.serve(async (req: Request) => {
       return json({ success: true, data });
     }
 
-    // ──────────────────────────────────────────────
     // GET /shipping-zones
-    // ──────────────────────────────────────────────
     if (req.method === "GET" && path === "/shipping-zones") {
       const { data, error } = await supabase
         .from("shipping_zones")
@@ -236,22 +221,8 @@ Deno.serve(async (req: Request) => {
       return json({ success: true, data });
     }
 
-    // ──────────────────────────────────────────────
-    // 404
-    // ──────────────────────────────────────────────
-    return json({
-      success: false,
-      error: "Endpoint not found",
-      available_endpoints: [
-        "GET /plants?q=&category=&plant_type=&difficulty=&rarity=&water=&exposure=&climate_zone=&min_price=&max_price=&in_stock=true&featured=true&sort=price&order=desc&limit=50&offset=0",
-        "GET /plants/:slug",
-        "GET /categories",
-        "GET /shipping-zones",
-      ],
-    }, 404);
-  } catch (error: unknown) {
-    console.error("API Error:", error);
-    const message = error instanceof Error ? error.message : "Internal server error";
-    return json({ success: false, error: message }, 500);
+    throw new AppError("Endpoint not found", 404, "NOT_FOUND");
+  } catch (err) {
+    return handleError(err, rh, requestId, log);
   }
 });

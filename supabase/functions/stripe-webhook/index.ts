@@ -2,15 +2,17 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { checkRateLimit, rateLimitResponse, PRESETS } from "../_shared/rate-limit.ts";
+import { createLogger, withCorrelationId, type Logger } from "../_shared/logger.ts";
+import { handleError } from "../_shared/errors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
 };
 
-// Helper for structured logging
+// Legacy log helper — delegates to structured logger when available, falls back to console
 const log = (event: string, details?: Record<string, unknown>) => {
-  console.log(`[STRIPE-WEBHOOK] ${event}`, details ? JSON.stringify(details) : "");
+  console.log(JSON.stringify({ ts: new Date().toISOString(), level: "info", fn: "stripe-webhook", msg: event, ...details }));
 };
 
 // deno-lint-ignore no-explicit-any
@@ -50,6 +52,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const { log: slog, requestId } = createLogger("stripe-webhook", req);
+  const rh = withCorrelationId(corsHeaders, requestId);
 
   // Rate limit (webhook allow-list for Stripe IPs)
   const rl = checkRateLimit(req, PRESETS.webhook);
@@ -200,11 +205,8 @@ serve(async (req) => {
       throw handlerError;
     }
   } catch (error) {
-    log("ERROR", { message: String(error) });
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-    );
+    slog.error("Webhook error", { message: String(error), stack: error instanceof Error ? error.stack : undefined });
+    return handleError(error, { ...corsHeaders, "Content-Type": "application/json" }, requestId, slog);
   }
 });
 
