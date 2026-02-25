@@ -11,6 +11,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import DepositForm from './DepositForm';
+import AuctionConsentGate from './AuctionConsentGate';
 
 interface BiddingPanelProps {
   auctionId: string;
@@ -141,14 +142,16 @@ const BiddingPanel = ({ auctionId, auctionTitle }: BiddingPanelProps) => {
                   <a href="/auth">Iniciar sesión</a>
                 </Button>
               </div>
-            ) : needsDeposit ? (
-              <DepositForm
-                auctionId={auctionId}
-                depositAmount={auction.deposit_amount!}
-                createDeposit={createDeposit}
-                confirmDeposit={confirmDeposit}
-              />
             ) : (
+              <AuctionConsentGate consentType="bidder">
+                {needsDeposit ? (
+                  <DepositForm
+                    auctionId={auctionId}
+                    depositAmount={auction.deposit_amount!}
+                    createDeposit={createDeposit}
+                    confirmDeposit={confirmDeposit}
+                  />
+                ) : (
               <div className="space-y-3">
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">
@@ -195,6 +198,8 @@ const BiddingPanel = ({ auctionId, auctionTitle }: BiddingPanelProps) => {
                   ))}
                 </div>
               </div>
+                )}
+              </AuctionConsentGate>
             )}
           </>
         )}

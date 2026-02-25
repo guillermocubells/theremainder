@@ -130,6 +130,42 @@ export type Database = {
         }
         Relationships: []
       }
+      auction_consents: {
+        Row: {
+          accepted_at: string
+          consent_type: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          terms_version: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          consent_type: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          terms_version: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string
+          consent_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          terms_version?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       auction_deposits: {
         Row: {
           amount: number
@@ -2804,6 +2840,10 @@ export type Database = {
         Returns: Json
       }
       get_referral_setting: { Args: { setting_key: string }; Returns: Json }
+      has_auction_consent: {
+        Args: { p_consent_type: string; p_user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
