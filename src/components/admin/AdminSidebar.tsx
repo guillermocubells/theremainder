@@ -13,6 +13,7 @@ import {
   Users,
   Shield,
   Gavel,
+  MessageSquare,
 } from "lucide-react";
 
 const navItems = [
@@ -25,6 +26,7 @@ const navItems = [
   { path: "/admin/referrals", icon: Users, label: "admin.referrals" },
   { path: "/admin/fraud", icon: Shield, label: "admin.fraud" },
   { path: "/admin/auctions", icon: Gavel, label: "admin.auctions" },
+  { path: "/admin/disputes", icon: MessageSquare, label: "admin.disputes" },
   { path: "/admin/settings", icon: Settings, label: "admin.settings" },
 ];
 
