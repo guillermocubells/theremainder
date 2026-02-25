@@ -968,15 +968,28 @@ async function handleCheckoutCompleted(
     try {
       const customerEmail = shippingAddress.email;
       if (customerEmail) {
-        // Get invoice number if available
+        // Get invoice number and VAT details if available
         let invoiceNumber: string | null = null;
+        let taxRate = 21;
+        let baseImponible = 0;
+        let taxAmount = 0;
         if (invoiceId) {
           const { data: inv } = await supabase
             .from("invoices")
-            .select("invoice_number")
+            .select("invoice_number, tax_rate, base_imponible, tax_amount")
             .eq("id", invoiceId)
             .maybeSingle();
           invoiceNumber = inv?.invoice_number || null;
+          taxRate = inv?.tax_rate ?? 21;
+          baseImponible = inv?.base_imponible ?? 0;
+          taxAmount = inv?.tax_amount ?? 0;
+        }
+
+        // Fallback VAT calc if invoice didn't provide values
+        const productSubtotalEur2 = subtotalCents / 100;
+        if (!baseImponible && productSubtotalEur2 > 0) {
+          baseImponible = productSubtotalEur2;
+          taxAmount = Math.round(baseImponible * (taxRate / 100) * 100) / 100;
         }
 
         const emailItems = items.map(item => ({
@@ -1010,6 +1023,9 @@ async function handleCheckoutCompleted(
               items: emailItems,
               shipping_cost: shippingCostEur,
               total_amount: totalAmountEur,
+              base_imponible: baseImponible,
+              tax_rate: taxRate,
+              tax_amount: taxAmount,
               shipping_name: shippingAddress.full_name,
               shipping_address: `${shippingAddress.street}${shippingAddress.apartment ? ', ' + shippingAddress.apartment : ''}, ${shippingAddress.postal_code} ${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.country}`,
               account_url: "https://theremainder.lovable.app/account",
@@ -1024,13 +1040,61 @@ async function handleCheckoutCompleted(
       log("Error sending confirmation email (non-blocking)", { error: String(err) });
     }
   } else {
-    // Guest order - log for manual processing
+    // Guest order - send confirmation email too
     log("Guest order completed", {
       sessionId: session.id,
       email: shippingAddress.email,
       total: subtotalCents / 100,
       customerType,
     });
+
+    try {
+      const guestEmail = shippingAddress.email;
+      if (guestEmail) {
+        const emailItems = items.map(item => ({
+          product_name: item.name,
+          quantity: item.qty,
+          unit_price: item.price / 100,
+        }));
+        const shippingCostEur = shippingCents / 100;
+        const totalAmountEur = (subtotalCents + shippingCents) / 100;
+        const productSubtotalEur3 = subtotalCents / 100;
+        const taxRate = 21;
+        const baseImponible = productSubtotalEur3;
+        const taxAmount = Math.round(baseImponible * (taxRate / 100) * 100) / 100;
+        const lang = metadata.lang || "es";
+
+        const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+        await fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            type: "order_confirmed",
+            to: guestEmail,
+            lang,
+            data: {
+              order_number: orderNumber,
+              items: emailItems,
+              shipping_cost: shippingCostEur,
+              total_amount: totalAmountEur,
+              base_imponible: baseImponible,
+              tax_rate: taxRate,
+              tax_amount: taxAmount,
+              shipping_name: shippingAddress.full_name,
+              shipping_address: `${shippingAddress.street}${shippingAddress.apartment ? ', ' + shippingAddress.apartment : ''}, ${shippingAddress.postal_code} ${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.country}`,
+            },
+          }),
+        });
+        log("Guest order confirmation email sent", { to: guestEmail, lang });
+      }
+    } catch (err) {
+      log("Error sending guest confirmation email (non-blocking)", { error: String(err) });
+    }
   }
 
   return new Response(

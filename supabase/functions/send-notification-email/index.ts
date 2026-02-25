@@ -138,6 +138,10 @@ const templates: Record<string, TemplateGenerator> = {
 
     const shippingCost = Number(data.shipping_cost) || 0;
     const totalAmount = Number(data.total_amount) || 0;
+    const taxRate = Number(data.tax_rate) || 21;
+    const baseImponible = Number(data.base_imponible) || 0;
+    const taxAmount = Number(data.tax_amount) || 0;
+    const showVat = baseImponible > 0 || taxAmount > 0;
 
     return {
       subject: isEn
@@ -169,12 +173,35 @@ const templates: Record<string, TemplateGenerator> = {
           </tbody>
         </table>
 
-        ${shippingCost > 0 ? `
-        <div style="display: flex; justify-content: space-between; padding: 8px 12px; color: #666;">
-          <span>${isEn ? "Shipping" : "Gastos de envío"}</span>
-          <span>${fc(shippingCost)}</span>
+        <div style="border-top: 1px solid #eee; margin-top: 8px; padding-top: 8px;">
+          ${showVat ? `
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 6px 12px; color: #666;">${isEn ? "Subtotal (excl. VAT)" : "Base imponible"}</td>
+              <td style="padding: 6px 12px; text-align: right; color: #666;">${fc(baseImponible)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 12px; color: #666;">${isEn ? `VAT (${taxRate}%)` : `IVA (${taxRate}%)`}</td>
+              <td style="padding: 6px 12px; text-align: right; color: #666;">${fc(taxAmount)}</td>
+            </tr>
+            ${shippingCost > 0 ? `
+            <tr>
+              <td style="padding: 6px 12px; color: #666;">${isEn ? "Shipping" : "Gastos de envío"}</td>
+              <td style="padding: 6px 12px; text-align: right; color: #666;">${fc(shippingCost)}</td>
+            </tr>
+            ` : ""}
+          </table>
+          ` : `
+          ${shippingCost > 0 ? `
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 6px 12px; color: #666;">${isEn ? "Shipping" : "Gastos de envío"}</td>
+              <td style="padding: 6px 12px; text-align: right; color: #666;">${fc(shippingCost)}</td>
+            </tr>
+          </table>
+          ` : ""}
+          `}
         </div>
-        ` : ""}
 
         <div style="display: flex; justify-content: space-between; padding: 12px; font-size: 18px; font-weight: bold; border-top: 2px solid #1a472a; margin-top: 8px;">
           <span>Total</span>

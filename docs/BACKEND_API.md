@@ -145,11 +145,16 @@ Creates Stripe checkout session.
     "items": [{ "product_name": "Trachycarpus fortunei", "quantity": 1, "unit_price": 49.90 }],
     "shipping_cost": 9.95,
     "total_amount": 59.85,
+    "base_imponible": 49.90,
+    "tax_rate": 21,
+    "tax_amount": 10.48,
     "shipping_name": "Juan García",
     "shipping_address": "Calle Mayor 1, 28001 Madrid, España"
   }
 }
 ```
+
+**VAT fields:** `base_imponible`, `tax_rate`, `tax_amount` are optional. When present, the email renders a full tax breakdown (base imponible + IVA %). Falls back to a simple total if omitted.
 
 **Localisation:** Pass `lang: "en"` for English templates (default: `"es"`).
 
