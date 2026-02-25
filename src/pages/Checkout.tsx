@@ -26,6 +26,7 @@ import {
 } from "@/components/checkout/CheckoutAccordion";
 import ReferralCodeField from "@/components/checkout/ReferralCodeField";
 import ReferralBanner from "@/components/ReferralBanner";
+import { CheckoutConsent, ConsentState, INITIAL_CONSENT, validateConsent } from "@/components/checkout/CheckoutConsent";
 
 interface ShippingForm {
   email: string;
@@ -63,6 +64,8 @@ const Checkout = () => {
   const [shippingCountry, setShippingCountry] = useState<string>("ES");
   const [appliedReferralCode, setAppliedReferralCode] = useState<string | null>(null);
   const [referrerUserId, setReferrerUserId] = useState<string | null>(null);
+  const [consent, setConsent] = useState<ConsentState>(INITIAL_CONSENT);
+  const [consentErrors, setConsentErrors] = useState<{ terms?: string; privacy?: string }>({});
   const [form, setForm] = useState<ShippingForm>({
     ...INITIAL_FORM,
     email: user?.email || "",
@@ -159,7 +162,14 @@ const Checkout = () => {
         isValid = validateAddressStep();
         break;
       case "notes":
-        isValid = true; // Notes are optional
+        const consentValidation = validateConsent(consent, t);
+        if (consentValidation) {
+          setConsentErrors(consentValidation);
+          isValid = false;
+        } else {
+          setConsentErrors({});
+          isValid = true;
+        }
         break;
       default:
         isValid = true;
@@ -443,6 +453,16 @@ const Checkout = () => {
                   setAppliedReferralCode(null);
                   setReferrerUserId(null);
                 }}
+              />
+
+              {/* GDPR Consent */}
+              <CheckoutConsent
+                consent={consent}
+                onChange={(c) => {
+                  setConsent(c);
+                  if (consentErrors.terms || consentErrors.privacy) setConsentErrors({});
+                }}
+                errors={consentErrors}
               />
 
               <StepNavigation
