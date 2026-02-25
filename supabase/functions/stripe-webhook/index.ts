@@ -15,6 +15,36 @@ const log = (event: string, details?: Record<string, unknown>) => {
 // deno-lint-ignore no-explicit-any
 type AnySupabaseClient = SupabaseClient<any, any, any>;
 
+/**
+ * Emit a domain event to the audit_logs table for frontend consumption.
+ * These events power real-time notifications and order status surfaces.
+ */
+async function emitDomainEvent(
+  supabase: AnySupabaseClient,
+  params: {
+    event_type: string;
+    user_id: string;
+    entity_type: string;
+    entity_id: string;
+    metadata?: Record<string, unknown>;
+  }
+) {
+  try {
+    await supabase.from("audit_logs").insert({
+      action: params.event_type,
+      actor_id: null,
+      actor_role: "system",
+      entity_type: params.entity_type,
+      entity_id: params.entity_id,
+      new_data: params.metadata || {},
+      metadata: { target_user_id: params.user_id },
+    });
+    log("Domain event emitted", { event: params.event_type, entity: params.entity_id });
+  } catch (err) {
+    log("Error emitting domain event (non-blocking)", { error: String(err) });
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -961,7 +991,8 @@ async function handleCheckoutCompleted(
 
 /**
  * Handle payment_intent.succeeded event
- * Secondary confirmation - ensures order is marked as paid
+ * Secondary confirmation - ensures order is marked as paid.
+ * Records charge ID, payment method details, and emits domain event.
  */
 async function handlePaymentIntentSucceeded(
   event: Stripe.Event,
@@ -969,23 +1000,31 @@ async function handlePaymentIntentSucceeded(
   corsHeaders: Record<string, string>
 ) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
-  log("Processing payment_intent.succeeded", { paymentIntentId: paymentIntent.id });
+  log("Processing payment_intent.succeeded", {
+    paymentIntentId: paymentIntent.id,
+    amount: paymentIntent.amount,
+    currency: paymentIntent.currency,
+  });
+
+  const chargeId = paymentIntent.latest_charge as string || null;
 
   // Check if order exists and update if needed
   const { data: existingOrder } = await supabase
     .from("orders")
-    .select("id, status, stripe_payment_intent_id, invoice_id")
+    .select("id, status, stripe_payment_intent_id, invoice_id, user_id, order_number")
     .eq("stripe_payment_intent_id", paymentIntent.id)
     .maybeSingle();
 
   if (existingOrder) {
-    // Update to paid if not already
-    if (existingOrder.status !== "paid") {
+    const wasNotPaid = existingOrder.status !== "paid" && existingOrder.status !== "shipped" && existingOrder.status !== "delivered";
+
+    if (wasNotPaid) {
       await supabase
         .from("orders")
         .update({
           status: "paid",
-          stripe_charge_id: paymentIntent.latest_charge as string || null,
+          stripe_charge_id: chargeId,
+          updated_at: new Date().toISOString(),
         })
         .eq("id", existingOrder.id);
 
@@ -1008,10 +1047,33 @@ async function handlePaymentIntentSucceeded(
           log("Error creating invoice", { error: String(err) });
         }
       }
+
+      // Emit domain event: payment_confirmed
+      await emitDomainEvent(supabase, {
+        event_type: "payment_confirmed",
+        user_id: existingOrder.user_id,
+        entity_type: "order",
+        entity_id: existingOrder.id,
+        metadata: {
+          order_number: existingOrder.order_number,
+          payment_intent_id: paymentIntent.id,
+          charge_id: chargeId,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+        },
+      });
+    } else {
+      // Already paid — just ensure charge_id is recorded
+      if (chargeId) {
+        await supabase
+          .from("orders")
+          .update({ stripe_charge_id: chargeId })
+          .eq("id", existingOrder.id);
+      }
     }
 
     return new Response(
-      JSON.stringify({ received: true, orderId: existingOrder.id, action: "updated" }),
+      JSON.stringify({ received: true, orderId: existingOrder.id, action: wasNotPaid ? "updated_to_paid" : "already_paid" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   }
@@ -1027,7 +1089,8 @@ async function handlePaymentIntentSucceeded(
 
 /**
  * Handle payment_intent.payment_failed event
- * Mark order as failed - NO invoice is created, NO referral reward
+ * Mark order as failed, capture failure codes/messages, release stock,
+ * and emit domain event for frontend notifications.
  */
 async function handlePaymentIntentFailed(
   event: Stripe.Event,
@@ -1035,7 +1098,20 @@ async function handlePaymentIntentFailed(
   corsHeaders: Record<string, string>
 ) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
-  log("Processing payment_intent.payment_failed", { paymentIntentId: paymentIntent.id });
+  const lastError = paymentIntent.last_payment_error;
+
+  const failureCode = lastError?.code || paymentIntent.cancellation_reason || "unknown";
+  const failureMessage = lastError?.message || "Payment failed";
+  const declineCode = lastError?.decline_code || null;
+  const paymentMethodType = lastError?.payment_method?.type || null;
+
+  log("Processing payment_intent.payment_failed", {
+    paymentIntentId: paymentIntent.id,
+    failureCode,
+    declineCode,
+    failureMessage,
+    paymentMethodType,
+  });
 
   // Release any active stock reservations linked to this payment intent
   const { data: activeReservations } = await supabase
@@ -1052,23 +1128,59 @@ async function handlePaymentIntentFailed(
     log("Released reservations on payment failure", { releasedCount });
   }
 
-  // Check if order exists and update
+  // Check if order exists and update with failure details
   const { data: existingOrder } = await supabase
     .from("orders")
-    .select("id, status")
+    .select("id, status, user_id, order_number")
     .eq("stripe_payment_intent_id", paymentIntent.id)
     .maybeSingle();
 
-  if (existingOrder && existingOrder.status !== "failed") {
+  if (existingOrder && existingOrder.status !== "paid" && existingOrder.status !== "failed") {
     await supabase
       .from("orders")
-      .update({ status: "failed" })
+      .update({
+        status: "failed",
+        notes: `Payment failed: ${failureCode}${declineCode ? ` (decline: ${declineCode})` : ''} — ${failureMessage}`,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", existingOrder.id);
 
-    log("Order marked as failed", { orderId: existingOrder.id });
+    log("Order marked as failed", { orderId: existingOrder.id, failureCode, declineCode });
+
+    // Determine if retryable
+    const nonRetryableCodes = new Set([
+      "stolen_card", "lost_card", "card_declined", "fraudulent",
+      "pickup_card", "restricted_card", "security_violation",
+    ]);
+    const isRetryable = !nonRetryableCodes.has(declineCode || "");
+
+    // Emit domain event: payment_failed
+    await emitDomainEvent(supabase, {
+      event_type: "payment_failed",
+      user_id: existingOrder.user_id,
+      entity_type: "order",
+      entity_id: existingOrder.id,
+      metadata: {
+        order_number: existingOrder.order_number,
+        payment_intent_id: paymentIntent.id,
+        failure_code: failureCode,
+        decline_code: declineCode,
+        failure_message: failureMessage,
+        payment_method_type: paymentMethodType,
+        is_retryable: isRetryable,
+        next_action: isRetryable ? "retry_payment" : "use_different_method",
+      },
+    });
 
     return new Response(
-      JSON.stringify({ received: true, orderId: existingOrder.id, action: "marked_failed" }),
+      JSON.stringify({
+        received: true,
+        orderId: existingOrder.id,
+        action: "marked_failed",
+        failureCode,
+        declineCode,
+        isRetryable,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   }
