@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.create-connect-account]
 verify_jwt = false
+
+[functions.load-test-bidding]
+verify_jwt = false
