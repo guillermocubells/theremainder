@@ -253,49 +253,35 @@ const AdminFraudFlags = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Flags</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pendientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">{stats.pending}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Críticos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-danger">{stats.critical}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Revocados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{stats.revoked}</div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { label: "Total Flags", value: stats.total, color: "text-foreground", icon: Shield },
+          { label: "Pendientes", value: stats.pending, color: "text-warning", icon: AlertTriangle },
+          { label: "Críticos", value: stats.critical, color: "text-danger", icon: XCircle },
+          { label: "Revocados", value: stats.revoked, color: "text-destructive", icon: CheckCircle },
+        ].map((stat) => (
+          <Card key={stat.label}>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground truncate">{stat.label}</p>
+                <p className={`text-2xl font-bold leading-none mt-1 ${stat.color}`}>{stat.value}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4">
+      <div className="flex flex-wrap items-center gap-3">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">Todos los estados</SelectItem>
             <SelectItem value="pending">Pendientes</SelectItem>
             <SelectItem value="reviewed">Revisados</SelectItem>
             <SelectItem value="approved">Aprobados</SelectItem>
@@ -304,11 +290,11 @@ const AdminFraudFlags = () => {
         </Select>
 
         <Select value={severityFilter} onValueChange={setSeverityFilter}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Severidad" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="all">Todas las severidades</SelectItem>
             <SelectItem value="critical">Crítica</SelectItem>
             <SelectItem value="high">Alta</SelectItem>
             <SelectItem value="medium">Media</SelectItem>
@@ -414,10 +400,12 @@ const AdminFraudFlags = () => {
               </TableBody>
             </Table>
           ) : (
-            <div className="p-12 text-center">
-              <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="font-semibold mb-2">Sin alertas de fraude</h3>
-              <p className="text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-16 px-6">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted mb-4">
+                <Shield className="h-7 w-7 text-muted-foreground" />
+              </div>
+              <h3 className="font-semibold text-base mb-1">Sin alertas de fraude</h3>
+              <p className="text-sm text-muted-foreground text-center max-w-xs">
                 No se han detectado patrones sospechosos con los filtros actuales.
               </p>
             </div>
