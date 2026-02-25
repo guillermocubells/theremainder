@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ImagePlus, Video, X, Loader2, Upload, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import AuctionConsentGate from '@/components/auction/AuctionConsentGate';
 
 const lotSchema = z.object({
   title: z.string().min(3, 'Título obligatorio').max(200),
@@ -116,6 +117,7 @@ const LotSubmissionForm = () => {
   };
 
   return (
+    <AuctionConsentGate consentType="seller">
     <Card>
       <CardHeader>
         <CardTitle>Nuevo lote de subasta</CardTitle>
@@ -267,6 +269,7 @@ const LotSubmissionForm = () => {
         </form>
       </CardContent>
     </Card>
+    </AuctionConsentGate>
   );
 };
 
