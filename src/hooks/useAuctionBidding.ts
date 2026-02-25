@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { calculateBidIncrement } from './useAuctionSubmission';
 
 interface Bid {
   id: string;
@@ -37,7 +38,7 @@ export function useAuctionBidding(auctionId: string) {
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [isEnding, setIsEnding] = useState(false);
 
-  // Fetch auction state
+  // Fetch auction state — PRD: 3s polling fallback
   const { data: auction } = useQuery({
     queryKey: ['auction-live', auctionId],
     queryFn: async () => {
@@ -49,7 +50,7 @@ export function useAuctionBidding(auctionId: string) {
       if (error) throw error;
       return data as unknown as AuctionLive;
     },
-    refetchInterval: 10000,
+    refetchInterval: 3000,
   });
 
   // Fetch bid history
@@ -65,7 +66,7 @@ export function useAuctionBidding(auctionId: string) {
       if (error) throw error;
       return data as Bid[];
     },
-    refetchInterval: 10000,
+    refetchInterval: 3000,
   });
 
   // Fetch user's deposit status
@@ -118,7 +119,7 @@ export function useAuctionBidding(auctionId: string) {
     };
   }, [auctionId, queryClient]);
 
-  // Countdown timer
+  // Countdown timer — PRD: isEnding at 2 min
   useEffect(() => {
     if (!auction?.ends_at) { setTimeLeft(''); return; }
 
@@ -133,7 +134,7 @@ export function useAuctionBidding(auctionId: string) {
         return;
       }
 
-      setIsEnding(diff < 5 * 60 * 1000);
+      setIsEnding(diff < 2 * 60 * 1000); // 2 min per PRD
 
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
@@ -149,10 +150,12 @@ export function useAuctionBidding(auctionId: string) {
     return () => clearInterval(interval);
   }, [auction?.ends_at]);
 
+  // PRD tiered min bid
+  const tieredIncrement = auction ? calculateBidIncrement(auction.current_price) : 1;
   const minBid = auction
     ? auction.total_bids === 0
       ? auction.starting_price
-      : auction.current_price + auction.bid_increment
+      : auction.current_price + tieredIncrement
     : 0;
 
   // Place bid mutation
@@ -176,7 +179,9 @@ export function useAuctionBidding(auctionId: string) {
     onError: (e: Error) => {
       const msg = e.message.replace(/^.*ERROR:\s*/, '');
       toast.error(msg);
-      // Emit bid rejection metric (fire-and-forget)
+      // Refresh to get updated min bid
+      queryClient.invalidateQueries({ queryKey: ['auction-live', auctionId] });
+      queryClient.invalidateQueries({ queryKey: ['auction-bids', auctionId] });
       Promise.resolve(supabase.rpc('emit_metric' as any, { p_name: 'bid.rejected', p_value: 1, p_type: 'counter', p_tags: { auction_id: auctionId, reason: msg.slice(0, 200) } })).catch(() => {});
     },
   });
@@ -196,7 +201,7 @@ export function useAuctionBidding(auctionId: string) {
     },
   });
 
-  // Confirm deposit mutation (after Stripe confirms)
+  // Confirm deposit mutation
   const confirmDeposit = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke('auction-deposit', {
@@ -224,7 +229,6 @@ export function useAuctionBidding(auctionId: string) {
     placeBid,
     isAuthenticated: !!user,
     userId: user?.id,
-    // Deposit
     depositRequired,
     hasDeposit,
     deposit,
