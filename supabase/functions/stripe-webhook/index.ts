@@ -811,6 +811,66 @@ async function handleCheckoutCompleted(
     } catch (err) {
       log("Error matching wishlist", { error: String(err) });
     }
+
+    // Send order confirmation email
+    try {
+      const customerEmail = shippingAddress.email;
+      if (customerEmail) {
+        // Get invoice number if available
+        let invoiceNumber: string | null = null;
+        if (invoiceId) {
+          const { data: inv } = await supabase
+            .from("invoices")
+            .select("invoice_number")
+            .eq("id", invoiceId)
+            .maybeSingle();
+          invoiceNumber = inv?.invoice_number || null;
+        }
+
+        const emailItems = items.map(item => ({
+          product_name: item.name,
+          quantity: item.qty,
+          unit_price: item.price / 100,
+        }));
+
+        const shippingCostEur = shippingCents / 100;
+        const totalAmountEur = (subtotalCents + shippingCents) / 100;
+
+        // Determine language from metadata (default Spanish)
+        const lang = metadata.lang || "es";
+
+        const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+        const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            type: "order_confirmed",
+            to: customerEmail,
+            lang,
+            data: {
+              order_number: orderNumber,
+              invoice_number: invoiceNumber,
+              items: emailItems,
+              shipping_cost: shippingCostEur,
+              total_amount: totalAmountEur,
+              shipping_name: shippingAddress.full_name,
+              shipping_address: `${shippingAddress.street}${shippingAddress.apartment ? ', ' + shippingAddress.apartment : ''}, ${shippingAddress.postal_code} ${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.country}`,
+              account_url: "https://theremainder.lovable.app/account",
+            },
+          }),
+        });
+
+        const emailResult = await emailResponse.json();
+        log("Order confirmation email sent", { success: emailResult.success, to: customerEmail, lang });
+      }
+    } catch (err) {
+      log("Error sending confirmation email (non-blocking)", { error: String(err) });
+    }
   } else {
     // Guest order - log for manual processing
     log("Guest order completed", {
