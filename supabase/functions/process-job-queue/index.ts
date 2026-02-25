@@ -123,6 +123,7 @@ async function executeJob(
     case "notify_restock":
       return handleNotifyRestock(payload, supabaseUrl, serviceRoleKey);
     case "auction_notification":
+    case "send_auction_notification":
       return handleAuctionNotification(payload, supabaseUrl, serviceRoleKey);
     case "webhook":
       return handleGenericWebhook(payload);
