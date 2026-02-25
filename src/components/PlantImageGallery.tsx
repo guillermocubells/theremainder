@@ -90,7 +90,7 @@ const PlantImageGallery = ({ images, productImages, primaryImage, plantName }: P
         {/* Main Image - fixed aspect ratio to prevent layout shifts */}
         <div className="relative mb-3">
           <div 
-            className="relative w-full overflow-hidden rounded-xl cursor-pointer group shadow-lg bg-muted aspect-[4/5]"
+            className="relative w-full overflow-hidden rounded-xl cursor-pointer group shadow-lg bg-muted aspect-square"
             onClick={openLightbox}
           >
             <OptimizedImage
