@@ -64,26 +64,88 @@ serve(async (req) => {
 
     log("Event received", { type: event.type, id: event.id });
 
-    // Route to appropriate handler
-    switch (event.type) {
-      case "checkout.session.completed":
-        return await handleCheckoutCompleted(event, supabaseAdmin, corsHeaders);
+    // --- Idempotency: reject duplicate events ---
+    const { data: existingEvent } = await supabaseAdmin
+      .from("webhook_events")
+      .select("id")
+      .eq("stripe_event_id", event.id)
+      .maybeSingle();
 
-      case "payment_intent.succeeded":
-        return await handlePaymentIntentSucceeded(event, supabaseAdmin, corsHeaders);
+    if (existingEvent) {
+      log("Duplicate event skipped", { stripe_event_id: event.id });
+      return new Response(
+        JSON.stringify({ received: true, duplicate: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
 
-      case "payment_intent.payment_failed":
-        return await handlePaymentIntentFailed(event, supabaseAdmin, corsHeaders);
+    // Build redacted payload snapshot (strip sensitive fields)
+    const redactedPayload = {
+      id: event.id,
+      type: event.type,
+      created: event.created,
+      livemode: event.livemode,
+      object_id: (event.data?.object as Record<string, unknown>)?.id ?? null,
+      object_type: (event.data?.object as Record<string, unknown>)?.object ?? null,
+    };
 
-      case "charge.refunded":
-        return await handleChargeRefunded(event, supabaseAdmin, corsHeaders);
+    let processingResult = "success";
+    let errorMessage: string | null = null;
 
-      default:
-        log("Unhandled event type", { type: event.type });
-        return new Response(
-          JSON.stringify({ received: true, handled: false }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-        );
+    try {
+      // Route to appropriate handler
+      let response: Response;
+      switch (event.type) {
+        case "checkout.session.completed":
+          response = await handleCheckoutCompleted(event, supabaseAdmin, corsHeaders);
+          break;
+
+        case "payment_intent.succeeded":
+          response = await handlePaymentIntentSucceeded(event, supabaseAdmin, corsHeaders);
+          break;
+
+        case "payment_intent.payment_failed":
+          response = await handlePaymentIntentFailed(event, supabaseAdmin, corsHeaders);
+          break;
+
+        case "charge.refunded":
+          response = await handleChargeRefunded(event, supabaseAdmin, corsHeaders);
+          break;
+
+        default:
+          log("Unhandled event type", { type: event.type });
+          response = new Response(
+            JSON.stringify({ received: true, handled: false }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+          );
+          break;
+      }
+
+      if (!response.ok) {
+        processingResult = "error";
+        errorMessage = `HTTP ${response.status}`;
+      }
+
+      // Record event in store
+      await supabaseAdmin.from("webhook_events").insert({
+        stripe_event_id: event.id,
+        event_type: event.type,
+        payload_snapshot: redactedPayload,
+        processing_result: processingResult,
+        error_message: errorMessage,
+      });
+
+      return response;
+    } catch (handlerError) {
+      // Record failed event
+      await supabaseAdmin.from("webhook_events").insert({
+        stripe_event_id: event.id,
+        event_type: event.type,
+        payload_snapshot: redactedPayload,
+        processing_result: "error",
+        error_message: handlerError instanceof Error ? handlerError.message : String(handlerError),
+      });
+      throw handlerError;
     }
   } catch (error) {
     log("ERROR", { message: String(error) });

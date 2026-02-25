@@ -2430,6 +2430,39 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_events: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          payload_snapshot: Json
+          processed_at: string
+          processing_result: string
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload_snapshot?: Json
+          processed_at?: string
+          processing_result?: string
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload_snapshot?: Json
+          processed_at?: string
+          processing_result?: string
+          stripe_event_id?: string
+        }
+        Relationships: []
+      }
       wishlist_items: {
         Row: {
           acquired_at: string | null
