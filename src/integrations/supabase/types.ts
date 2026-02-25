@@ -140,14 +140,19 @@ export type Database = {
           currency: string
           current_price: number
           description: string | null
+          dimensions: Json | null
           ends_at: string | null
           id: string
           images: string[] | null
           meta_description: string | null
           meta_title: string | null
           plant_id: string | null
+          provenance: string | null
+          provenance_documents: string[] | null
           reserve_met: boolean
           reserve_price: number | null
+          seller_notes: string | null
+          seller_user_id: string | null
           slug: string
           starting_price: number
           starts_at: string | null
@@ -155,6 +160,7 @@ export type Database = {
           title: string
           total_bids: number
           updated_at: string
+          videos: string[] | null
           winner_user_id: string | null
           winning_bid_id: string | null
         }
@@ -167,14 +173,19 @@ export type Database = {
           currency?: string
           current_price?: number
           description?: string | null
+          dimensions?: Json | null
           ends_at?: string | null
           id?: string
           images?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
           plant_id?: string | null
+          provenance?: string | null
+          provenance_documents?: string[] | null
           reserve_met?: boolean
           reserve_price?: number | null
+          seller_notes?: string | null
+          seller_user_id?: string | null
           slug: string
           starting_price?: number
           starts_at?: string | null
@@ -182,6 +193,7 @@ export type Database = {
           title: string
           total_bids?: number
           updated_at?: string
+          videos?: string[] | null
           winner_user_id?: string | null
           winning_bid_id?: string | null
         }
@@ -194,14 +206,19 @@ export type Database = {
           currency?: string
           current_price?: number
           description?: string | null
+          dimensions?: Json | null
           ends_at?: string | null
           id?: string
           images?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
           plant_id?: string | null
+          provenance?: string | null
+          provenance_documents?: string[] | null
           reserve_met?: boolean
           reserve_price?: number | null
+          seller_notes?: string | null
+          seller_user_id?: string | null
           slug?: string
           starting_price?: number
           starts_at?: string | null
@@ -209,6 +226,7 @@ export type Database = {
           title?: string
           total_bids?: number
           updated_at?: string
+          videos?: string[] | null
           winner_user_id?: string | null
           winning_bid_id?: string | null
         }
@@ -1555,6 +1573,69 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      seller_profiles: {
+        Row: {
+          created_at: string
+          document_number: string
+          document_type: string
+          id: string
+          legal_name: string
+          rejection_reason: string | null
+          stripe_account_id: string | null
+          stripe_onboarding_complete: boolean
+          tax_address_city: string | null
+          tax_address_country: string | null
+          tax_address_postal_code: string | null
+          tax_address_province: string | null
+          tax_address_street: string | null
+          tax_id: string | null
+          updated_at: string
+          user_id: string
+          verification_status: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_number: string
+          document_type?: string
+          id?: string
+          legal_name: string
+          rejection_reason?: string | null
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean
+          tax_address_city?: string | null
+          tax_address_country?: string | null
+          tax_address_postal_code?: string | null
+          tax_address_province?: string | null
+          tax_address_street?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          user_id: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_number?: string
+          document_type?: string
+          id?: string
+          legal_name?: string
+          rejection_reason?: string | null
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean
+          tax_address_city?: string | null
+          tax_address_country?: string | null
+          tax_address_postal_code?: string | null
+          tax_address_province?: string | null
+          tax_address_street?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          user_id?: string
+          verification_status?: string
+          verified_at?: string | null
         }
         Relationships: []
       }
