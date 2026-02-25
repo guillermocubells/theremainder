@@ -335,6 +335,72 @@ export type Database = {
         }
         Relationships: []
       }
+      auction_lots: {
+        Row: {
+          auction_id: string
+          buy_now_cents: number | null
+          closed_at: string | null
+          created_at: string
+          currency: string
+          id: string
+          increment_rule: string | null
+          item_id: string
+          lot_number: number
+          reserve_met: boolean
+          starting_bid_cents: number
+          status: string
+          updated_at: string
+          winning_bid_id: string | null
+        }
+        Insert: {
+          auction_id: string
+          buy_now_cents?: number | null
+          closed_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          increment_rule?: string | null
+          item_id: string
+          lot_number: number
+          reserve_met?: boolean
+          starting_bid_cents?: number
+          status?: string
+          updated_at?: string
+          winning_bid_id?: string | null
+        }
+        Update: {
+          auction_id?: string
+          buy_now_cents?: number | null
+          closed_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          increment_rule?: string | null
+          item_id?: string
+          lot_number?: number
+          reserve_met?: boolean
+          starting_bid_cents?: number
+          status?: string
+          updated_at?: string
+          winning_bid_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_lots_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_lots_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "item_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auction_notifications: {
         Row: {
           auction_id: string
@@ -495,9 +561,11 @@ export type Database = {
           ends_at: string | null
           id: string
           images: string[] | null
+          location_country: string | null
           meta_description: string | null
           meta_title: string | null
           plant_id: string | null
+          platform_fee_percent: number
           provenance: string | null
           provenance_documents: string[] | null
           reserve_met: boolean
@@ -511,6 +579,7 @@ export type Database = {
           starting_price: number
           starts_at: string | null
           status: Database["public"]["Enums"]["auction_status"]
+          terms_url: string | null
           title: string
           total_bids: number
           updated_at: string
@@ -535,9 +604,11 @@ export type Database = {
           ends_at?: string | null
           id?: string
           images?: string[] | null
+          location_country?: string | null
           meta_description?: string | null
           meta_title?: string | null
           plant_id?: string | null
+          platform_fee_percent?: number
           provenance?: string | null
           provenance_documents?: string[] | null
           reserve_met?: boolean
@@ -551,6 +622,7 @@ export type Database = {
           starting_price?: number
           starts_at?: string | null
           status?: Database["public"]["Enums"]["auction_status"]
+          terms_url?: string | null
           title: string
           total_bids?: number
           updated_at?: string
@@ -575,9 +647,11 @@ export type Database = {
           ends_at?: string | null
           id?: string
           images?: string[] | null
+          location_country?: string | null
           meta_description?: string | null
           meta_title?: string | null
           plant_id?: string | null
+          platform_fee_percent?: number
           provenance?: string | null
           provenance_documents?: string[] | null
           reserve_met?: boolean
@@ -591,6 +665,7 @@ export type Database = {
           starting_price?: number
           starts_at?: string | null
           status?: Database["public"]["Enums"]["auction_status"]
+          terms_url?: string | null
           title?: string
           total_bids?: number
           updated_at?: string
@@ -652,6 +727,38 @@ export type Database = {
           old_data?: Json | null
         }
         Relationships: []
+      }
+      bid_increment_rules: {
+        Row: {
+          auction_id: string
+          id: string
+          increment_cents: number
+          max_amount_cents: number | null
+          min_amount_cents: number
+        }
+        Insert: {
+          auction_id: string
+          id?: string
+          increment_cents?: number
+          max_amount_cents?: number | null
+          min_amount_cents?: number
+        }
+        Update: {
+          auction_id?: string
+          id?: string
+          increment_cents?: number
+          max_amount_cents?: number | null
+          min_amount_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bid_increment_rules_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bids: {
         Row: {
@@ -795,6 +902,117 @@ export type Database = {
           name?: string
           slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      compliance_attestations: {
+        Row: {
+          accepts_platform_fee: boolean
+          created_at: string
+          export_compliant: boolean
+          gdpr_consent: boolean
+          id: string
+          item_id: string | null
+          not_prohibited: boolean
+          over_18: boolean
+          owns_item: boolean
+          phytosanitary_required: boolean
+          seller_id: string
+          signed_at: string
+          signed_ip: string | null
+          signed_user_agent: string | null
+          spain_auction_rules: boolean
+          version: string
+        }
+        Insert: {
+          accepts_platform_fee?: boolean
+          created_at?: string
+          export_compliant?: boolean
+          gdpr_consent?: boolean
+          id?: string
+          item_id?: string | null
+          not_prohibited?: boolean
+          over_18?: boolean
+          owns_item?: boolean
+          phytosanitary_required?: boolean
+          seller_id: string
+          signed_at?: string
+          signed_ip?: string | null
+          signed_user_agent?: string | null
+          spain_auction_rules?: boolean
+          version?: string
+        }
+        Update: {
+          accepts_platform_fee?: boolean
+          created_at?: string
+          export_compliant?: boolean
+          gdpr_consent?: boolean
+          id?: string
+          item_id?: string | null
+          not_prohibited?: boolean
+          over_18?: boolean
+          owns_item?: boolean
+          phytosanitary_required?: boolean
+          seller_id?: string
+          signed_at?: string
+          signed_ip?: string | null
+          signed_user_agent?: string | null
+          spain_auction_rules?: boolean
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_attestations_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "item_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_attestations_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_logs: {
+        Row: {
+          action: string
+          created_at: string
+          created_by: string | null
+          details: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: string | null
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          new_value?: string | null
+          old_value?: string | null
         }
         Relationships: []
       }
@@ -981,6 +1199,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fee_rules: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          percent: number
+          scope: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          percent?: number
+          scope?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          percent?: number
+          scope?: string
+        }
+        Relationships: []
       }
       fraud_flags: {
         Row: {
@@ -1416,6 +1667,175 @@ export type Database = {
             columns: ["series_id"]
             isOneToOne: false
             referencedRelation: "invoice_series"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_media: {
+        Row: {
+          alt_text: string | null
+          created_at: string
+          id: string
+          item_id: string
+          media_type: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          alt_text?: string | null
+          created_at?: string
+          id?: string
+          item_id: string
+          media_type?: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          alt_text?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          media_type?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_media_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "item_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_submissions: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          approved_snapshot: Json | null
+          category: string | null
+          change_request_message: string | null
+          common_name: string | null
+          compliance_attestation_id: string | null
+          condition_grade: string | null
+          created_at: string
+          currency: string
+          defects_text: string | null
+          description: string | null
+          dimensions_text: string | null
+          duration_hours: number | null
+          excluded_countries: string | null
+          handling_time: string | null
+          hardiness_zone: string | null
+          humidity_tolerance: string | null
+          id: string
+          location_country: string | null
+          location_region: string | null
+          phytosanitary_required: boolean | null
+          prohibited_check_status: string | null
+          provenance_text: string | null
+          rejection_reason: string | null
+          reserve_price_cents: number | null
+          seller_id: string
+          shipping_cost_cents: number | null
+          shipping_eu_only: boolean | null
+          shipping_tiers: string | null
+          species_scientific: string | null
+          start_price_cents: number
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_snapshot?: Json | null
+          category?: string | null
+          change_request_message?: string | null
+          common_name?: string | null
+          compliance_attestation_id?: string | null
+          condition_grade?: string | null
+          created_at?: string
+          currency?: string
+          defects_text?: string | null
+          description?: string | null
+          dimensions_text?: string | null
+          duration_hours?: number | null
+          excluded_countries?: string | null
+          handling_time?: string | null
+          hardiness_zone?: string | null
+          humidity_tolerance?: string | null
+          id?: string
+          location_country?: string | null
+          location_region?: string | null
+          phytosanitary_required?: boolean | null
+          prohibited_check_status?: string | null
+          provenance_text?: string | null
+          rejection_reason?: string | null
+          reserve_price_cents?: number | null
+          seller_id: string
+          shipping_cost_cents?: number | null
+          shipping_eu_only?: boolean | null
+          shipping_tiers?: string | null
+          species_scientific?: string | null
+          start_price_cents?: number
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_snapshot?: Json | null
+          category?: string | null
+          change_request_message?: string | null
+          common_name?: string | null
+          compliance_attestation_id?: string | null
+          condition_grade?: string | null
+          created_at?: string
+          currency?: string
+          defects_text?: string | null
+          description?: string | null
+          dimensions_text?: string | null
+          duration_hours?: number | null
+          excluded_countries?: string | null
+          handling_time?: string | null
+          hardiness_zone?: string | null
+          humidity_tolerance?: string | null
+          id?: string
+          location_country?: string | null
+          location_region?: string | null
+          phytosanitary_required?: boolean | null
+          prohibited_check_status?: string | null
+          provenance_text?: string | null
+          rejection_reason?: string | null
+          reserve_price_cents?: number | null
+          seller_id?: string
+          shipping_cost_cents?: number | null
+          shipping_eu_only?: boolean | null
+          shipping_tiers?: string | null
+          species_scientific?: string | null
+          start_price_cents?: number
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_submissions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1967,6 +2387,84 @@ export type Database = {
           },
         ]
       }
+      payouts: {
+        Row: {
+          auction_id: string | null
+          created_at: string
+          currency: string
+          gross_cents: number
+          id: string
+          lot_id: string | null
+          net_cents: number
+          paid_at: string | null
+          payment_id: string | null
+          platform_fee_cents: number
+          processing_fee_cents: number
+          reference: string | null
+          scheduled_at: string | null
+          seller_id: string
+          status: string
+          stripe_transfer_id: string | null
+          taxes_withheld_cents: number
+          updated_at: string
+        }
+        Insert: {
+          auction_id?: string | null
+          created_at?: string
+          currency?: string
+          gross_cents?: number
+          id?: string
+          lot_id?: string | null
+          net_cents?: number
+          paid_at?: string | null
+          payment_id?: string | null
+          platform_fee_cents?: number
+          processing_fee_cents?: number
+          reference?: string | null
+          scheduled_at?: string | null
+          seller_id: string
+          status?: string
+          stripe_transfer_id?: string | null
+          taxes_withheld_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          auction_id?: string | null
+          created_at?: string
+          currency?: string
+          gross_cents?: number
+          id?: string
+          lot_id?: string | null
+          net_cents?: number
+          paid_at?: string | null
+          payment_id?: string | null
+          platform_fee_cents?: number
+          processing_fee_cents?: number
+          reference?: string | null
+          scheduled_at?: string | null
+          seller_id?: string
+          status?: string
+          stripe_transfer_id?: string | null
+          taxes_withheld_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plant_locations: {
         Row: {
           created_at: string
@@ -2353,6 +2851,39 @@ export type Database = {
         }
         Relationships: []
       }
+      prohibited_species: {
+        Row: {
+          common_name: string | null
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          notes: string | null
+          region: string | null
+          scientific_name: string
+          status: string
+        }
+        Insert: {
+          common_name?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          notes?: string | null
+          region?: string | null
+          scientific_name: string
+          status?: string
+        }
+        Update: {
+          common_name?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          notes?: string | null
+          region?: string | null
+          scientific_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -2542,20 +3073,76 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_addresses: {
+        Row: {
+          city: string
+          country_code: string
+          created_at: string
+          id: string
+          is_default: boolean
+          line1: string
+          line2: string | null
+          postal_code: string
+          region: string | null
+          seller_id: string
+          type: string
+        }
+        Insert: {
+          city: string
+          country_code?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          line1: string
+          line2?: string | null
+          postal_code: string
+          region?: string | null
+          seller_id: string
+          type?: string
+        }
+        Update: {
+          city?: string
+          country_code?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          line1?: string
+          line2?: string | null
+          postal_code?: string
+          region?: string | null
+          seller_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_addresses_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seller_profiles: {
         Row: {
+          country_code: string | null
           created_at: string
           document_number: string
           document_type: string
+          email: string | null
           iban: string | null
           id: string
           kyc_checked_at: string | null
           kyc_ref: string | null
           legal_name: string
+          payout_account_ref: string | null
+          phone: string | null
+          preferred_payout_method: string | null
           rejection_reason: string | null
           seller_type: string
           stripe_account_id: string | null
           stripe_onboarding_complete: boolean
+          suspended: boolean
           tax_address_city: string | null
           tax_address_country: string | null
           tax_address_postal_code: string | null
@@ -2564,22 +3151,29 @@ export type Database = {
           tax_id: string | null
           updated_at: string
           user_id: string
+          vat_number: string | null
           verification_status: string
           verified_at: string | null
         }
         Insert: {
+          country_code?: string | null
           created_at?: string
           document_number: string
           document_type?: string
+          email?: string | null
           iban?: string | null
           id?: string
           kyc_checked_at?: string | null
           kyc_ref?: string | null
           legal_name: string
+          payout_account_ref?: string | null
+          phone?: string | null
+          preferred_payout_method?: string | null
           rejection_reason?: string | null
           seller_type?: string
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean
+          suspended?: boolean
           tax_address_city?: string | null
           tax_address_country?: string | null
           tax_address_postal_code?: string | null
@@ -2588,22 +3182,29 @@ export type Database = {
           tax_id?: string | null
           updated_at?: string
           user_id: string
+          vat_number?: string | null
           verification_status?: string
           verified_at?: string | null
         }
         Update: {
+          country_code?: string | null
           created_at?: string
           document_number?: string
           document_type?: string
+          email?: string | null
           iban?: string | null
           id?: string
           kyc_checked_at?: string | null
           kyc_ref?: string | null
           legal_name?: string
+          payout_account_ref?: string | null
+          phone?: string | null
+          preferred_payout_method?: string | null
           rejection_reason?: string | null
           seller_type?: string
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean
+          suspended?: boolean
           tax_address_city?: string | null
           tax_address_country?: string | null
           tax_address_postal_code?: string | null
@@ -2612,10 +3213,52 @@ export type Database = {
           tax_id?: string | null
           updated_at?: string
           user_id?: string
+          vat_number?: string | null
           verification_status?: string
           verified_at?: string | null
         }
         Relationships: []
+      }
+      seller_verifications: {
+        Row: {
+          check_type: string
+          created_at: string
+          id: string
+          notes: string | null
+          provider: string
+          reference: string | null
+          seller_id: string
+          status: string
+        }
+        Insert: {
+          check_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          provider?: string
+          reference?: string | null
+          seller_id: string
+          status?: string
+        }
+        Update: {
+          check_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          provider?: string
+          reference?: string | null
+          seller_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_verifications_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shared_search_lists: {
         Row: {
@@ -2652,6 +3295,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      shipping_details: {
+        Row: {
+          address_line1: string
+          address_line2: string | null
+          auction_id: string | null
+          buyer_user_id: string
+          carrier: string | null
+          city: string
+          country: string
+          created_at: string
+          delivered_at: string | null
+          id: string
+          lot_id: string | null
+          postal_code: string
+          region: string | null
+          shipped_at: string | null
+          shipping_cost_cents: number
+          tracking_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1: string
+          address_line2?: string | null
+          auction_id?: string | null
+          buyer_user_id: string
+          carrier?: string | null
+          city: string
+          country?: string
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          lot_id?: string | null
+          postal_code: string
+          region?: string | null
+          shipped_at?: string | null
+          shipping_cost_cents?: number
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string
+          address_line2?: string | null
+          auction_id?: string | null
+          buyer_user_id?: string
+          carrier?: string | null
+          city?: string
+          country?: string
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          lot_id?: string | null
+          postal_code?: string
+          region?: string | null
+          shipped_at?: string | null
+          shipping_cost_cents?: number
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipping_details_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shipping_zones: {
         Row: {
