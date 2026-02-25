@@ -19,15 +19,16 @@ export const useProfile = () => {
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error) throw error;
-      return data as Profile;
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('No session');
+
+      const res = await supabase.functions.invoke('profile', {
+        method: 'GET',
+      });
+
+      if (res.error) throw res.error;
+      return (res.data as { profile: Profile }).profile;
     },
     enabled: !!user,
   });
@@ -40,16 +41,14 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: async (updates: Partial<Pick<Profile, 'full_name' | 'phone'>>) => {
       if (!user) throw new Error('Not authenticated');
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('user_id', user.id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+
+      const res = await supabase.functions.invoke('profile', {
+        method: 'PATCH',
+        body: updates,
+      });
+
+      if (res.error) throw res.error;
+      return (res.data as { profile: Profile }).profile;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
