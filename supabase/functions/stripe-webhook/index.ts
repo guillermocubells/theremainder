@@ -146,6 +146,7 @@ serve(async (req) => {
           response = await handleCheckoutSessionExpired(event, supabaseAdmin, corsHeaders);
           break;
 
+        default:
           log("Unhandled event type", { type: event.type });
           response = new Response(
             JSON.stringify({ received: true, handled: false }),
