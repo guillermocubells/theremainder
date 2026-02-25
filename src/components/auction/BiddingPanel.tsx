@@ -6,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Gavel, Clock, AlertTriangle, TrendingUp, User, Shield } from 'lucide-react';
+import { Gavel, Clock, AlertTriangle, TrendingUp, User, Shield, CreditCard, Lock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import DepositForm from './DepositForm';
 
 interface BiddingPanelProps {
   auctionId: string;
@@ -20,6 +21,7 @@ const BiddingPanel = ({ auctionId, auctionTitle }: BiddingPanelProps) => {
   const {
     auction, bids, timeLeft, isEnding, minBid,
     placeBid, isAuthenticated, userId,
+    depositRequired, hasDeposit, deposit, createDeposit, confirmDeposit,
   } = useAuctionBidding(auctionId);
 
   const [bidAmount, setBidAmount] = useState('');
@@ -29,6 +31,7 @@ const BiddingPanel = ({ auctionId, auctionTitle }: BiddingPanelProps) => {
   const isLive = auction.status === 'live';
   const hasEnded = timeLeft === 'Finalizada';
   const userIsHighBidder = bids.length > 0 && bids[0].user_id === userId;
+  const needsDeposit = depositRequired && !hasDeposit;
 
   const handleBid = () => {
     const amount = parseFloat(bidAmount);
@@ -107,7 +110,28 @@ const BiddingPanel = ({ auctionId, auctionTitle }: BiddingPanelProps) => {
           </Alert>
         )}
 
-        {/* Bid form */}
+        {/* Deposit info */}
+        {depositRequired && isAuthenticated && (
+          <>
+            {hasDeposit ? (
+              <Alert className="border-primary/30 bg-primary/5">
+                <CreditCard className="h-4 w-4 text-primary" />
+                <AlertDescription className="text-xs text-primary font-medium">
+                  Depósito de {deposit?.amount?.toFixed(2)} € confirmado · Reembolsable al finalizar
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <Alert className="border-destructive/30 bg-destructive/5">
+                <Lock className="h-4 w-4 text-destructive" />
+                <AlertDescription className="text-xs">
+                  Se requiere un depósito reembolsable de {auction.deposit_amount?.toFixed(2)} € para pujar
+                </AlertDescription>
+              </Alert>
+            )}
+          </>
+        )}
+
+        {/* Bid form or deposit form */}
         {isLive && !hasEnded && (
           <>
             {!isAuthenticated ? (
@@ -117,6 +141,13 @@ const BiddingPanel = ({ auctionId, auctionTitle }: BiddingPanelProps) => {
                   <a href="/auth">Iniciar sesión</a>
                 </Button>
               </div>
+            ) : needsDeposit ? (
+              <DepositForm
+                auctionId={auctionId}
+                depositAmount={auction.deposit_amount!}
+                createDeposit={createDeposit}
+                confirmDeposit={confirmDeposit}
+              />
             ) : (
               <div className="space-y-3">
                 <div>
@@ -157,9 +188,7 @@ const BiddingPanel = ({ auctionId, auctionTitle }: BiddingPanelProps) => {
                       variant="outline"
                       size="sm"
                       className="flex-1 text-xs"
-                      onClick={() => {
-                        setBidAmount(amount.toFixed(2));
-                      }}
+                      onClick={() => setBidAmount(amount.toFixed(2))}
                     >
                       {amount.toFixed(2)} €
                     </Button>

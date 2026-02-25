@@ -130,6 +130,50 @@ export type Database = {
         }
         Relationships: []
       }
+      auction_deposits: {
+        Row: {
+          amount: number
+          auction_id: string
+          created_at: string
+          currency: string
+          id: string
+          status: string
+          stripe_payment_intent_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          auction_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          status?: string
+          stripe_payment_intent_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          auction_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_deposits_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auctions: {
         Row: {
           admin_notes: string | null
@@ -141,6 +185,7 @@ export type Database = {
           created_by: string
           currency: string
           current_price: number
+          deposit_amount: number | null
           description: string | null
           dimensions: Json | null
           display_order: number
@@ -179,6 +224,7 @@ export type Database = {
           created_by: string
           currency?: string
           current_price?: number
+          deposit_amount?: number | null
           description?: string | null
           dimensions?: Json | null
           display_order?: number
@@ -217,6 +263,7 @@ export type Database = {
           created_by?: string
           currency?: string
           current_price?: number
+          deposit_amount?: number | null
           description?: string | null
           dimensions?: Json | null
           display_order?: number
