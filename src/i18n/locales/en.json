@@ -28,7 +28,11 @@
       "name": "Name",
       "namePlaceholder": "Your name",
       "required": "This field is required",
-      "invalidEmail": "Enter a valid email"
+      "invalidEmail": "Enter a valid email",
+      "tooLong": "Maximum {{max}} characters",
+      "invalidPhone": "Enter a valid phone number (e.g. +1 555 000 0000)",
+      "invalidPostalCode": "Invalid postal code for the selected country",
+      "nameTooShort": "Enter your full name"
     }
   },
   "header": {
