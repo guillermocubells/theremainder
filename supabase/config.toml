@@ -44,3 +44,9 @@ verify_jwt = false
 
 [functions.send-auction-notification]
 verify_jwt = false
+
+[functions.settle-auction]
+verify_jwt = false
+
+[functions.create-connect-account]
+verify_jwt = false

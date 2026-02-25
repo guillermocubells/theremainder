@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import {
   Loader2, CheckCircle, XCircle, MessageSquare, Eye, Gavel,
   Search, Image as ImageIcon, CalendarIcon, Clock, ArrowUpDown,
-  ExternalLink, GripVertical,
+  ExternalLink, GripVertical, Banknote,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -179,6 +179,27 @@ const AdminAuctions = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-auctions'] }),
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const settleAuction = useMutation({
+    mutationFn: async (auctionId: string) => {
+      const { data, error } = await supabase.functions.invoke('settle-auction', {
+        body: { auction_id: auctionId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-auctions'] });
+      toast.success(`Liquidación completada: ${data.hammer_price?.toFixed(2)} € — Comisión: ${data.platform_fee?.toFixed(2)} €`);
+    },
+    onError: (e: Error) => toast.error(`Error al liquidar: ${e.message}`),
+  });
+
+  const handleSettle = (auction: Auction) => {
+    if (!confirm(`¿Liquidar la subasta "${auction.title}"?\n\nPrecio actual: ${auction.current_price.toFixed(2)} €\nComisión plataforma (6%): ${(auction.current_price * 0.06).toFixed(2)} €`)) return;
+    settleAuction.mutate(auction.id);
+  };
 
   const filtered = auctions?.filter(a =>
     !searchTerm || a.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -344,6 +365,17 @@ const AdminAuctions = () => {
                         {(auction.status === 'approved' || auction.status === 'scheduled') && (
                           <Button size="sm" variant="outline" onClick={() => openScheduleDialog(auction)}>
                             <Clock className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {(auction.status === 'live' || auction.status === 'ended') && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => handleSettle(auction)}
+                            disabled={settleAuction.isPending}
+                          >
+                            <Banknote className="h-4 w-4 mr-1" />
+                            {settleAuction.isPending ? '...' : 'Liquidar'}
                           </Button>
                         )}
                       </TableCell>
