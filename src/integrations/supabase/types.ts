@@ -2183,6 +2183,15 @@ export type Database = {
       }
       mature_pending_rewards: { Args: never; Returns: number }
       owns_plant: { Args: { plant_id: string }; Returns: boolean }
+      place_bid: {
+        Args: {
+          p_amount: number
+          p_auction_id: string
+          p_ip_address?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       release_expired_reservations: { Args: never; Returns: number }
       release_reservation: {
         Args: { p_reservation_id: string }
