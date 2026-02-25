@@ -137,7 +137,8 @@
     "preview": "preview",
     "productDetails": "Product Details",
     "germinationDate": "Germination",
-    "visualReferences": "Future visual references"
+    "visualReferences": "Future visual references",
+    "soldOut": "Sold out"
   },
   "share": {
     "share": "Share",

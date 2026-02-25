@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import PlantCard from "./PlantCard";
 import PlantSearchEngine from "./PlantSearchEngine";
 import CategoryCards from "./CategoryCards";
@@ -33,11 +33,11 @@ const PlantsGrid = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  const handleFilteredPlantsChange = (newFilteredPlants: Plant[]) => {
+  const handleFilteredPlantsChange = useCallback((newFilteredPlants: Plant[]) => {
     setFilteredPlants(newFilteredPlants);
     setIsSearching(false);
-    setCurrentPage(1); // Reset page on filter change
-  };
+    setCurrentPage(1);
+  }, []);
 
   // Apply category filter on top of search/filter results
   const basePlants = filteredPlants ?? plants;
