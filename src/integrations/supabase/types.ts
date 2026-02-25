@@ -212,6 +212,110 @@ export type Database = {
           },
         ]
       }
+      auction_settlements: {
+        Row: {
+          auction_id: string
+          buyer_user_id: string
+          created_at: string
+          currency: string
+          deposit_amount: number | null
+          deposit_deducted: boolean
+          failure_reason: string | null
+          hammer_price: number
+          id: string
+          invoice_id: string | null
+          order_id: string | null
+          platform_fee_amount: number
+          platform_fee_rate: number
+          seller_payout_amount: number
+          seller_user_id: string
+          settled_at: string | null
+          status: string
+          stripe_charge_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_transfer_id: string | null
+          updated_at: string
+          winning_bid_id: string
+        }
+        Insert: {
+          auction_id: string
+          buyer_user_id: string
+          created_at?: string
+          currency?: string
+          deposit_amount?: number | null
+          deposit_deducted?: boolean
+          failure_reason?: string | null
+          hammer_price: number
+          id?: string
+          invoice_id?: string | null
+          order_id?: string | null
+          platform_fee_amount: number
+          platform_fee_rate?: number
+          seller_payout_amount: number
+          seller_user_id: string
+          settled_at?: string | null
+          status?: string
+          stripe_charge_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_transfer_id?: string | null
+          updated_at?: string
+          winning_bid_id: string
+        }
+        Update: {
+          auction_id?: string
+          buyer_user_id?: string
+          created_at?: string
+          currency?: string
+          deposit_amount?: number | null
+          deposit_deducted?: boolean
+          failure_reason?: string | null
+          hammer_price?: number
+          id?: string
+          invoice_id?: string | null
+          order_id?: string | null
+          platform_fee_amount?: number
+          platform_fee_rate?: number
+          seller_payout_amount?: number
+          seller_user_id?: string
+          settled_at?: string | null
+          status?: string
+          stripe_charge_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_transfer_id?: string | null
+          updated_at?: string
+          winning_bid_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_settlements_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: true
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_settlements_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_settlements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_settlements_winning_bid_id_fkey"
+            columns: ["winning_bid_id"]
+            isOneToOne: false
+            referencedRelation: "bids"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auctions: {
         Row: {
           admin_notes: string | null
