@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.auction-deposit]
 verify_jwt = false
+
+[functions.send-auction-notification]
+verify_jwt = false
