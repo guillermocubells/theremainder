@@ -176,6 +176,8 @@ export function useAuctionBidding(auctionId: string) {
     onError: (e: Error) => {
       const msg = e.message.replace(/^.*ERROR:\s*/, '');
       toast.error(msg);
+      // Emit bid rejection metric (fire-and-forget)
+      Promise.resolve(supabase.rpc('emit_metric' as any, { p_name: 'bid.rejected', p_value: 1, p_type: 'counter', p_tags: { auction_id: auctionId, reason: msg.slice(0, 200) } })).catch(() => {});
     },
   });
 

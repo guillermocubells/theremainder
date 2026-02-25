@@ -130,6 +130,104 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_events: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          id: string
+          message: string | null
+          metric_name: string
+          metric_value: number
+          rule_id: string
+          rule_name: string
+          severity: string
+          threshold: number
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          metric_name: string
+          metric_value: number
+          rule_id: string
+          rule_name: string
+          severity: string
+          threshold: number
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          metric_name?: string
+          metric_value?: number
+          rule_id?: string
+          rule_name?: string
+          severity?: string
+          threshold?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_events_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "alert_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_rules: {
+        Row: {
+          condition: string
+          cooldown_minutes: number
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          metric_name: string
+          name: string
+          severity: string
+          tags_filter: Json | null
+          threshold: number
+          updated_at: string
+          window_minutes: number
+        }
+        Insert: {
+          condition?: string
+          cooldown_minutes?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          metric_name: string
+          name: string
+          severity?: string
+          tags_filter?: Json | null
+          threshold: number
+          updated_at?: string
+          window_minutes?: number
+        }
+        Update: {
+          condition?: string
+          cooldown_minutes?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          metric_name?: string
+          name?: string
+          severity?: string
+          tags_filter?: Json | null
+          threshold?: number
+          updated_at?: string
+          window_minutes?: number
+        }
+        Relationships: []
+      }
       auction_consents: {
         Row: {
           accepted_at: string
@@ -2064,6 +2162,33 @@ export type Database = {
           },
         ]
       }
+      platform_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metric_name: string
+          metric_type: string
+          tags: Json | null
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_name: string
+          metric_type?: string
+          tags?: Json | null
+          value?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_name?: string
+          metric_type?: string
+          tags?: Json | null
+          value?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -2876,6 +3001,15 @@ export type Database = {
         Args: { p_plant_id: string; p_quantity: number }
         Returns: number
       }
+      emit_metric: {
+        Args: {
+          p_name: string
+          p_tags?: Json
+          p_type?: string
+          p_value?: number
+        }
+        Returns: undefined
+      }
       enqueue_job: {
         Args: {
           p_idempotency_key?: string
@@ -2900,6 +3034,15 @@ export type Database = {
       generate_plant_slug: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_auction_terms_version: { Args: never; Returns: string }
+      get_metric_aggregate: {
+        Args: {
+          p_agg?: string
+          p_name: string
+          p_tags_filter?: Json
+          p_window_minutes: number
+        }
+        Returns: number
+      }
       get_public_shared_list_by_slug: {
         Args: { p_slug: string }
         Returns: Json

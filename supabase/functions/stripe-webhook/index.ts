@@ -93,6 +93,7 @@ serve(async (req) => {
     }
 
     log("Event received", { type: event.type, id: event.id });
+    const webhookStartMs = Date.now();
 
     // --- Idempotency: reject duplicate events ---
     const { data: existingEvent } = await supabaseAdmin
@@ -160,6 +161,14 @@ serve(async (req) => {
         errorMessage = `HTTP ${response.status}`;
       }
 
+      // Emit metrics
+      const latencyMs = Date.now() - webhookStartMs;
+      await supabaseAdmin.rpc("emit_metric", { p_name: "webhook.processed", p_value: 1, p_type: "counter", p_tags: { event_type: event.type } }).catch(() => {});
+      await supabaseAdmin.rpc("emit_metric", { p_name: "webhook.latency_ms", p_value: latencyMs, p_type: "timer", p_tags: { event_type: event.type } }).catch(() => {});
+      if (processingResult === "error") {
+        await supabaseAdmin.rpc("emit_metric", { p_name: "webhook.error", p_value: 1, p_type: "counter", p_tags: { event_type: event.type, error: errorMessage } }).catch(() => {});
+      }
+
       // Record event in store
       await supabaseAdmin.from("webhook_events").insert({
         stripe_event_id: event.id,
@@ -171,6 +180,8 @@ serve(async (req) => {
 
       return response;
     } catch (handlerError) {
+      // Emit error metric
+      await supabaseAdmin.rpc("emit_metric", { p_name: "webhook.error", p_value: 1, p_type: "counter", p_tags: { event_type: event.type, error: handlerError instanceof Error ? handlerError.message : "unknown" } }).catch(() => {});
       // Record failed event
       await supabaseAdmin.from("webhook_events").insert({
         stripe_event_id: event.id,
