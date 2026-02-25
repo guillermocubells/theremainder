@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +22,13 @@ interface AuctionLive {
   starting_price: number;
   reserve_met: boolean;
   status: string;
+  deposit_amount: number | null;
+}
+
+interface DepositRecord {
+  id: string;
+  status: string;
+  amount: number;
 }
 
 export function useAuctionBidding(auctionId: string) {
@@ -36,13 +43,13 @@ export function useAuctionBidding(auctionId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('auctions' as any)
-        .select('id, current_price, total_bids, ends_at, bid_increment, starting_price, reserve_met, status')
+        .select('id, current_price, total_bids, ends_at, bid_increment, starting_price, reserve_met, status, deposit_amount')
         .eq('id', auctionId)
         .single();
       if (error) throw error;
       return data as unknown as AuctionLive;
     },
-    refetchInterval: 10000, // fallback polling
+    refetchInterval: 10000,
   });
 
   // Fetch bid history
@@ -60,6 +67,26 @@ export function useAuctionBidding(auctionId: string) {
     },
     refetchInterval: 10000,
   });
+
+  // Fetch user's deposit status
+  const { data: deposit, refetch: refetchDeposit } = useQuery({
+    queryKey: ['auction-deposit', auctionId, user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('auction_deposits' as any)
+        .select('id, status, amount')
+        .eq('auction_id', auctionId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as unknown as DepositRecord | null;
+    },
+    enabled: !!user,
+  });
+
+  const hasDeposit = deposit?.status === 'held';
+  const depositRequired = auction?.deposit_amount != null && auction.deposit_amount > 0;
 
   // Realtime subscriptions
   useEffect(() => {
@@ -106,7 +133,7 @@ export function useAuctionBidding(auctionId: string) {
         return;
       }
 
-      setIsEnding(diff < 5 * 60 * 1000); // < 5 min
+      setIsEnding(diff < 5 * 60 * 1000);
 
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
@@ -122,7 +149,6 @@ export function useAuctionBidding(auctionId: string) {
     return () => clearInterval(interval);
   }, [auction?.ends_at]);
 
-  // Calculate min bid
   const minBid = auction
     ? auction.total_bids === 0
       ? auction.starting_price
@@ -153,6 +179,40 @@ export function useAuctionBidding(auctionId: string) {
     },
   });
 
+  // Create deposit mutation
+  const createDeposit = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('auction-deposit', {
+        body: { action: 'create', auction_id: auctionId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data as { client_secret?: string; payment_intent_id?: string; amount?: number; status?: string };
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
+  });
+
+  // Confirm deposit mutation (after Stripe confirms)
+  const confirmDeposit = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('auction-deposit', {
+        body: { action: 'confirm', auction_id: auctionId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      refetchDeposit();
+      toast.success('¡Depósito confirmado! Ya puedes pujar.');
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
+  });
+
   return {
     auction,
     bids: bids || [],
@@ -162,5 +222,11 @@ export function useAuctionBidding(auctionId: string) {
     placeBid,
     isAuthenticated: !!user,
     userId: user?.id,
+    // Deposit
+    depositRequired,
+    hasDeposit,
+    deposit,
+    createDeposit,
+    confirmDeposit,
   };
 }

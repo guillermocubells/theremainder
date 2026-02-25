@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.generate-invoice-pdf]
 verify_jwt = false
+
+[functions.auction-deposit]
+verify_jwt = false
