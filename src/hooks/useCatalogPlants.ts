@@ -117,6 +117,8 @@ function dbToPlant(row: Record<string, unknown>): Plant {
     notes: (row.notes as string) || "",
     price: row.sale_price ? (row.sale_price as number) : (row.price as number) ?? 0,
     images: allImages,
+    productImages: (row.product_images as string[] | null) || [],
+    primaryImage: (row.primary_image as string | null) || null,
     hardinessZones: (row.hardiness_zones as string[] | null) || [],
     climateZones: (row.climate_zones as string[] | null) || [],
     ornamentalValue: mapOrnamental(row.rarity as string | null),

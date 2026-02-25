@@ -5,22 +5,28 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { cn } from "@/lib/utils";
+import { getDisplayImages, getMainImage } from "@/utils/plantImageUtils";
 
 interface PlantImageGalleryProps {
   images?: string[];
+  productImages?: string[];
+  primaryImage?: string | null;
   plantName: string;
 }
 
-const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
+const PlantImageGallery = ({ images, productImages, primaryImage, plantName }: PlantImageGalleryProps) => {
   const { t } = useTranslation();
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const galleryImages = getDisplayImages(images, productImages);
+  const mainImg = getMainImage(images, productImages, primaryImage);
+  const initialIndex = mainImg ? Math.max(0, galleryImages.indexOf(mainImg)) : 0;
+  const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   
   // Touch/swipe handling for lightbox
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
-  const displayImages = images?.slice(0, 4) || [];
+  const displayImages = galleryImages.slice(0, 4);
 
   const navigateLightbox = useCallback((direction: 'prev' | 'next') => {
     if (displayImages.length === 0) return;
@@ -61,7 +67,7 @@ const PlantImageGallery = ({ images, plantName }: PlantImageGalleryProps) => {
     touchStartY.current = null;
   }, [displayImages.length, navigateLightbox]);
 
-  if (!images || images.length === 0) {
+  if (galleryImages.length === 0) {
     return (
       <div className="h-full flex items-center justify-center min-h-[300px]">
         <div className="text-center text-muted-foreground">

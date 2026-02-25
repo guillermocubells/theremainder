@@ -5,15 +5,21 @@ import { OptimizedImage } from "@/components/ui/optimized-image";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { X, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getDisplayImages, getMainImage } from "@/utils/plantImageUtils";
 
 interface PlantPhotoCarouselProps {
   images: string[];
+  productImages?: string[];
+  primaryImage?: string | null;
   plantName: string;
 }
 
-const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
+const PlantPhotoCarousel = ({ images, productImages, primaryImage, plantName }: PlantPhotoCarouselProps) => {
   const { t } = useTranslation();
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const displayImages = getDisplayImages(images, productImages);
+  const mainImg = getMainImage(images, productImages, primaryImage);
+  const initialIndex = mainImg ? Math.max(0, displayImages.indexOf(mainImg)) : 0;
+  const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   
   // Touch/swipe handling for lightbox
@@ -21,13 +27,13 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
   const touchStartY = useRef<number | null>(null);
 
   const navigateLightbox = useCallback((direction: 'prev' | 'next') => {
-    if (!images || images.length === 0) return;
+    if (displayImages.length === 0) return;
     if (direction === 'prev') {
-      setSelectedIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+      setSelectedIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
     } else {
-      setSelectedIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+      setSelectedIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
     }
-  }, [images]);
+  }, [displayImages.length]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -35,7 +41,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
   }, []);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (touchStartX.current === null || !images || images.length <= 1) {
+    if (touchStartX.current === null || displayImages.length <= 1) {
       touchStartX.current = null;
       touchStartY.current = null;
       return;
@@ -58,9 +64,9 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
 
     touchStartX.current = null;
     touchStartY.current = null;
-  }, [images, navigateLightbox]);
+  }, [displayImages.length, navigateLightbox]);
 
-  if (!images || images.length === 0) {
+  if (displayImages.length === 0) {
     return null;
   }
 
@@ -86,7 +92,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
             onClick={() => openLightbox()}
           >
             <OptimizedImage 
-              src={images[selectedIndex]} 
+              src={displayImages[selectedIndex]} 
               alt={`${plantName} - imagen ${selectedIndex + 1}`}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="eager"
@@ -105,9 +111,9 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
         </div>
 
         {/* Thumbnails */}
-        {images.length > 1 && (
+        {displayImages.length > 1 && (
           <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {images.map((image, index) => (
+            {displayImages.map((image, index) => (
               <button
                 key={index}
                 onClick={() => handleThumbnailClick(index)}
@@ -156,7 +162,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
               onTouchEnd={handleTouchEnd}
             >
               {/* Navigation arrows - hidden on mobile, visible on desktop */}
-              {images.length > 1 && (
+              {displayImages.length > 1 && (
                 <>
                   <button
                     onClick={() => navigateLightbox('prev')}
@@ -174,7 +180,7 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
               )}
 
               <OptimizedImage
-                src={images[selectedIndex]}
+                src={displayImages[selectedIndex]}
                 alt={`${plantName} - imagen ${selectedIndex + 1}`}
                 className="w-full h-auto max-h-[80vh] object-contain rounded-lg select-none"
                 draggable={false}
@@ -183,9 +189,9 @@ const PlantPhotoCarousel = ({ images, plantName }: PlantPhotoCarouselProps) => {
               />
               
               {/* Image counter */}
-              {images.length > 1 && (
+              {displayImages.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 text-white text-sm font-medium">
-                  {selectedIndex + 1} / {images.length}
+                  {selectedIndex + 1} / {displayImages.length}
                 </div>
               )}
             </div>

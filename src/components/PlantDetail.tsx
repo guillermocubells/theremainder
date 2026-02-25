@@ -298,7 +298,7 @@ const PlantDetail = () => {
               
               {/* Right column - Image Gallery (1/3 width) - matches header height */}
               <div className="animate-fade-in" style={{ animationDelay: '50ms' }}>
-                <PlantImageGallery images={plant.images} plantName={plant.name} />
+                <PlantImageGallery images={plant.images} productImages={plant.productImages} primaryImage={plant.primaryImage} plantName={plant.name} />
               </div>
             </div>
 
@@ -316,7 +316,7 @@ const PlantDetail = () => {
 
             {/* Photo Carousel - Future Visual References */}
             <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-              <PlantPhotoCarousel images={plant.images} plantName={plant.name} />
+              <PlantPhotoCarousel images={plant.images || []} productImages={plant.productImages} primaryImage={plant.primaryImage} plantName={plant.name} />
             </div>
 
             {/* Curious Facts Section - now takes full width */}
