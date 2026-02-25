@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Pencil, Trash2, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { PlantFormDialog } from "@/components/admin/PlantFormDialog";
 import {
@@ -39,6 +40,7 @@ interface Plant {
 }
 
 export default function AdminPlants() {
+  const navigate = useNavigate();
   const [plants, setPlants] = useState<Plant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -157,7 +159,7 @@ export default function AdminPlants() {
             </TableHeader>
             <TableBody>
               {filteredPlants.map((plant) => (
-                <TableRow key={plant.id}>
+                <TableRow key={plant.id} className="cursor-pointer" onClick={() => navigate(`/plant/${plant.id}`)}>
                   <TableCell>
                     {plant.images?.[0] ? (
                       <img
@@ -205,7 +207,8 @@ export default function AdminPlants() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setEditingPlant(plant);
                           setIsFormOpen(true);
                         }}
@@ -215,7 +218,10 @@ export default function AdminPlants() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setDeletingPlant(plant)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingPlant(plant);
+                        }}
                         className="text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
