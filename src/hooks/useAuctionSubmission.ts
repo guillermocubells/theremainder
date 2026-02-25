@@ -52,7 +52,7 @@ export function useAuctionSubmission() {
           videos: lot.videos,
           created_by: user.id,
           seller_user_id: user.id,
-          status: 'draft',
+          status: 'pending_review',
           current_price: lot.starting_price,
         })
         .select()
