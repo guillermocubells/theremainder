@@ -789,6 +789,51 @@ async function handleCheckoutCompleted(
       }
     }
 
+    // Oversell detection: verify stock is non-negative for each item
+    for (const item of items) {
+      const plant = plantLookup?.get?.(item.id);
+      const plantId = plant?.id || item.id;
+      const { data: plantRow } = await supabase
+        .from("plants")
+        .select("stock_qty, name")
+        .eq("id", plantId)
+        .maybeSingle();
+
+      if (plantRow && plantRow.stock_qty < 0) {
+        log("OVERSELL DETECTED", {
+          plantId,
+          plantName: plantRow.name,
+          stock: plantRow.stock_qty,
+          orderId: order.id,
+        });
+        // Create oversell alert for admin compensating action
+        await supabase.from("oversell_alerts").insert({
+          plant_id: plantId,
+          order_id: order.id,
+          expected_stock: 0,
+          actual_stock: plantRow.stock_qty,
+          deficit: Math.abs(plantRow.stock_qty),
+          status: "open",
+        });
+        // Emit high-priority domain event for admin notification
+        await emitDomainEvent(supabase, {
+          event_type: "oversell_detected",
+          user_id: userId,
+          entity_type: "plant",
+          entity_id: plantId,
+          metadata: {
+            plant_name: plantRow.name,
+            current_stock: plantRow.stock_qty,
+            order_id: order.id,
+            order_number: orderNumber,
+            timestamp: new Date().toISOString(),
+            actor: "system",
+            severity: "critical",
+          },
+        });
+      }
+    }
+
     // Deduct wallet balance if used
     if (walletAmountEur > 0) {
       const { data: wallet } = await supabase
@@ -1245,7 +1290,7 @@ async function handleChargeRefunded(
 
   log("Order refund status updated", { orderId: order.id, status: newStatus, refundAmount: amountRefunded });
 
-  // --- Restock inventory on full refund ---
+  // --- Restock inventory on full refund (atomic via increment_stock RPC) ---
   let restockedItems = 0;
   if (isFullRefund) {
     const { data: orderItems } = await supabase
@@ -1258,22 +1303,10 @@ async function handleChargeRefunded(
         const { error: stockErr } = await supabase.rpc("increment_stock", {
           p_plant_id: item.product_id,
           p_quantity: item.quantity,
-        }).maybeSingle();
+        });
 
         if (stockErr) {
-          // Fallback: direct update
-          const { data: plant } = await supabase
-            .from("plants")
-            .select("stock_qty")
-            .eq("id", item.product_id)
-            .maybeSingle();
-
-          if (plant) {
-            await supabase
-              .from("plants")
-              .update({ stock_qty: plant.stock_qty + item.quantity, updated_at: now })
-              .eq("id", item.product_id);
-          }
+          log("Error restocking item (non-blocking)", { plantId: item.product_id, error: stockErr.message });
         }
         restockedItems += item.quantity;
       }

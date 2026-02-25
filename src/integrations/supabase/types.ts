@@ -1577,6 +1577,66 @@ export type Database = {
           },
         ]
       }
+      oversell_alerts: {
+        Row: {
+          actual_stock: number
+          created_at: string
+          deficit: number
+          expected_stock: number
+          id: string
+          order_id: string | null
+          plant_id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_stock: number
+          created_at?: string
+          deficit: number
+          expected_stock: number
+          id?: string
+          order_id?: string | null
+          plant_id: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_stock?: number
+          created_at?: string
+          deficit?: number
+          expected_stock?: number
+          id?: string
+          order_id?: string | null
+          plant_id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oversell_alerts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oversell_alerts_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       owned_plants: {
         Row: {
           allow_inquiries: boolean
@@ -2812,6 +2872,10 @@ export type Database = {
         }
         Returns: string
       }
+      decrement_stock: {
+        Args: { p_plant_id: string; p_quantity: number }
+        Returns: number
+      }
       enqueue_job: {
         Args: {
           p_idempotency_key?: string
@@ -2850,6 +2914,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_stock: {
+        Args: { p_plant_id: string; p_quantity: number }
+        Returns: undefined
       }
       is_order_item_owner: { Args: { oi_order_id: string }; Returns: boolean }
       is_own_address: { Args: { a_user_id: string }; Returns: boolean }
