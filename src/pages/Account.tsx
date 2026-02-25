@@ -16,7 +16,8 @@ import {
   Gift,
   MessageSquare,
   LogOut,
-  Gavel
+  Gavel,
+  Bell
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useGardenStats } from '@/hooks/garden';
@@ -32,6 +33,7 @@ import MobileAccountHub from '@/components/account/MobileAccountHub';
 import MobileAccountSection from '@/components/account/MobileAccountSection';
 import ReferralBanner from '@/components/ReferralBanner';
 import SellerDashboard from '@/components/seller/SellerDashboard';
+import AccountNotifications from '@/components/account/AccountNotifications';
 import { useInquiryCount } from '@/hooks/collection/useGardenInquiries';
 
 const Account = () => {
@@ -52,6 +54,7 @@ const Account = () => {
     { id: 'searches', label: t('account.savedSearches'), icon: Search },
     { id: 'inquiries', label: 'Consultas', icon: MessageSquare, badge: inquiryCount },
     { id: 'referrals', label: t('referral.title', 'Referidos'), icon: Gift },
+    { id: 'notifications', label: t('account.notifications.title', 'Notificaciones'), icon: Bell },
     { id: 'seller', label: 'Vendedor', icon: Gavel },
   ];
 
@@ -82,6 +85,7 @@ const Account = () => {
       case 'searches': return t('account.savedSearches');
       case 'referrals': return t('referral.title', 'Referidos');
       case 'inquiries': return 'Consultas';
+      case 'notifications': return t('account.notifications.title', 'Notificaciones');
       case 'seller': return 'Vendedor';
       default: return '';
     }
@@ -105,6 +109,8 @@ const Account = () => {
         return <AccountReferrals />;
       case 'inquiries':
         return <AccountInquiries />;
+      case 'notifications':
+        return <AccountNotifications />;
       case 'seller':
         return <SellerDashboard />;
       default:
