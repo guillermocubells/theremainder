@@ -130,20 +130,28 @@ Creates Stripe checkout session.
 - `stock_available` - Stock notification
 - `order_shipped` - Shipping confirmation
 - `order_delivered` - Delivery confirmation
+- `order_confirmed` - Order receipt with items, totals, address
 - `welcome` - Welcome email
 
 **Body:**
 ```json
 {
-  "type": "stock_available",
+  "type": "order_confirmed",
   "to": "user@example.com",
+  "lang": "es",
   "data": {
-    "plant_name": "Trachycarpus fortunei",
-    "price": 49.90,
-    "plant_url": "https://..."
+    "order_number": "FP-20260225-0001",
+    "invoice_number": "FPB2C-2026-000001",
+    "items": [{ "product_name": "Trachycarpus fortunei", "quantity": 1, "unit_price": 49.90 }],
+    "shipping_cost": 9.95,
+    "total_amount": 59.85,
+    "shipping_name": "Juan García",
+    "shipping_address": "Calle Mayor 1, 28001 Madrid, España"
   }
 }
 ```
+
+**Localisation:** Pass `lang: "en"` for English templates (default: `"es"`).
 
 ---
 
