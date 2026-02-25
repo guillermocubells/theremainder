@@ -9,6 +9,7 @@ import { Loader2, Gavel, Clock, Calendar as CalIcon, Tag, ArrowRight } from 'luc
 import { format, formatDistanceToNow, isPast, isFuture } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { PageSEO } from '@/components/seo';
+import BiddingPanel from '@/components/auction/BiddingPanel';
 
 interface AuctionPreviewItem {
   id: string;
@@ -87,114 +88,114 @@ const AuctionPreview = () => {
             {auctions.map((auction, idx) => {
               const state = getAuctionState(auction);
               return (
-                <Card key={auction.id} className="overflow-hidden">
-                  <div className="flex flex-col md:flex-row">
-                    {/* Image */}
-                    <div className="md:w-80 flex-shrink-0">
-                      {auction.images && auction.images.length > 0 ? (
-                        <div className="relative">
-                          <img
-                            src={auction.images[0]}
-                            alt={auction.title}
-                            className="w-full h-64 md:h-full object-cover"
-                          />
-                          {auction.images.length > 1 && (
-                            <div className="absolute bottom-2 right-2 bg-background/80 rounded-full px-2 py-0.5 text-xs text-foreground">
-                              +{auction.images.length - 1} fotos
+                <div key={auction.id} className="space-y-4">
+                  <Card className="overflow-hidden">
+                    <div className="flex flex-col md:flex-row">
+                      {/* Image */}
+                      <div className="md:w-80 flex-shrink-0">
+                        {auction.images && auction.images.length > 0 ? (
+                          <div className="relative">
+                            <img src={auction.images[0]} alt={auction.title} className="w-full h-64 md:h-full object-cover" />
+                            {auction.images.length > 1 && (
+                              <div className="absolute bottom-2 right-2 bg-background/80 rounded-full px-2 py-0.5 text-xs text-foreground">
+                                +{auction.images.length - 1} fotos
+                              </div>
+                            )}
+                            <div className="absolute top-2 left-2">
+                              <Badge variant={state === 'live' ? 'default' : 'secondary'} className="text-xs">
+                                {state === 'live' ? '🔴 En vivo' : state === 'upcoming' ? '📅 Próximamente' : 'Pendiente'}
+                              </Badge>
                             </div>
-                          )}
-                          <div className="absolute top-2 left-2">
-                            <Badge variant={state === 'live' ? 'default' : 'secondary'} className="text-xs">
-                              {state === 'live' ? '🔴 En vivo' : state === 'upcoming' ? '📅 Próximamente' : 'Pendiente'}
-                            </Badge>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="w-full h-64 md:h-full bg-muted flex items-center justify-center">
-                          <Gavel className="h-12 w-12 text-muted-foreground/30" />
-                        </div>
-                      )}
-                    </div>
+                        ) : (
+                          <div className="w-full h-64 md:h-full bg-muted flex items-center justify-center">
+                            <Gavel className="h-12 w-12 text-muted-foreground/30" />
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Details */}
-                    <div className="flex-1 p-5 md:p-6 space-y-4">
-                      <div className="flex items-start justify-between gap-4">
+                      {/* Details */}
+                      <div className="flex-1 p-5 md:p-6 space-y-4">
                         <div>
                           <p className="text-xs text-muted-foreground font-mono mb-1">Lote {idx + 1}</p>
                           <h2 className="text-xl font-bold text-foreground">{auction.title}</h2>
                         </div>
-                      </div>
 
-                      {auction.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-3">{auction.description}</p>
-                      )}
-
-                      <div className="flex flex-wrap gap-3">
-                        {auction.condition && (
-                          <div className="flex items-center gap-1.5 text-sm">
-                            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{CONDITION_LABELS[auction.condition] || auction.condition}</span>
-                          </div>
+                        {auction.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-3">{auction.description}</p>
                         )}
-                        {auction.dimensions && (
-                          <div className="text-sm text-muted-foreground">
-                            {[auction.dimensions.height, auction.dimensions.width, auction.dimensions.pot_size].filter(Boolean).join(' · ')}
-                          </div>
-                        )}
-                      </div>
 
-                      <Separator />
-
-                      <div className="flex flex-wrap gap-6">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Precio salida</p>
-                          <p className="text-lg font-bold text-foreground">{auction.starting_price.toFixed(2)} €</p>
-                        </div>
-                        {auction.buy_now_price && (
-                          <div>
-                            <p className="text-xs text-muted-foreground">Compra inmediata</p>
-                            <p className="text-lg font-bold text-primary">{auction.buy_now_price.toFixed(2)} €</p>
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-xs text-muted-foreground">Incremento</p>
-                          <p className="text-sm font-medium">{auction.bid_increment.toFixed(2)} €</p>
-                        </div>
-                        {auction.reserve_price && (
-                          <div>
-                            <p className="text-xs text-muted-foreground">Reserva</p>
-                            <p className="text-sm font-medium text-muted-foreground">Sí</p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Timing */}
-                      {auction.starts_at && (
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <CalIcon className="h-3.5 w-3.5" />
-                            {format(new Date(auction.starts_at), "dd MMM yyyy 'a las' HH:mm", { locale: es })}
-                          </div>
-                          {auction.ends_at && (
-                            <>
-                              <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                              <div className="flex items-center gap-1.5 text-muted-foreground">
-                                <Clock className="h-3.5 w-3.5" />
-                                {format(new Date(auction.ends_at), "dd MMM yyyy HH:mm", { locale: es })}
-                              </div>
-                            </>
+                        <div className="flex flex-wrap gap-3">
+                          {auction.condition && (
+                            <div className="flex items-center gap-1.5 text-sm">
+                              <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span>{CONDITION_LABELS[auction.condition] || auction.condition}</span>
+                            </div>
+                          )}
+                          {auction.dimensions && (
+                            <div className="text-sm text-muted-foreground">
+                              {[auction.dimensions.height, auction.dimensions.width, auction.dimensions.pot_size].filter(Boolean).join(' · ')}
+                            </div>
                           )}
                         </div>
-                      )}
 
-                      {state === 'upcoming' && auction.starts_at && (
-                        <p className="text-xs text-primary font-medium">
-                          Comienza en {formatDistanceToNow(new Date(auction.starts_at), { locale: es })}
-                        </p>
-                      )}
+                        <Separator />
+
+                        <div className="flex flex-wrap gap-6">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Precio salida</p>
+                            <p className="text-lg font-bold text-foreground">{auction.starting_price.toFixed(2)} €</p>
+                          </div>
+                          {auction.buy_now_price && (
+                            <div>
+                              <p className="text-xs text-muted-foreground">Compra inmediata</p>
+                              <p className="text-lg font-bold text-primary">{auction.buy_now_price.toFixed(2)} €</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs text-muted-foreground">Incremento</p>
+                            <p className="text-sm font-medium">{auction.bid_increment.toFixed(2)} €</p>
+                          </div>
+                          {auction.reserve_price && (
+                            <div>
+                              <p className="text-xs text-muted-foreground">Reserva</p>
+                              <p className="text-sm font-medium text-muted-foreground">Sí</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {auction.starts_at && (
+                          <div className="flex items-center gap-4 text-sm">
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                              <CalIcon className="h-3.5 w-3.5" />
+                              {format(new Date(auction.starts_at), "dd MMM yyyy 'a las' HH:mm", { locale: es })}
+                            </div>
+                            {auction.ends_at && (
+                              <>
+                                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  {format(new Date(auction.ends_at), "dd MMM yyyy HH:mm", { locale: es })}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
+
+                        {state === 'upcoming' && auction.starts_at && (
+                          <p className="text-xs text-primary font-medium">
+                            Comienza en {formatDistanceToNow(new Date(auction.starts_at), { locale: es })}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Card>
+                  </Card>
+
+                  {/* Bidding panel for live auctions */}
+                  {state === 'live' && (
+                    <BiddingPanel auctionId={auction.id} auctionTitle={auction.title} />
+                  )}
+                </div>
               );
             })}
           </div>
