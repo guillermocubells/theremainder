@@ -308,6 +308,33 @@ export type Database = {
           },
         ]
       }
+      auction_events: {
+        Row: {
+          created_at: string
+          entity: string
+          entity_id: string | null
+          event_type: string
+          id: string
+          payload: Json | null
+        }
+        Insert: {
+          created_at?: string
+          entity: string
+          entity_id?: string | null
+          event_type: string
+          id?: string
+          payload?: Json | null
+        }
+        Update: {
+          created_at?: string
+          entity?: string
+          entity_id?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json | null
+        }
+        Relationships: []
+      }
       auction_notifications: {
         Row: {
           auction_id: string
@@ -480,6 +507,7 @@ export type Database = {
           seller_notes: string | null
           seller_user_id: string | null
           slug: string
+          soft_close_window_sec: number
           starting_price: number
           starts_at: string | null
           status: Database["public"]["Enums"]["auction_status"]
@@ -519,6 +547,7 @@ export type Database = {
           seller_notes?: string | null
           seller_user_id?: string | null
           slug: string
+          soft_close_window_sec?: number
           starting_price?: number
           starts_at?: string | null
           status?: Database["public"]["Enums"]["auction_status"]
@@ -558,6 +587,7 @@ export type Database = {
           seller_notes?: string | null
           seller_user_id?: string | null
           slug?: string
+          soft_close_window_sec?: number
           starting_price?: number
           starts_at?: string | null
           status?: Database["public"]["Enums"]["auction_status"]
@@ -631,6 +661,7 @@ export type Database = {
           id: string
           ip_address: string | null
           status: Database["public"]["Enums"]["bid_status"]
+          ua_hash: string | null
           user_id: string
         }
         Insert: {
@@ -640,6 +671,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           status?: Database["public"]["Enums"]["bid_status"]
+          ua_hash?: string | null
           user_id: string
         }
         Update: {
@@ -649,6 +681,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           status?: Database["public"]["Enums"]["bid_status"]
+          ua_hash?: string | null
           user_id?: string
         }
         Relationships: [
@@ -657,6 +690,32 @@ export type Database = {
             columns: ["auction_id"]
             isOneToOne: false
             referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bids_idem: {
+        Row: {
+          bid_id: string
+          created_at: string
+          idempotency_key: string
+        }
+        Insert: {
+          bid_id: string
+          created_at?: string
+          idempotency_key: string
+        }
+        Update: {
+          bid_id?: string
+          created_at?: string
+          idempotency_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_idem_bid_id_fkey"
+            columns: ["bid_id"]
+            isOneToOne: false
+            referencedRelation: "bids"
             referencedColumns: ["id"]
           },
         ]
@@ -1090,6 +1149,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      increment_schemas: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          tiers_json: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          tiers_json?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          tiers_json?: Json
+        }
+        Relationships: []
       }
       invoice_records: {
         Row: {
@@ -2467,9 +2547,13 @@ export type Database = {
           created_at: string
           document_number: string
           document_type: string
+          iban: string | null
           id: string
+          kyc_checked_at: string | null
+          kyc_ref: string | null
           legal_name: string
           rejection_reason: string | null
+          seller_type: string
           stripe_account_id: string | null
           stripe_onboarding_complete: boolean
           tax_address_city: string | null
@@ -2487,9 +2571,13 @@ export type Database = {
           created_at?: string
           document_number: string
           document_type?: string
+          iban?: string | null
           id?: string
+          kyc_checked_at?: string | null
+          kyc_ref?: string | null
           legal_name: string
           rejection_reason?: string | null
+          seller_type?: string
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean
           tax_address_city?: string | null
@@ -2507,9 +2595,13 @@ export type Database = {
           created_at?: string
           document_number?: string
           document_type?: string
+          iban?: string | null
           id?: string
+          kyc_checked_at?: string | null
+          kyc_ref?: string | null
           legal_name?: string
           rejection_reason?: string | null
+          seller_type?: string
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean
           tax_address_city?: string | null
@@ -3027,6 +3119,7 @@ export type Database = {
         Args: { p_retention_days?: number }
         Returns: number
       }
+      close_ended_auctions: { Args: never; Returns: number }
       confirm_reservation_by_session: {
         Args: { p_payment_intent_id?: string; p_session_id: string }
         Returns: number
@@ -3231,6 +3324,7 @@ export type Database = {
         | "approved"
         | "rejected"
         | "changes_requested"
+        | "closed"
       bid_status: "active" | "outbid" | "winning" | "won" | "cancelled"
       customer_type: "b2c" | "b2b"
       difficulty_level:
@@ -3462,6 +3556,7 @@ export const Constants = {
         "approved",
         "rejected",
         "changes_requested",
+        "closed",
       ],
       bid_status: ["active", "outbid", "winning", "won", "cancelled"],
       customer_type: ["b2c", "b2b"],
