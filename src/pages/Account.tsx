@@ -15,7 +15,8 @@ import {
   Leaf,
   Gift,
   MessageSquare,
-  LogOut
+  LogOut,
+  Gavel
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useGardenStats } from '@/hooks/garden';
@@ -30,6 +31,7 @@ import AccountInquiries from '@/components/account/AccountInquiries';
 import MobileAccountHub from '@/components/account/MobileAccountHub';
 import MobileAccountSection from '@/components/account/MobileAccountSection';
 import ReferralBanner from '@/components/ReferralBanner';
+import SellerDashboard from '@/components/seller/SellerDashboard';
 import { useInquiryCount } from '@/hooks/collection/useGardenInquiries';
 
 const Account = () => {
@@ -50,6 +52,7 @@ const Account = () => {
     { id: 'searches', label: t('account.savedSearches'), icon: Search },
     { id: 'inquiries', label: 'Consultas', icon: MessageSquare, badge: inquiryCount },
     { id: 'referrals', label: t('referral.title', 'Referidos'), icon: Gift },
+    { id: 'seller', label: 'Vendedor', icon: Gavel },
   ];
 
   const handleSignOut = async () => {
@@ -79,6 +82,7 @@ const Account = () => {
       case 'searches': return t('account.savedSearches');
       case 'referrals': return t('referral.title', 'Referidos');
       case 'inquiries': return 'Consultas';
+      case 'seller': return 'Vendedor';
       default: return '';
     }
   };
@@ -101,6 +105,8 @@ const Account = () => {
         return <AccountReferrals />;
       case 'inquiries':
         return <AccountInquiries />;
+      case 'seller':
+        return <SellerDashboard />;
       default:
         return <AccountDashboard onNavigate={isMobile ? handleMobileNavigate : setActiveTab} />;
     }
