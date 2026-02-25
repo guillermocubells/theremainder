@@ -420,6 +420,9 @@
   },
   "checkout": {
     "title": "Checkout",
+    "savedAddresses": "Use a saved address",
+    "defaultAddress": "Default",
+    "orEnterNew": "Or enter a new address below",
     "emptyCart": "Your cart is empty",
     "emptyCartMessage": "Add some plants before continuing",
     "contact": "Contact information",
