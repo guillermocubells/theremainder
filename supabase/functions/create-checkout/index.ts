@@ -92,6 +92,50 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
+
+    // ── Refund action (admin only) ──
+    if (body.action === "refund") {
+      // Verify admin via JWT
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) return jsonError("Not authenticated", 401);
+      const { data: { user }, error: authErr } = await supabaseClient.auth.getUser(
+        authHeader.replace("Bearer ", "")
+      );
+      if (authErr || !user) return jsonError("Not authenticated", 401);
+
+      const { data: isAdmin } = await supabaseAdmin.rpc("has_role", {
+        _user_id: user.id,
+        _role: "admin",
+      });
+      if (!isAdmin) return jsonError("Admin access required", 403);
+
+      const { payment_intent_id, reason } = body;
+      if (!payment_intent_id || typeof payment_intent_id !== "string") {
+        return jsonError("payment_intent_id required");
+      }
+
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+      if (!stripeKey) return jsonError("Stripe not configured", 500);
+      const stripe = new Stripe(stripeKey, { apiVersion: "2025-04-30.basil" });
+
+      const refund = await stripe.refunds.create({
+        payment_intent: payment_intent_id,
+        reason: "requested_by_customer",
+        metadata: {
+          dispute_reason: (reason || "").slice(0, 500),
+          initiated_by: user.id,
+          initiated_at: new Date().toISOString(),
+        },
+      });
+
+      console.log("Admin refund created:", { refund_id: refund.id, pi: payment_intent_id });
+
+      return new Response(
+        JSON.stringify({ success: true, refund_id: refund.id }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { items, shippingCountry, shippingAddress, locale = "es", referralCode, useWalletBalance }: CheckoutRequest = body;
 
     console.log("Checkout request:", { items: items?.length, shippingCountry, locale, referralCode });

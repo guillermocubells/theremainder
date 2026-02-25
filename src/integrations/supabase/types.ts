@@ -2948,6 +2948,9 @@ export type Database = {
         | "shipping_delay"
         | "billing_error"
         | "other"
+        | "auction_non_delivery"
+        | "auction_misrepresentation"
+        | "auction_payment"
       email_frequency: "instant" | "daily" | "weekly"
       fraud_flag_severity: "low" | "medium" | "high" | "critical"
       fraud_flag_status: "pending" | "reviewed" | "approved" | "revoked"
@@ -3179,6 +3182,9 @@ export const Constants = {
         "shipping_delay",
         "billing_error",
         "other",
+        "auction_non_delivery",
+        "auction_misrepresentation",
+        "auction_payment",
       ],
       email_frequency: ["instant", "daily", "weekly"],
       fraud_flag_severity: ["low", "medium", "high", "critical"],

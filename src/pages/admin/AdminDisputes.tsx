@@ -23,11 +23,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   AlertTriangle, CheckCircle, XCircle, Eye, Shield, RefreshCw, Send,
-  Clock, MessageSquare, Package,
+  Clock, MessageSquare, Package, Gavel, Banknote,
 } from "lucide-react";
 
 type DisputeStatus = "open" | "under_review" | "awaiting_evidence" | "resolved" | "rejected" | "escalated";
-type DisputeType = "damaged_item" | "wrong_item" | "missing_item" | "quality_issue" | "shipping_delay" | "billing_error" | "other";
+type DisputeType = "damaged_item" | "wrong_item" | "missing_item" | "quality_issue" | "shipping_delay" | "billing_error" | "auction_non_delivery" | "auction_misrepresentation" | "auction_payment" | "other";
 
 interface Dispute {
   id: string;
@@ -59,7 +59,10 @@ interface DisputeEvent {
 const typeLabels: Record<DisputeType, string> = {
   damaged_item: "Artículo dañado", wrong_item: "Artículo incorrecto",
   missing_item: "Artículo faltante", quality_issue: "Calidad",
-  shipping_delay: "Retraso envío", billing_error: "Facturación", other: "Otro",
+  shipping_delay: "Retraso envío", billing_error: "Facturación",
+  auction_non_delivery: "Subasta: no entregado",
+  auction_misrepresentation: "Subasta: descripción incorrecta",
+  auction_payment: "Subasta: pago", other: "Otro",
 };
 
 const statusLabels: Record<DisputeStatus, string> = {
@@ -189,6 +192,52 @@ const AdminDisputes = () => {
       setResolutionSummary("");
     },
     onError: (e) => toast.error(`Error: ${e.message}`),
+  });
+
+  // Refund trigger for order-linked disputes
+  const refundMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedDispute?.order_id) throw new Error("No hay pedido vinculado");
+      // Fetch the order's Stripe payment intent
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .select("stripe_payment_intent_id, total_amount, status")
+        .eq("id", selectedDispute.order_id)
+        .single();
+      if (orderErr || !order) throw new Error("Pedido no encontrado");
+      if (!order.stripe_payment_intent_id) throw new Error("No hay pago asociado al pedido");
+      if (order.status === "refunded") throw new Error("El pedido ya fue reembolsado");
+
+      // Call Stripe webhook handler indirectly by creating a refund via Stripe
+      // The charge.refunded webhook will handle inventory and invoice updates
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: {
+          action: "refund",
+          payment_intent_id: order.stripe_payment_intent_id,
+          reason: `Disputa #${selectedDispute.id.slice(0, 8)}: ${selectedDispute.subject}`,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Log refund event in dispute timeline
+      await supabase.from("dispute_events").insert({
+        dispute_id: selectedDispute.id,
+        actor_id: user!.id,
+        actor_role: "admin",
+        event_type: "refund_issued",
+        message: `Reembolso procesado por ${order.total_amount?.toFixed(2)} €`,
+        metadata: { payment_intent_id: order.stripe_payment_intent_id },
+      });
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-disputes"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dispute-events", selectedDispute?.id] });
+      toast.success("Reembolso procesado correctamente");
+    },
+    onError: (e: Error) => toast.error(`Error reembolso: ${e.message}`),
   });
 
   // Stats
@@ -329,6 +378,11 @@ const AdminDisputes = () => {
                       <Package className="h-3 w-3" /> Pedido vinculado
                     </Badge>
                   )}
+                  {selectedDispute.auction_id && (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Gavel className="h-3 w-3" /> Subasta vinculada
+                    </Badge>
+                  )}
                 </>
               )}
             </div>
@@ -384,6 +438,23 @@ const AdminDisputes = () => {
                   placeholder="Descripción de la resolución..."
                 />
               </div>
+            )}
+
+            {/* Refund trigger */}
+            {selectedDispute?.order_id && (
+              <Button
+                variant="outline"
+                className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                onClick={() => {
+                  if (confirm("¿Procesar reembolso completo del pedido vinculado?")) {
+                    refundMutation.mutate();
+                  }
+                }}
+                disabled={refundMutation.isPending}
+              >
+                <Banknote className="h-4 w-4 mr-2" />
+                {refundMutation.isPending ? "Procesando..." : "Emitir reembolso"}
+              </Button>
             )}
 
             <div className="flex gap-2">
