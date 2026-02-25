@@ -504,6 +504,9 @@ serve(async (req) => {
 
     console.log("Checkout session created:", session.id);
 
+    // Emit checkout success metric
+    await supabaseAdmin.rpc("emit_metric", { p_name: "checkout.created", p_value: 1, p_type: "counter", p_tags: { country: shippingCountry, has_referral: !!validReferralCode } }).catch(() => {});
+
     return new Response(
       JSON.stringify({
         clientSecret: session.client_secret,
@@ -521,6 +524,8 @@ serve(async (req) => {
   } catch (error) {
     console.error("Checkout error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    // Emit checkout error metric
+    await supabaseAdmin.rpc("emit_metric", { p_name: "checkout.error", p_value: 1, p_type: "counter", p_tags: { error: errorMessage.slice(0, 200) } }).catch(() => {});
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
