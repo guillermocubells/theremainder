@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import { Loader2, Gavel, Clock, Calendar as CalIcon, Tag, ArrowRight } from 'lucide-react';
 import { format, formatDistanceToNow, isPast, isFuture } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -89,7 +91,8 @@ const AuctionPreview = () => {
               const state = getAuctionState(auction);
               return (
                 <div key={auction.id} className="space-y-4">
-                  <Card className="overflow-hidden">
+                  <Link to={`/subastas/${auction.slug}`} className="block">
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="flex flex-col md:flex-row">
                       {/* Image */}
                       <div className="md:w-80 flex-shrink-0">
@@ -187,9 +190,14 @@ const AuctionPreview = () => {
                             Comienza en {formatDistanceToNow(new Date(auction.starts_at), { locale: es })}
                           </p>
                         )}
+
+                        <Button variant="outline" size="sm" className="w-fit mt-2">
+                          Ver lote <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                        </Button>
                       </div>
                     </div>
                   </Card>
+                  </Link>
 
                   {/* Bidding panel for live auctions */}
                   {state === 'live' && (

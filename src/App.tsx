@@ -37,6 +37,7 @@ import AdminReferrals from "./pages/admin/AdminReferrals";
 import AdminFraudFlags from "./pages/admin/AdminFraudFlags";
 import AdminAuctions from "./pages/admin/AdminAuctions";
 import AuctionPreview from "./pages/AuctionPreview";
+import AuctionDetail from "./pages/AuctionDetail";
 
 // Collection module pages
 import { 
@@ -118,8 +119,10 @@ const App = () => (
               {/* Public shared search list (no auth required) */}
               <Route path="/garden/shared/:slug" element={<SharedSearchListPage />} />
               
-              {/* Public auction preview */}
+              {/* Public auction routes */}
+              <Route path="/subastas" element={<AuctionPreview />} />
               <Route path="/subastas/preview" element={<AuctionPreview />} />
+              <Route path="/subastas/:slug" element={<AuctionDetail />} />
               
               {/* Admin routes */}
               <Route path="/admin" element={<AdminLayout />}>
