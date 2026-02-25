@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft, ShoppingBag, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Address } from "@/hooks/useAddresses";
+import SavedAddressSelector from "@/components/checkout/SavedAddressSelector";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -104,8 +106,8 @@ const Checkout = () => {
     email: user?.email || "",
   });
   const [errors, setErrors] = useState<Partial<ShippingForm & { country: string }>>({});
-  // Track which fields have been touched (for blur validation)
   const [touched, setTouched] = useState<Partial<Record<keyof ShippingForm | "country", boolean>>>({});
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   // Get shipping quote from backend
   const { quote, isLoading: isQuoteLoading, error: quoteError } = useShippingQuote({
@@ -320,11 +322,37 @@ const Checkout = () => {
 
   const handleChange = (field: keyof ShippingForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    // Re-validate on change if field was already touched and has an error
+    // Clear saved address selection when user manually edits address fields
+    if (selectedAddressId && field !== "email" && field !== "notes") {
+      setSelectedAddressId(null);
+    }
     if (touched[field] && errors[field]) {
-      // Defer validation to next tick so state is updated
       setTimeout(() => validateField(field), 0);
     }
+  };
+
+  const handleSelectSavedAddress = (address: Address) => {
+    setSelectedAddressId(address.id);
+    setForm((prev) => ({
+      ...prev,
+      fullName: address.full_name,
+      phone: address.phone || "",
+      street: address.street,
+      apartment: address.apartment || "",
+      postalCode: address.postal_code,
+      city: address.city,
+      province: address.province,
+    }));
+    // Update country if different
+    if (address.country === "España" || address.country === "ES") {
+      setShippingCountry("ES");
+    }
+    // Clear address errors
+    setErrors((prev) => {
+      const next = { ...prev };
+      (["fullName", "phone", "street", "apartment", "postalCode", "city", "province"] as const).forEach((k) => { next[k] = undefined; });
+      return next;
+    });
   };
 
   const handleCountryChange = (value: string) => {
@@ -332,7 +360,6 @@ const Checkout = () => {
     if (errors.country) {
       setErrors((prev) => ({ ...prev, country: undefined }));
     }
-    // Re-validate postal code when country changes if already touched
     if (touched.postalCode && form.postalCode) {
       setTimeout(() => validateField("postalCode"), 0);
     }
@@ -464,6 +491,14 @@ const Checkout = () => {
             onStepClick={goToStep}
           >
             <div className="grid sm:grid-cols-2 gap-4">
+              {/* Saved address selector */}
+              <div className="sm:col-span-2">
+                <SavedAddressSelector
+                  selectedAddressId={selectedAddressId}
+                  onSelect={handleSelectSavedAddress}
+                />
+              </div>
+
               <div className="sm:col-span-2">
                 <Label htmlFor="fullName">{t("common.form.fullName")} *</Label>
                 <Input
