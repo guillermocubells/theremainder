@@ -1206,6 +1206,60 @@ export type Database = {
           },
         ]
       }
+      job_queue: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          job_type: string
+          last_error: string | null
+          max_attempts: number
+          next_retry_at: string | null
+          payload: Json
+          priority: number
+          scheduled_at: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          job_type: string
+          last_error?: string | null
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload?: Json
+          priority?: number
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          job_type?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload?: Json
+          priority?: number
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -2540,6 +2594,7 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_backoff: { Args: { p_attempts: number }; Returns: unknown }
       calculate_invoice_hash: {
         Args: {
           p_invoice_number: string
@@ -2582,6 +2637,17 @@ export type Database = {
           p_order_id: string
           p_rectification_reason?: string
           p_rectifies_invoice_id?: string
+        }
+        Returns: string
+      }
+      enqueue_job: {
+        Args: {
+          p_idempotency_key?: string
+          p_job_type: string
+          p_max_attempts?: number
+          p_payload?: Json
+          p_priority?: number
+          p_scheduled_at?: string
         }
         Returns: string
       }
