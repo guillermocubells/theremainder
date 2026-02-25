@@ -143,6 +143,7 @@ export type Database = {
           current_price: number
           description: string | null
           dimensions: Json | null
+          display_order: number
           ends_at: string | null
           id: string
           images: string[] | null
@@ -180,6 +181,7 @@ export type Database = {
           current_price?: number
           description?: string | null
           dimensions?: Json | null
+          display_order?: number
           ends_at?: string | null
           id?: string
           images?: string[] | null
@@ -217,6 +219,7 @@ export type Database = {
           current_price?: number
           description?: string | null
           dimensions?: Json | null
+          display_order?: number
           ends_at?: string | null
           id?: string
           images?: string[] | null
