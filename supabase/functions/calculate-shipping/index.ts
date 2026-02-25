@@ -5,62 +5,82 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ── Rate limiting ──
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 30; // 30 req/min per IP
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
+
+// ── Input validation ──
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,198}[a-z0-9]$/;
+const COUNTRY_CODE_RE = /^[A-Z]{2}$/;
+
+function isValidPlantId(id: string): boolean {
+  return UUID_RE.test(id) || SLUG_RE.test(id);
+}
+
+function jsonError(message: string, status = 400) {
+  return new Response(
+    JSON.stringify({ error: message }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" }, status }
+  );
+}
+
 // EU VAT rates by country (standard rates as of 2025)
 const VAT_RATES: Record<string, number> = {
-  ES: 21,   // Spain
-  PT: 23,   // Portugal
-  FR: 20,   // France
-  DE: 19,   // Germany
-  BE: 21,   // Belgium
-  NL: 21,   // Netherlands
-  LU: 17,   // Luxembourg
-  AT: 20,   // Austria
-  IT: 22,   // Italy
-  SE: 25,   // Sweden
-  DK: 25,   // Denmark
-  FI: 25.5, // Finland
-  PL: 23,   // Poland
-  CZ: 21,   // Czech Republic
-  SK: 23,   // Slovakia
-  HU: 27,   // Hungary
-  RO: 19,   // Romania
-  BG: 20,   // Bulgaria
-  HR: 25,   // Croatia
-  SI: 22,   // Slovenia
-  EE: 22,   // Estonia
-  LV: 21,   // Latvia
-  LT: 21,   // Lithuania
-  IE: 23,   // Ireland
-  MT: 18,   // Malta
-  CY: 19,   // Cyprus
-  GR: 24,   // Greece
+  ES: 21, PT: 23, FR: 20, DE: 19, BE: 21, NL: 21, LU: 17, AT: 20,
+  IT: 22, SE: 25, DK: 25, FI: 25.5, PL: 23, CZ: 21, SK: 23, HU: 27,
+  RO: 19, BG: 20, HR: 25, SI: 22, EE: 22, LV: 21, LT: 21, IE: 23,
+  MT: 18, CY: 19, GR: 24,
 };
-
-interface CalculateShippingRequest {
-  items: Array<{ plantId: string; quantity: number }>;
-  countryCode: string;
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { items, countryCode }: CalculateShippingRequest = await req.json();
+  // Rate limit
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!checkRateLimit(clientIp)) {
+    return jsonError("Rate limit exceeded. Try again later.", 429);
+  }
 
-    if (!items || items.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "No items provided" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-      );
+  try {
+    const body = await req.json();
+    const { items, countryCode } = body;
+
+    // ── Validate countryCode ──
+    if (!countryCode || typeof countryCode !== "string" || !COUNTRY_CODE_RE.test(countryCode)) {
+      return jsonError("Invalid or missing country code (expected 2-letter ISO code)");
     }
 
-    if (!countryCode) {
-      return new Response(
-        JSON.stringify({ error: "Country code is required" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-      );
+    // ── Validate items array ──
+    if (!Array.isArray(items) || items.length === 0) {
+      return jsonError("items must be a non-empty array");
+    }
+    if (items.length > 50) {
+      return jsonError("Too many items (max 50)");
+    }
+
+    for (const item of items) {
+      if (!item.plantId || typeof item.plantId !== "string" || !isValidPlantId(item.plantId)) {
+        return jsonError(`Invalid plantId: ${String(item.plantId).slice(0, 50)}`);
+      }
+      if (typeof item.quantity !== "number" || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 100) {
+        return jsonError(`Invalid quantity for ${item.plantId}: must be integer 1-100`);
+      }
     }
 
     const supabase = createClient(
@@ -88,15 +108,14 @@ Deno.serve(async (req) => {
     }
 
     // Get product data from database
-    const plantIds = items.map((i) => i.plantId);
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const uuids = plantIds.filter(id => uuidRegex.test(id));
-    const slugs = plantIds.filter(id => !uuidRegex.test(id));
-    
+    const plantIds = items.map((i: { plantId: string }) => i.plantId);
+    const uuids = plantIds.filter((id: string) => UUID_RE.test(id));
+    const slugs = plantIds.filter((id: string) => !UUID_RE.test(id));
+
     const orClauses: string[] = [];
-    if (slugs.length > 0) orClauses.push(`slug.in.(${slugs.map(s => `"${s}"`).join(",")})`);
-    if (uuids.length > 0) orClauses.push(`id.in.(${uuids.map(u => `"${u}"`).join(",")})`);
-    
+    if (slugs.length > 0) orClauses.push(`slug.in.(${slugs.map((s: string) => `"${s}"`).join(",")})`);
+    if (uuids.length > 0) orClauses.push(`id.in.(${uuids.map((u: string) => `"${u}"`).join(",")})`);
+
     const { data: plants, error: plantsError } = await supabase
       .from("plants")
       .select("id, slug, price, sale_price, weight_grams, name")
@@ -105,10 +124,7 @@ Deno.serve(async (req) => {
 
     if (plantsError) {
       console.error("Error fetching plants:", plantsError);
-      return new Response(
-        JSON.stringify({ error: "Error fetching product data" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-      );
+      return jsonError("Error fetching product data", 500);
     }
 
     // Build lookup by slug and id
@@ -125,10 +141,7 @@ Deno.serve(async (req) => {
     for (const item of items) {
       const plant = plantLookup.get(item.plantId);
       if (!plant) {
-        return new Response(
-          JSON.stringify({ error: `Product not found: ${item.plantId}` }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-        );
+        return jsonError(`Product not found: ${item.plantId}`);
       }
       const priceCents = Math.round((plant.sale_price ?? plant.price) * 100);
       const weight = plant.weight_grams ?? 2000;
@@ -143,7 +156,7 @@ Deno.serve(async (req) => {
       ? Math.round(zone.free_shipping_threshold * 100)
       : null;
 
-    const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+    const totalItems = items.reduce((sum: number, i: { quantity: number }) => sum + i.quantity, 0);
     const qualifiesForFreeShipping =
       freeShippingThresholdCents !== null &&
       subtotalCents >= freeShippingThresholdCents;
@@ -153,17 +166,14 @@ Deno.serve(async (req) => {
       shippingCostCents = baseCostCents + (totalItems - 1) * perItemCostCents;
     }
 
-    // Amount needed for free shipping
     let amountForFreeShippingCents: number | null = null;
     if (freeShippingThresholdCents !== null && !qualifiesForFreeShipping) {
       amountForFreeShippingCents = freeShippingThresholdCents - subtotalCents;
     }
 
     // Tax calculation — prices are VAT-inclusive (IVA incluido)
-    // The displayed subtotal already includes VAT, so we extract the tax component
-    const vatRate = VAT_RATES[countryCode] ?? 21; // default to 21% if unknown
+    const vatRate = VAT_RATES[countryCode] ?? 21;
     const taxableAmountCents = subtotalCents + shippingCostCents;
-    // base = total_incl / (1 + rate/100)
     const baseImponibleCents = Math.round(taxableAmountCents / (1 + vatRate / 100));
     const taxAmountCents = taxableAmountCents - baseImponibleCents;
 
@@ -172,12 +182,10 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         supported: true,
-        // Amounts
         subtotalCents,
         shippingCostCents,
         totalCents,
         totalWeightGrams,
-        // Shipping tier details
         isFreeShipping: qualifiesForFreeShipping,
         amountForFreeShippingCents,
         freeShippingThresholdCents,
@@ -187,7 +195,6 @@ Deno.serve(async (req) => {
         deliveryDaysMin: zone.delivery_days_min,
         deliveryDaysMax: zone.delivery_days_max,
         zoneName: zone.country_name,
-        // Tax breakdown
         vatRate,
         baseImponibleCents,
         taxAmountCents,

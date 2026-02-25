@@ -10,13 +10,58 @@ function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
 }
 
+// ── Rate limiting ──
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 60; // 60 req/min per IP (generous for catalog browsing)
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
+
+// ── Input sanitization ──
+function sanitizeSearchQuery(q: string): string {
+  // Strip dangerous characters that could break ilike queries
+  return q
+    .replace(/[%_\\]/g, '') // remove SQL wildcard chars
+    .replace(/<[^>]*>/g, '')  // strip HTML
+    .trim()
+    .slice(0, 200); // max 200 chars
+}
+
+const VALID_SLUG_RE = /^[a-z0-9-]+$/;
+const VALID_ENUM_RE = /^[a-z_]+$/;
+
+function isValidEnum(val: string | null, allowed: string[]): boolean {
+  return val === null || allowed.includes(val);
+}
+
 // Valid sort options to prevent injection
 const VALID_SORT_FIELDS = ["price", "name", "created_at", "display_order"] as const;
 type SortField = typeof VALID_SORT_FIELDS[number];
 
+const VALID_PLANT_TYPES = ["palm", "fern", "tree", "cycad", "shrub", "succulent", "other"];
+const VALID_DIFFICULTIES = ["easy", "intermediate", "advanced"];
+const VALID_RARITIES = ["common", "medium", "rare", "very_rare", "ultra_rare"];
+const VALID_WATER = ["low", "medium", "high"];
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  // Rate limit check
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!checkRateLimit(clientIp)) {
+    return json({ success: false, error: "Rate limit exceeded. Try again later." }, 429);
   }
 
   try {
@@ -34,27 +79,62 @@ Deno.serve(async (req: Request) => {
     if (req.method === "GET" && (path === "" || path === "/plants")) {
       const category = url.searchParams.get("category") || undefined;
       const plantType = url.searchParams.get("plant_type") || undefined;
-      const minPrice = url.searchParams.get("min_price") ? parseFloat(url.searchParams.get("min_price")!) : undefined;
-      const maxPrice = url.searchParams.get("max_price") ? parseFloat(url.searchParams.get("max_price")!) : undefined;
+      const minPriceRaw = url.searchParams.get("min_price");
+      const maxPriceRaw = url.searchParams.get("max_price");
       const inStock = url.searchParams.get("in_stock") === "true" ? true : undefined;
       const climateZone = url.searchParams.get("climate_zone") || undefined;
       const difficulty = url.searchParams.get("difficulty") || undefined;
-      const search = url.searchParams.get("q")?.trim() || undefined;
+      const searchRaw = url.searchParams.get("q")?.trim() || undefined;
       const featured = url.searchParams.get("featured") === "true" ? true : undefined;
       const rarity = url.searchParams.get("rarity") || undefined;
       const water = url.searchParams.get("water") || undefined;
       const exposure = url.searchParams.get("exposure") || undefined;
 
+      // ── Validate enum filters ──
+      if (plantType && !isValidEnum(plantType, VALID_PLANT_TYPES)) {
+        return json({ success: false, error: "Invalid plant_type value" }, 400);
+      }
+      if (difficulty && !isValidEnum(difficulty, VALID_DIFFICULTIES)) {
+        return json({ success: false, error: "Invalid difficulty value" }, 400);
+      }
+      if (rarity && !isValidEnum(rarity, VALID_RARITIES)) {
+        return json({ success: false, error: "Invalid rarity value" }, 400);
+      }
+      if (water && !isValidEnum(water, VALID_WATER)) {
+        return json({ success: false, error: "Invalid water value" }, 400);
+      }
+
+      // ── Validate numeric filters ──
+      const minPrice = minPriceRaw ? parseFloat(minPriceRaw) : undefined;
+      const maxPrice = maxPriceRaw ? parseFloat(maxPriceRaw) : undefined;
+      if (minPrice !== undefined && (isNaN(minPrice) || minPrice < 0 || minPrice > 100000)) {
+        return json({ success: false, error: "Invalid min_price" }, 400);
+      }
+      if (maxPrice !== undefined && (isNaN(maxPrice) || maxPrice < 0 || maxPrice > 100000)) {
+        return json({ success: false, error: "Invalid max_price" }, 400);
+      }
+
+      // ── Sanitize search query ──
+      const search = searchRaw ? sanitizeSearchQuery(searchRaw) : undefined;
+      if (searchRaw && (!search || search.length < 1)) {
+        return json({ success: false, error: "Invalid search query" }, 400);
+      }
+
+      // ── Validate category slug format ──
+      if (category && !VALID_SLUG_RE.test(category)) {
+        return json({ success: false, error: "Invalid category slug" }, 400);
+      }
+
       // Pagination (clamped)
-      const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50"), 1), 100);
-      const offset = Math.max(parseInt(url.searchParams.get("offset") || "0"), 0);
+      const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50") || 50, 1), 100);
+      const offset = Math.max(parseInt(url.searchParams.get("offset") || "0") || 0, 0);
 
       // Sorting
       const sortParam = url.searchParams.get("sort") || "display_order";
       const sortField: SortField = VALID_SORT_FIELDS.includes(sortParam as SortField)
         ? (sortParam as SortField)
         : "display_order";
-      const sortOrder = url.searchParams.get("order") === "desc" ? false : true; // ascending by default
+      const sortOrder = url.searchParams.get("order") === "desc" ? false : true;
 
       let query = supabase
         .from("plants")
@@ -90,7 +170,7 @@ Deno.serve(async (req: Request) => {
       if (exposure) query = query.contains("exposure", [exposure]);
       if (featured) query = query.eq("is_featured", true);
 
-      // --- Text search (name, scientific_name, common_name, description) ---
+      // --- Text search (sanitized) ---
       if (search) {
         query = query.or(
           `name.ilike.%${search}%,scientific_name.ilike.%${search}%,common_name.ilike.%${search}%,short_description.ilike.%${search}%`
@@ -123,7 +203,7 @@ Deno.serve(async (req: Request) => {
     if (req.method === "GET" && path.startsWith("/plants/")) {
       const slug = path.replace("/plants/", "");
 
-      if (!slug || slug.includes("/")) {
+      if (!slug || slug.includes("/") || slug.length > 200 || !VALID_SLUG_RE.test(slug)) {
         return json({ success: false, error: "Invalid slug" }, 400);
       }
 
