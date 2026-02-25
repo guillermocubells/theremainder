@@ -16,7 +16,6 @@ interface InquiryFormProps {
   plantId: string;
   sharedListId: string;
   availabilityIntent: string;
-  ownerUserId: string;
 }
 
 const InquiryForm = ({
@@ -26,7 +25,6 @@ const InquiryForm = ({
   plantId,
   sharedListId,
   availabilityIntent,
-  ownerUserId,
 }: InquiryFormProps) => {
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
@@ -43,7 +41,6 @@ const InquiryForm = ({
         body: {
           owned_plant_id: plantId,
           shared_list_id: sharedListId,
-          owner_user_id: ownerUserId,
           message: message.trim(),
           viewer_email: email.trim() || null,
           offer_type: offerType,

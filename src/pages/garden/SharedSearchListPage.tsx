@@ -87,7 +87,6 @@ const SharedSearchListPage = () => {
     id: string;
     name: string;
     availabilityIntent: string;
-    ownerUserId: string;
     sharedListId: string;
   } | null>(null);
 
@@ -325,7 +324,6 @@ const SharedSearchListPage = () => {
                           id: item.id,
                           name: item.name,
                           availabilityIntent: item.availabilityIntent,
-                          ownerUserId: sharedList.user_id,
                           sharedListId: sharedList.id,
                         })}
                       >
@@ -367,7 +365,6 @@ const SharedSearchListPage = () => {
           plantId={inquiryPlant.id}
           sharedListId={inquiryPlant.sharedListId}
           availabilityIntent={inquiryPlant.availabilityIntent}
-          ownerUserId={inquiryPlant.ownerUserId}
         />
       )}
     </div>
