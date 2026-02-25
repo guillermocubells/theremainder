@@ -24,10 +24,18 @@ function isRateLimited(identifier: string): boolean {
 }
 
 function sanitizeText(text: string): string {
-  return text
+  // Normalize unicode first to prevent lookalike attacks
+  const normalized = text.normalize('NFC');
+  return normalized
     .replace(/<[^>]*>/g, '') // strip HTML
     .replace(/[^\p{L}\p{N}\p{P}\p{Z}\p{Emoji}]/gu, '') // allow letters, numbers, punctuation, spaces, emoji
     .trim();
+}
+
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+function isValidEmail(email: string): boolean {
+  return EMAIL_REGEX.test(email) && email.length <= 254;
 }
 
 function hashIdentifier(input: string): string {
@@ -56,16 +64,23 @@ Deno.serve(async (req) => {
     const {
       owned_plant_id,
       shared_list_id,
-      owner_user_id,
       message,
       viewer_email,
       offer_type,
     } = body;
 
     // Validation
-    if (!owned_plant_id || !owner_user_id || !message) {
+    if (!owned_plant_id || !message) {
       return new Response(
         JSON.stringify({ error: 'Faltan campos obligatorios' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate email format if provided
+    if (viewer_email && !isValidEmail(viewer_email)) {
+      return new Response(
+        JSON.stringify({ error: 'Formato de email inválido' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -97,6 +112,23 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Verify plant exists and get owner from the database (don't trust client-supplied owner_user_id)
+    const { data: plant, error: plantError } = await supabase
+      .from('owned_plants')
+      .select('id, visibility_in_shared_lists, allow_inquiries, inquiry_handling_mode, user_id')
+      .eq('id', owned_plant_id)
+      .single();
+
+    if (plantError || !plant) {
+      return new Response(
+        JSON.stringify({ error: 'Planta no encontrada' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Derive owner_user_id from plant record (server-side, not from client)
+    const owner_user_id = plant.user_id;
+
     // Check if viewer is blocked
     const { data: blocks } = await supabase
       .from('garden_viewer_blocks')
@@ -110,20 +142,6 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'No se pudo enviar la consulta' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Verify plant exists and allows inquiries
-    const { data: plant, error: plantError } = await supabase
-      .from('owned_plants')
-      .select('id, visibility_in_shared_lists, allow_inquiries, inquiry_handling_mode, user_id')
-      .eq('id', owned_plant_id)
-      .single();
-
-    if (plantError || !plant) {
-      return new Response(
-        JSON.stringify({ error: 'Planta no encontrada' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
