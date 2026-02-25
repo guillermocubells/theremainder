@@ -303,6 +303,7 @@ serve(async (req) => {
       mode: "payment",
       ui_mode: "embedded",
       payment_method_types: ["card"],
+      allow_promotion_codes: true,
       billing_address_collection: "required",
       shipping_address_collection: {
         allowed_countries: allowedCountries as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
