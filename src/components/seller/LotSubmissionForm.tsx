@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuctionSubmission } from '@/hooks/useAuctionSubmission';
 import { useSellerProfile } from '@/hooks/useSellerProfile';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ImagePlus, Video, X, Loader2, Upload, AlertCircle } from 'lucide-react';
+import { ImagePlus, Video, X, Loader2, Upload, AlertCircle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import AuctionConsentGate from '@/components/auction/AuctionConsentGate';
 
@@ -34,11 +35,14 @@ type LotFormData = z.infer<typeof lotSchema>;
 const LotSubmissionForm = () => {
   const { profile } = useSellerProfile();
   const { submitLot } = useAuctionSubmission();
+  const queryClient = useQueryClient();
   const [images, setImages] = useState<string[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
+  const [provenanceDocs, setProvenanceDocs] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<LotFormData>({
     resolver: zodResolver(lotSchema),
@@ -61,14 +65,15 @@ const LotSubmissionForm = () => {
     );
   }
 
-  const handleFileUpload = async (files: FileList | null, type: 'image' | 'video') => {
+  const handleFileUpload = async (files: FileList | null, type: 'image' | 'video' | 'doc') => {
     if (!files || files.length === 0) return;
     setUploading(true);
     try {
       const uploaded: string[] = [];
       for (const file of Array.from(files)) {
         const ext = file.name.split('.').pop();
-        const path = `auctions/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const subdir = type === 'doc' ? 'docs' : '';
+        const path = `auctions/${subdir ? subdir + '/' : ''}${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         const { error } = await supabase.storage.from('plant-images').upload(path, file);
         if (error) throw error;
         const { data: { publicUrl } } = supabase.storage.from('plant-images').getPublicUrl(path);
@@ -76,8 +81,10 @@ const LotSubmissionForm = () => {
       }
       if (type === 'image') {
         setImages(prev => [...prev, ...uploaded].slice(0, 10));
-      } else {
+      } else if (type === 'video') {
         setVideos(prev => [...prev, ...uploaded].slice(0, 3));
+      } else {
+        setProvenanceDocs(prev => [...prev, ...uploaded].slice(0, 5));
       }
     } catch (e: any) {
       toast.error('Error al subir archivo: ' + e.message);
@@ -86,9 +93,10 @@ const LotSubmissionForm = () => {
     }
   };
 
-  const removeMedia = (url: string, type: 'image' | 'video') => {
+  const removeMedia = (url: string, type: 'image' | 'video' | 'doc') => {
     if (type === 'image') setImages(prev => prev.filter(i => i !== url));
-    else setVideos(prev => prev.filter(v => v !== url));
+    else if (type === 'video') setVideos(prev => prev.filter(v => v !== url));
+    else setProvenanceDocs(prev => prev.filter(d => d !== url));
   };
 
   const onSubmit = async (data: LotFormData) => {
@@ -113,6 +121,7 @@ const LotSubmissionForm = () => {
       },
       images,
       videos,
+      provenance_documents: provenanceDocs,
     });
   };
 
@@ -193,6 +202,35 @@ const LotSubmissionForm = () => {
               )}
             </div>
             <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={e => handleFileUpload(e.target.files, 'video')} />
+          </div>
+
+          {/* Provenance Documents */}
+          <div className="space-y-3">
+            <Label>Documentos de procedencia ({provenanceDocs.length}/5)</Label>
+            <p className="text-xs text-muted-foreground">Certificados, facturas de compra, fotos históricas u otros documentos que acrediten el origen del ejemplar.</p>
+            <div className="flex flex-wrap gap-2">
+              {provenanceDocs.map((url, i) => (
+                <div key={url} className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Doc {i + 1}</span>
+                  <button type="button" onClick={() => removeMedia(url, 'doc')}>
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {provenanceDocs.length < 5 && (
+                <button
+                  type="button"
+                  onClick={() => docInputRef.current?.click()}
+                  disabled={uploading}
+                  className="flex items-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/30 px-4 py-2 hover:border-primary transition-colors"
+                >
+                  <Upload className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Subir documento</span>
+                </button>
+              )}
+            </div>
+            <input ref={docInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple className="hidden" onChange={e => handleFileUpload(e.target.files, 'doc')} />
           </div>
 
           {/* Pricing */}
