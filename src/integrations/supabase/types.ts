@@ -1663,6 +1663,53 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_reservations: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          plant_id: string
+          quantity: number
+          session_id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          plant_id: string
+          quantity: number
+          session_id: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          plant_id?: string
+          quantity?: number
+          session_id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_reservations_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_settings: {
         Row: {
           description: string | null
@@ -1975,6 +2022,10 @@ export type Database = {
           is_blocked: boolean
         }[]
       }
+      confirm_reservation_by_session: {
+        Args: { p_payment_intent_id?: string; p_session_id: string }
+        Returns: number
+      }
       create_invoice_from_order: {
         Args: { p_order_id: string }
         Returns: string
@@ -2036,6 +2087,25 @@ export type Database = {
       }
       mature_pending_rewards: { Args: never; Returns: number }
       owns_plant: { Args: { plant_id: string }; Returns: boolean }
+      release_expired_reservations: { Args: never; Returns: number }
+      release_reservation: {
+        Args: { p_reservation_id: string }
+        Returns: boolean
+      }
+      release_reservations_by_session: {
+        Args: { p_session_id: string }
+        Returns: number
+      }
+      reserve_stock: {
+        Args: {
+          p_plant_id: string
+          p_quantity: number
+          p_session_id: string
+          p_ttl_minutes?: number
+          p_user_id?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "user"
