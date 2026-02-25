@@ -44,6 +44,9 @@ type DisputeType =
   | "quality_issue"
   | "shipping_delay"
   | "billing_error"
+  | "auction_non_delivery"
+  | "auction_misrepresentation"
+  | "auction_payment"
   | "other";
 
 type DisputeStatus =
@@ -87,6 +90,9 @@ const typeLabels: Record<DisputeType, string> = {
   quality_issue: "Problema de calidad",
   shipping_delay: "Retraso en envío",
   billing_error: "Error de facturación",
+  auction_non_delivery: "Subasta: no entregado",
+  auction_misrepresentation: "Subasta: descripción incorrecta",
+  auction_payment: "Subasta: problema de pago",
   other: "Otro",
 };
 
@@ -120,6 +126,7 @@ const AccountDisputes = () => {
   const [formSubject, setFormSubject] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formOrderId, setFormOrderId] = useState("");
+  const [formAuctionId, setFormAuctionId] = useState("");
 
   // Fetch disputes
   const { data: disputes, isLoading } = useQuery({
@@ -150,6 +157,31 @@ const AccountDisputes = () => {
     enabled: !!user,
   });
 
+  // Fetch user auctions (won or participated)
+  const { data: userAuctions } = useQuery({
+    queryKey: ["user-auctions-for-dispute"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bids")
+        .select("auction_id, auctions!inner(id, title, status)")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      if (error) return [];
+      // Deduplicate by auction_id
+      const seen = new Set<string>();
+      return (data || []).filter((b: any) => {
+        if (seen.has(b.auction_id)) return false;
+        seen.add(b.auction_id);
+        return true;
+      }).map((b: any) => ({
+        id: b.auction_id,
+        title: (b.auctions as any)?.title || b.auction_id.slice(0, 8),
+      }));
+    },
+    enabled: !!user,
+  });
+
   // Fetch timeline for selected dispute
   const { data: events } = useQuery({
     queryKey: ["dispute-events", selectedDispute?.id],
@@ -173,10 +205,11 @@ const AccountDisputes = () => {
         .from("disputes")
         .insert({
           user_id: user!.id,
-          type: formType,
+          type: formType as any,
           subject: formSubject,
           description: formDescription,
           order_id: formOrderId || null,
+          auction_id: formAuctionId || null,
         })
         .select()
         .single();
@@ -200,6 +233,7 @@ const AccountDisputes = () => {
       setFormSubject("");
       setFormDescription("");
       setFormOrderId("");
+      setFormAuctionId("");
     },
     onError: (e) => toast.error(`Error: ${e.message}`),
   });
@@ -327,6 +361,24 @@ const AccountDisputes = () => {
                     {orders.map((o) => (
                       <SelectItem key={o.id} value={o.id}>
                         {o.order_number} — {format(new Date(o.created_at), "dd/MM/yyyy")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {userAuctions && userAuctions.length > 0 && (
+              <div>
+                <label className="text-sm font-medium">Subasta relacionada (opcional)</label>
+                <Select value={formAuctionId} onValueChange={setFormAuctionId}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Seleccionar subasta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {userAuctions.map((a: any) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
