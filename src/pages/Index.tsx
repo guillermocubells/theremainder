@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import PlantsGrid from "@/components/PlantsGrid";
 import Footer from "@/components/Footer";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 import SectionErrorBoundary from "@/components/SectionErrorBoundary";
 import { useReferralTracking, cleanExpiredReferral } from "@/hooks/useReferralTracking";
 import { useEffect } from "react";
@@ -64,6 +65,7 @@ const Index = () => {
       <SectionErrorBoundary fallbackTitle="Error en el pie de página" minimal>
         <Footer />
       </SectionErrorBoundary>
+      <ScrollToTopButton />
     </div>
   );
 };
