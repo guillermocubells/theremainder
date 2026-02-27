@@ -57,6 +57,24 @@ const entryListParams = z.object({
   type: z.enum(ENTRY_TYPES).optional(),
 });
 
+const germCreate = z.object({
+  seed_batch_id: z.string().uuid().nullable().optional(),
+  method: z.string().max(100).nullable().optional(),
+  medium: z.string().max(100).nullable().optional(),
+  temp_c: z.number().min(-20).max(60).nullable().optional(),
+  humidity_pct: z.number().min(0).max(100).nullable().optional(),
+  light: z.string().max(100).nullable().optional(),
+  count_sown: z.number().int().min(0).max(100000).default(0),
+  count_germinated: z.number().int().min(0).max(100000).default(0),
+  first_sprout_at: z.string().datetime().nullable().optional(),
+  notes: z.string().max(5000).nullable().optional(),
+});
+
+const germListParams = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function assertUuid(id: string, label = "ID") {
@@ -86,24 +104,30 @@ async function authenticateRequest(req: Request) {
   return { userId: data.claims.sub as string, supabase };
 }
 
+function anonClient() {
+  return createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
+}
+
 // ── Route parser ──
 interface Route {
+  resource?: string; // "logs" or undefined
   logId?: string;
-  subResource?: string; // "entries"
-  entryId?: string;
+  subResource?: string; // "entries" | "germination"
+  subId?: string;
 }
 
 function parsePath(url: URL): Route {
   const segments = url.pathname.split("/").filter(Boolean);
-  // segments: [api-grow, logs?, logId?, entries?, entryId?]
+  // segments: [api-grow, logs?, logId?, entries|germination?, subId?]
   return {
+    resource: segments[1],
     logId: segments[2],
     subResource: segments[3],
-    entryId: segments[4],
+    subId: segments[4],
   };
 }
 
-// ── Log ownership helper ──
+// ── Log helpers ──
 async function verifyLogOwnership(
   supabase: ReturnType<typeof createClient>,
   logId: string,
@@ -119,157 +143,97 @@ async function verifyLogOwnership(
   if (error || !data) throw new AppError("Log not found or not owned", 404, "LOG_NOT_FOUND");
 }
 
+async function verifyLogAccess(
+  supabase: ReturnType<typeof createClient>,
+  logId: string,
+  userId: string | null,
+): Promise<void> {
+  assertUuid(logId, "log ID");
+  const { data } = await supabase.from("grow_logs").select("user_id, visibility").eq("id", logId).single();
+  if (!data) throw new AppError("Log not found", 404, "LOG_NOT_FOUND");
+  if (data.user_id !== userId && data.visibility === "private") {
+    throw new AppError("Log not found", 404, "LOG_NOT_FOUND");
+  }
+}
+
 // ════════════════════════════════════════
 //  LOG HANDLERS
 // ════════════════════════════════════════
 
 async function handleListLogs(
-  req: Request,
-  userId: string,
-  supabase: ReturnType<typeof createClient>,
-  rh: Record<string, string>,
+  req: Request, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>,
 ): Promise<Response> {
-  const url = new URL(req.url);
-  const qp = Object.fromEntries(url.searchParams);
+  const qp = Object.fromEntries(new URL(req.url).searchParams);
   const v = validate(listParams, qp, rh);
   if (v.error) return v.error;
 
   const { page, limit, visibility, species } = v.data;
   const from = (page - 1) * limit;
-  const to = from + limit - 1;
 
-  let query = supabase
-    .from("grow_logs")
-    .select("*", { count: "exact" })
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .range(from, to);
-
+  let query = supabase.from("grow_logs").select("*", { count: "exact" })
+    .eq("user_id", userId).order("created_at", { ascending: false }).range(from, from + limit - 1);
   if (visibility) query = query.eq("visibility", visibility);
   if (species) query = query.ilike("species", `%${species}%`);
 
   const { data, error, count } = await query;
   if (error) throw new AppError("Failed to list logs", 500, "LIST_FAILED");
-
-  return new Response(
-    JSON.stringify({ data: data ?? [], meta: { page, limit, total: count ?? 0 } }),
-    { headers: { ...rh, "Content-Type": "application/json" } },
-  );
+  return new Response(JSON.stringify({ data: data ?? [], meta: { page, limit, total: count ?? 0 } }),
+    { headers: { ...rh, "Content-Type": "application/json" } });
 }
 
 async function handleGetLog(
-  logId: string,
-  userId: string | null,
-  supabase: ReturnType<typeof createClient>,
-  rh: Record<string, string>,
+  logId: string, userId: string | null, supabase: ReturnType<typeof createClient>, rh: Record<string, string>,
 ): Promise<Response> {
   assertUuid(logId, "log ID");
-
-  const { data, error } = await supabase
-    .from("grow_logs")
-    .select("*")
-    .eq("id", logId)
-    .single();
-
+  const { data, error } = await supabase.from("grow_logs").select("*").eq("id", logId).single();
   if (error || !data) throw new AppError("Log not found", 404, "LOG_NOT_FOUND");
-
-  if (data.user_id !== userId && data.visibility === "private") {
-    throw new AppError("Log not found", 404, "LOG_NOT_FOUND");
-  }
-
-  return new Response(JSON.stringify(data), {
-    headers: { ...rh, "Content-Type": "application/json" },
-  });
+  if (data.user_id !== userId && data.visibility === "private") throw new AppError("Log not found", 404, "LOG_NOT_FOUND");
+  return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
 }
 
 async function handleCreateLog(
-  req: Request,
-  userId: string,
-  supabase: ReturnType<typeof createClient>,
-  rh: Record<string, string>,
-  log: ReturnType<typeof createLogger>["log"],
+  req: Request, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>, log: any,
 ): Promise<Response> {
   let body: unknown;
   try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
-
   const v = validate(logCreate, body, rh);
   if (v.error) return v.error;
-
   if (v.data.taxon_id) {
     const { data: plant } = await supabase.from("plants").select("id").eq("id", v.data.taxon_id).single();
     if (!plant) throw new AppError("Invalid taxon_id: plant not found", 400, "INVALID_TAXON");
   }
-
-  const { data, error } = await supabase
-    .from("grow_logs")
-    .insert({ ...v.data, user_id: userId })
-    .select("*")
-    .single();
-
+  const { data, error } = await supabase.from("grow_logs").insert({ ...v.data, user_id: userId }).select("*").single();
   if (error) throw new AppError("Failed to create log", 500, "CREATE_FAILED");
-
   log.info("Log created", { id: data.id });
-  return new Response(JSON.stringify(data), {
-    status: 201,
-    headers: { ...rh, "Content-Type": "application/json" },
-  });
+  return new Response(JSON.stringify(data), { status: 201, headers: { ...rh, "Content-Type": "application/json" } });
 }
 
 async function handleUpdateLog(
-  req: Request,
-  logId: string,
-  userId: string,
-  supabase: ReturnType<typeof createClient>,
-  rh: Record<string, string>,
-  log: ReturnType<typeof createLogger>["log"],
+  req: Request, logId: string, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>, log: any,
 ): Promise<Response> {
   assertUuid(logId, "log ID");
-
   let body: unknown;
   try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
-
   const v = validate(logUpdate, body, rh);
   if (v.error) return v.error;
-
   if (Object.keys(v.data).length === 0) throw new AppError("No fields to update", 400, "EMPTY_UPDATE");
-
   if (v.data.taxon_id) {
     const { data: plant } = await supabase.from("plants").select("id").eq("id", v.data.taxon_id).single();
     if (!plant) throw new AppError("Invalid taxon_id: plant not found", 400, "INVALID_TAXON");
   }
-
-  const { data, error } = await supabase
-    .from("grow_logs")
-    .update(v.data)
-    .eq("id", logId)
-    .eq("user_id", userId)
-    .select("*")
-    .single();
-
+  const { data, error } = await supabase.from("grow_logs").update(v.data).eq("id", logId).eq("user_id", userId).select("*").single();
   if (error || !data) throw new AppError("Log not found or not owned", 404, "LOG_NOT_FOUND");
-
   log.info("Log updated", { id: logId });
   return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
 }
 
 async function handleDeleteLog(
-  logId: string,
-  userId: string,
-  supabase: ReturnType<typeof createClient>,
-  rh: Record<string, string>,
-  log: ReturnType<typeof createLogger>["log"],
+  logId: string, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>, log: any,
 ): Promise<Response> {
   assertUuid(logId, "log ID");
-
-  const { error, count } = await supabase
-    .from("grow_logs")
-    .delete({ count: "exact" })
-    .eq("id", logId)
-    .eq("user_id", userId);
-
+  const { error, count } = await supabase.from("grow_logs").delete({ count: "exact" }).eq("id", logId).eq("user_id", userId);
   if (error) throw new AppError("Failed to delete log", 500, "DELETE_FAILED");
   if (count === 0) throw new AppError("Log not found or not owned", 404, "LOG_NOT_FOUND");
-
   log.info("Log deleted", { id: logId });
   return new Response(null, { status: 204, headers: rh });
 }
@@ -279,145 +243,140 @@ async function handleDeleteLog(
 // ════════════════════════════════════════
 
 async function handleListEntries(
-  req: Request,
-  logId: string,
-  userId: string | null,
-  supabase: ReturnType<typeof createClient>,
-  rh: Record<string, string>,
+  req: Request, logId: string, userId: string | null, supabase: ReturnType<typeof createClient>, rh: Record<string, string>,
 ): Promise<Response> {
-  assertUuid(logId, "log ID");
-
-  // Verify log exists and is accessible
-  const { data: logData } = await supabase.from("grow_logs").select("user_id, visibility").eq("id", logId).single();
-  if (!logData) throw new AppError("Log not found", 404, "LOG_NOT_FOUND");
-  if (logData.user_id !== userId && logData.visibility === "private") {
-    throw new AppError("Log not found", 404, "LOG_NOT_FOUND");
-  }
-
-  const url = new URL(req.url);
-  const qp = Object.fromEntries(url.searchParams);
+  await verifyLogAccess(supabase, logId, userId);
+  const qp = Object.fromEntries(new URL(req.url).searchParams);
   const v = validate(entryListParams, qp, rh);
   if (v.error) return v.error;
-
   const { page, limit, type } = v.data;
   const from = (page - 1) * limit;
-  const to = from + limit - 1;
-
-  let query = supabase
-    .from("grow_entries")
-    .select("*", { count: "exact" })
-    .eq("log_id", logId)
-    .order("occurred_at", { ascending: false })
-    .range(from, to);
-
+  let query = supabase.from("grow_entries").select("*", { count: "exact" }).eq("log_id", logId)
+    .order("occurred_at", { ascending: false }).range(from, from + limit - 1);
   if (type) query = query.eq("type", type);
-
   const { data, error, count } = await query;
   if (error) throw new AppError("Failed to list entries", 500, "LIST_FAILED");
-
-  return new Response(
-    JSON.stringify({ data: data ?? [], meta: { page, limit, total: count ?? 0 } }),
-    { headers: { ...rh, "Content-Type": "application/json" } },
-  );
+  return new Response(JSON.stringify({ data: data ?? [], meta: { page, limit, total: count ?? 0 } }),
+    { headers: { ...rh, "Content-Type": "application/json" } });
 }
 
 async function handleCreateEntry(
-  req: Request,
-  logId: string,
-  userId: string,
-  supabase: ReturnType<typeof createClient>,
-  rh: Record<string, string>,
-  log: ReturnType<typeof createLogger>["log"],
+  req: Request, logId: string, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>, log: any,
 ): Promise<Response> {
   await verifyLogOwnership(supabase, logId, userId);
-
   let body: unknown;
   try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
-
   const v = validate(entryCreate, body, rh);
   if (v.error) return v.error;
-
-  const { data, error } = await supabase
-    .from("grow_entries")
-    .insert({
-      log_id: logId,
-      user_id: userId,
-      type: v.data.type,
-      occurred_at: v.data.occurred_at ?? new Date().toISOString(),
-      notes: v.data.notes ?? null,
-      rating: v.data.rating ?? null,
-      tags: v.data.tags,
-    })
-    .select("*")
-    .single();
-
+  const { data, error } = await supabase.from("grow_entries").insert({
+    log_id: logId, user_id: userId, type: v.data.type,
+    occurred_at: v.data.occurred_at ?? new Date().toISOString(),
+    notes: v.data.notes ?? null, rating: v.data.rating ?? null, tags: v.data.tags,
+  }).select("*").single();
   if (error) throw new AppError("Failed to create entry", 500, "CREATE_FAILED");
-
   log.info("Entry created", { id: data.id, logId });
-  return new Response(JSON.stringify(data), {
-    status: 201,
-    headers: { ...rh, "Content-Type": "application/json" },
-  });
+  return new Response(JSON.stringify(data), { status: 201, headers: { ...rh, "Content-Type": "application/json" } });
 }
 
 async function handleUpdateEntry(
-  req: Request,
-  logId: string,
-  entryId: string,
-  userId: string,
-  supabase: ReturnType<typeof createClient>,
-  rh: Record<string, string>,
-  log: ReturnType<typeof createLogger>["log"],
+  req: Request, logId: string, entryId: string, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>, log: any,
 ): Promise<Response> {
-  assertUuid(logId, "log ID");
-  assertUuid(entryId, "entry ID");
-
+  assertUuid(logId, "log ID"); assertUuid(entryId, "entry ID");
   let body: unknown;
   try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
-
   const v = validate(entryUpdate, body, rh);
   if (v.error) return v.error;
-
   if (Object.keys(v.data).length === 0) throw new AppError("No fields to update", 400, "EMPTY_UPDATE");
-
-  const { data, error } = await supabase
-    .from("grow_entries")
+  const { data, error } = await supabase.from("grow_entries")
     .update({ ...v.data, updated_at: new Date().toISOString() })
-    .eq("id", entryId)
-    .eq("log_id", logId)
-    .eq("user_id", userId)
-    .select("*")
-    .single();
-
+    .eq("id", entryId).eq("log_id", logId).eq("user_id", userId).select("*").single();
   if (error || !data) throw new AppError("Entry not found or not owned", 404, "ENTRY_NOT_FOUND");
-
   log.info("Entry updated", { id: entryId, logId });
   return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
 }
 
 async function handleDeleteEntry(
-  logId: string,
-  entryId: string,
-  userId: string,
-  supabase: ReturnType<typeof createClient>,
-  rh: Record<string, string>,
-  log: ReturnType<typeof createLogger>["log"],
+  logId: string, entryId: string, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>, log: any,
 ): Promise<Response> {
-  assertUuid(logId, "log ID");
-  assertUuid(entryId, "entry ID");
-
-  const { error, count } = await supabase
-    .from("grow_entries")
-    .delete({ count: "exact" })
-    .eq("id", entryId)
-    .eq("log_id", logId)
-    .eq("user_id", userId);
-
+  assertUuid(logId, "log ID"); assertUuid(entryId, "entry ID");
+  const { error, count } = await supabase.from("grow_entries").delete({ count: "exact" })
+    .eq("id", entryId).eq("log_id", logId).eq("user_id", userId);
   if (error) throw new AppError("Failed to delete entry", 500, "DELETE_FAILED");
   if (count === 0) throw new AppError("Entry not found or not owned", 404, "ENTRY_NOT_FOUND");
-
   log.info("Entry deleted", { id: entryId, logId });
   return new Response(null, { status: 204, headers: rh });
+}
+
+// ════════════════════════════════════════
+//  GERMINATION HANDLERS
+// ════════════════════════════════════════
+
+interface GermRow {
+  id: string;
+  count_sown: number;
+  count_germinated: number;
+  first_sprout_at: string | null;
+  created_at: string;
+  [key: string]: unknown;
+}
+
+function withComputed(row: GermRow) {
+  const germination_rate = row.count_sown > 0
+    ? Math.round((row.count_germinated / row.count_sown) * 10000) / 100
+    : null;
+
+  let days_to_first_sprout: number | null = null;
+  if (row.first_sprout_at && row.created_at) {
+    const diff = new Date(row.first_sprout_at).getTime() - new Date(row.created_at).getTime();
+    days_to_first_sprout = Math.max(0, Math.round(diff / 86_400_000));
+  }
+
+  return { ...row, germination_rate, days_to_first_sprout };
+}
+
+async function handleListGermination(
+  req: Request, logId: string, userId: string | null, supabase: ReturnType<typeof createClient>, rh: Record<string, string>,
+): Promise<Response> {
+  await verifyLogAccess(supabase, logId, userId);
+  const qp = Object.fromEntries(new URL(req.url).searchParams);
+  const v = validate(germListParams, qp, rh);
+  if (v.error) return v.error;
+  const { page, limit } = v.data;
+  const from = (page - 1) * limit;
+
+  const { data, error, count } = await supabase.from("germination_events")
+    .select("*", { count: "exact" }).eq("log_id", logId)
+    .order("created_at", { ascending: false }).range(from, from + limit - 1);
+  if (error) throw new AppError("Failed to list germination events", 500, "LIST_FAILED");
+
+  const enriched = (data ?? []).map((r: GermRow) => withComputed(r));
+  return new Response(JSON.stringify({ data: enriched, meta: { page, limit, total: count ?? 0 } }),
+    { headers: { ...rh, "Content-Type": "application/json" } });
+}
+
+async function handleCreateGermination(
+  req: Request, logId: string, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>, log: any,
+): Promise<Response> {
+  await verifyLogOwnership(supabase, logId, userId);
+  let body: unknown;
+  try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
+  const v = validate(germCreate, body, rh);
+  if (v.error) return v.error;
+
+  // Validate count_germinated <= count_sown
+  if (v.data.count_germinated > v.data.count_sown) {
+    throw new AppError("count_germinated cannot exceed count_sown", 400, "INVALID_COUNTS");
+  }
+
+  const { data, error } = await supabase.from("germination_events").insert({
+    log_id: logId, user_id: userId, ...v.data,
+  }).select("*").single();
+  if (error) throw new AppError("Failed to create germination event", 500, "CREATE_FAILED");
+
+  log.info("Germination event created", { id: data.id, logId });
+  return new Response(JSON.stringify(withComputed(data as GermRow)), {
+    status: 201, headers: { ...rh, "Content-Type": "application/json" },
+  });
 }
 
 // ── Main handler ──
@@ -432,45 +391,68 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const route = parsePath(url);
-    const isEntries = route.subResource === "entries";
+    const sub = route.subResource;
 
-    // ── Public GETs (visibility-gated) ──
-    if (req.method === "GET" && route.logId && !isEntries) {
+    // ── Helper: optional auth for public reads ──
+    const optionalAuth = async () => {
       const auth = await authenticateRequest(req);
-      const userId = auth.error ? null : auth.userId!;
-      const client = auth.error
-        ? createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!)
-        : auth.supabase!;
-      return await handleGetLog(route.logId, userId, client, rh);
+      return {
+        userId: auth.error ? null : auth.userId!,
+        client: auth.error ? anonClient() : auth.supabase!,
+      };
+    };
+
+    // ── Helper: required auth ──
+    const requireAuth = async () => {
+      const auth = await authenticateRequest(req);
+      if (auth.error) throw new AppError(auth.error, 401, "UNAUTHORIZED");
+      return { userId: auth.userId!, supabase: auth.supabase! };
+    };
+
+    // ════════════════════════════════
+    //  PUBLIC GETs (visibility-gated)
+    // ════════════════════════════════
+    if (req.method === "GET") {
+      // GET /logs/:id (single log)
+      if (route.logId && !sub) {
+        const { userId, client } = await optionalAuth();
+        return await handleGetLog(route.logId, userId, client, rh);
+      }
+      // GET /logs/:id/entries
+      if (route.logId && sub === "entries" && !route.subId) {
+        const { userId, client } = await optionalAuth();
+        return await handleListEntries(req, route.logId, userId, client, rh);
+      }
+      // GET /logs/:id/germination
+      if (route.logId && sub === "germination" && !route.subId) {
+        const { userId, client } = await optionalAuth();
+        return await handleListGermination(req, route.logId, userId, client, rh);
+      }
     }
 
-    if (req.method === "GET" && route.logId && isEntries && !route.entryId) {
-      const auth = await authenticateRequest(req);
-      const userId = auth.error ? null : auth.userId!;
-      const client = auth.error
-        ? createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!)
-        : auth.supabase!;
-      return await handleListEntries(req, route.logId, userId, client, rh);
-    }
-
-    // ── Authenticated routes ──
-    const auth = await authenticateRequest(req);
-    if (auth.error) throw new AppError(auth.error, 401, "UNAUTHORIZED");
-    const { userId, supabase } = auth;
+    // ════════════════════════════════
+    //  AUTHENTICATED ROUTES
+    // ════════════════════════════════
+    const { userId, supabase } = await requireAuth();
 
     // LOG routes
-    if (!isEntries) {
-      if (req.method === "GET" && !route.logId) return await handleListLogs(req, userId!, supabase!, rh);
-      if (req.method === "POST" && !route.logId) return await handleCreateLog(req, userId!, supabase!, rh, log);
-      if (req.method === "PATCH" && route.logId) return await handleUpdateLog(req, route.logId, userId!, supabase!, rh, log);
-      if (req.method === "DELETE" && route.logId) return await handleDeleteLog(route.logId, userId!, supabase!, rh, log);
+    if (!sub) {
+      if (req.method === "GET" && !route.logId) return await handleListLogs(req, userId, supabase, rh);
+      if (req.method === "POST" && !route.logId) return await handleCreateLog(req, userId, supabase, rh, log);
+      if (req.method === "PATCH" && route.logId) return await handleUpdateLog(req, route.logId, userId, supabase, rh, log);
+      if (req.method === "DELETE" && route.logId) return await handleDeleteLog(route.logId, userId, supabase, rh, log);
     }
 
     // ENTRY routes
-    if (isEntries && route.logId) {
-      if (req.method === "POST" && !route.entryId) return await handleCreateEntry(req, route.logId, userId!, supabase!, rh, log);
-      if (req.method === "PATCH" && route.entryId) return await handleUpdateEntry(req, route.logId, route.entryId, userId!, supabase!, rh, log);
-      if (req.method === "DELETE" && route.entryId) return await handleDeleteEntry(route.logId, route.entryId, userId!, supabase!, rh, log);
+    if (sub === "entries" && route.logId) {
+      if (req.method === "POST" && !route.subId) return await handleCreateEntry(req, route.logId, userId, supabase, rh, log);
+      if (req.method === "PATCH" && route.subId) return await handleUpdateEntry(req, route.logId, route.subId, userId, supabase, rh, log);
+      if (req.method === "DELETE" && route.subId) return await handleDeleteEntry(route.logId, route.subId, userId, supabase, rh, log);
+    }
+
+    // GERMINATION routes
+    if (sub === "germination" && route.logId) {
+      if (req.method === "POST" && !route.subId) return await handleCreateGermination(req, route.logId, userId, supabase, rh, log);
     }
 
     throw new AppError("Method not allowed", 405, "METHOD_NOT_ALLOWED");
