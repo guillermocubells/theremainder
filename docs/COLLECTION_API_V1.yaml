@@ -1,0 +1,969 @@
+openapi: 3.0.3
+info:
+  title: Collection Tracker API
+  version: 1.0.0
+  description: |
+    REST API for the Collection Tracker module of Frondaprima.
+    All endpoints require a valid JWT in the `Authorization: Bearer <token>` header
+    unless marked as public.
+
+servers:
+  - url: /functions/v1
+    description: Supabase Edge Functions
+
+tags:
+  - name: Collections
+    description: CRUD for plant collections (groups)
+  - name: Items
+    description: Manage plants within a collection
+  - name: Tags
+    description: User-scoped tag management
+  - name: Locations
+    description: Plant locations and reference types
+  - name: Sharing
+    description: Public sharing of plants and collections
+  - name: Activity
+    description: Observations, notes, and activity feed
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ── Collections ──
+    Collection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Suculentas
+        description:
+          type: string
+          nullable: true
+        cover_image_url:
+          type: string
+          nullable: true
+        is_default:
+          type: boolean
+        item_count:
+          type: integer
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CollectionCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 500
+        cover_image_url:
+          type: string
+          format: uri
+
+    CollectionUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+          maxLength: 500
+        cover_image_url:
+          type: string
+          nullable: true
+          format: uri
+
+    # ── Collection Items ──
+    CollectionItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        collection_id:
+          type: string
+          format: uuid
+        owned_plant_id:
+          type: string
+          format: uuid
+        sort_order:
+          type: integer
+        notes:
+          type: string
+          nullable: true
+        added_at:
+          type: string
+          format: date-time
+
+    CollectionItemCreate:
+      type: object
+      required: [owned_plant_id]
+      properties:
+        owned_plant_id:
+          type: string
+          format: uuid
+        sort_order:
+          type: integer
+          default: 0
+        notes:
+          type: string
+          maxLength: 1000
+
+    CollectionItemUpdate:
+      type: object
+      properties:
+        sort_order:
+          type: integer
+        notes:
+          type: string
+          nullable: true
+
+    # ── Tags ──
+    Tag:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+          example: "#22c55e"
+        created_at:
+          type: string
+          format: date-time
+
+    TagCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        color:
+          type: string
+          pattern: "^#[0-9a-fA-F]{6}$"
+          default: "#6b7280"
+
+    TagUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        color:
+          type: string
+          pattern: "^#[0-9a-fA-F]{6}$"
+
+    ItemTag:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        owned_plant_id:
+          type: string
+          format: uuid
+        tag_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    # ── Locations ──
+    PlantLocation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PlantLocationCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 500
+
+    RefLocationType:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        icon:
+          type: string
+        description:
+          type: string
+        display_order:
+          type: integer
+
+    RefTagCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        color:
+          type: string
+        description:
+          type: string
+        display_order:
+          type: integer
+
+    # ── Sharing ──
+    PublicPlantSlug:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        owned_plant_id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    # ── Observations ──
+    Observation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        owned_plant_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        observation_date:
+          type: string
+          format: date
+        condition:
+          type: string
+          enum: [healthy, okay, concern, critical]
+        notes:
+          type: string
+          nullable: true
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ObservationCreate:
+      type: object
+      required: [owned_plant_id, observation_date, condition]
+      properties:
+        owned_plant_id:
+          type: string
+          format: uuid
+        observation_date:
+          type: string
+          format: date
+        condition:
+          type: string
+          enum: [healthy, okay, concern, critical]
+        notes:
+          type: string
+          maxLength: 2000
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 10
+
+    # ── Common ──
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        has_more:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        details:
+          type: string
+          nullable: true
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeParam:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    SortParam:
+      name: sort
+      in: query
+      schema:
+        type: string
+        enum: [created_asc, created_desc, name_asc, name_desc, updated_desc]
+        default: created_desc
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ════════════════════════════════════════════
+  # COLLECTIONS
+  # ════════════════════════════════════════════
+  /api-collection/collections:
+    get:
+      tags: [Collections]
+      summary: List user collections
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+        - $ref: "#/components/parameters/SortParam"
+        - name: include_archived
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Paginated list of collections
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Collection"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags: [Collections]
+      summary: Create a collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectionCreate"
+      responses:
+        "201":
+          description: Collection created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collection"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api-collection/collections/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Collections]
+      summary: Get collection by ID
+      responses:
+        "200":
+          description: Collection details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collection"
+        "404":
+          description: Not found
+
+    patch:
+      tags: [Collections]
+      summary: Update collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectionUpdate"
+      responses:
+        "200":
+          description: Updated collection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collection"
+
+    delete:
+      tags: [Collections]
+      summary: Archive collection (soft delete)
+      responses:
+        "204":
+          description: Archived successfully
+
+  # ════════════════════════════════════════════
+  # COLLECTION ITEMS
+  # ════════════════════════════════════════════
+  /api-collection/collections/{collectionId}/items:
+    parameters:
+      - name: collectionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Items]
+      summary: List items in a collection
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [added_asc, added_desc, sort_order, name_asc]
+            default: sort_order
+      responses:
+        "200":
+          description: Paginated list of collection items
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/CollectionItem"
+
+    post:
+      tags: [Items]
+      summary: Add plant to collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectionItemCreate"
+      responses:
+        "201":
+          description: Item added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionItem"
+        "409":
+          description: Plant already in collection
+
+  /api-collection/collections/{collectionId}/items/{itemId}:
+    parameters:
+      - name: collectionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags: [Items]
+      summary: Update item (sort order, notes)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectionItemUpdate"
+      responses:
+        "200":
+          description: Updated item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionItem"
+    delete:
+      tags: [Items]
+      summary: Remove plant from collection
+      responses:
+        "204":
+          description: Removed
+
+  # ════════════════════════════════════════════
+  # TAGS
+  # ════════════════════════════════════════════
+  /api-collection/tags:
+    get:
+      tags: [Tags]
+      summary: List user tags
+      responses:
+        "200":
+          description: Array of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tag"
+    post:
+      tags: [Tags]
+      summary: Create tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TagCreate"
+      responses:
+        "201":
+          description: Tag created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tag"
+        "409":
+          description: Tag name already exists
+
+  /api-collection/tags/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags: [Tags]
+      summary: Update tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TagUpdate"
+      responses:
+        "200":
+          description: Updated tag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tag"
+    delete:
+      tags: [Tags]
+      summary: Delete tag (cascades to item_tags)
+      responses:
+        "204":
+          description: Deleted
+
+  /api-collection/plants/{plantId}/tags:
+    parameters:
+      - name: plantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Tags]
+      summary: List tags on a plant
+      responses:
+        "200":
+          description: Array of item tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItemTag"
+    post:
+      tags: [Tags]
+      summary: Attach tag to plant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tag_id]
+              properties:
+                tag_id:
+                  type: string
+                  format: uuid
+      responses:
+        "201":
+          description: Tag attached
+        "409":
+          description: Already attached
+
+  /api-collection/plants/{plantId}/tags/{tagId}:
+    parameters:
+      - name: plantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: tagId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags: [Tags]
+      summary: Detach tag from plant
+      responses:
+        "204":
+          description: Detached
+
+  # ════════════════════════════════════════════
+  # LOCATIONS
+  # ════════════════════════════════════════════
+  /api-collection/locations:
+    get:
+      tags: [Locations]
+      summary: List user locations
+      parameters:
+        - name: include_archived
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Array of locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlantLocation"
+    post:
+      tags: [Locations]
+      summary: Create location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlantLocationCreate"
+      responses:
+        "201":
+          description: Location created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlantLocation"
+
+  /api-collection/locations/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags: [Locations]
+      summary: Update location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlantLocationCreate"
+      responses:
+        "200":
+          description: Updated location
+    delete:
+      tags: [Locations]
+      summary: Archive location (soft delete)
+      responses:
+        "204":
+          description: Archived
+
+  /api-collection/ref/location-types:
+    get:
+      tags: [Locations]
+      summary: List reference location types
+      security: []
+      responses:
+        "200":
+          description: Array of reference location types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RefLocationType"
+
+  /api-collection/ref/tag-categories:
+    get:
+      tags: [Tags]
+      summary: List reference tag categories
+      security: []
+      responses:
+        "200":
+          description: Array of reference tag categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RefTagCategory"
+
+  # ════════════════════════════════════════════
+  # SHARING
+  # ════════════════════════════════════════════
+  /api-collection/plants/{plantId}/share:
+    parameters:
+      - name: plantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Sharing]
+      summary: Enable public sharing for a plant
+      responses:
+        "200":
+          description: Public slug details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicPlantSlug"
+    delete:
+      tags: [Sharing]
+      summary: Disable public sharing
+      responses:
+        "204":
+          description: Sharing disabled
+
+  /api-collection/public/plants/{slug}:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Sharing]
+      summary: Get publicly shared plant
+      security: []
+      responses:
+        "200":
+          description: Public plant data
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Subset of owned_plant fields safe for public view
+        "404":
+          description: Not found or sharing disabled
+
+  # ════════════════════════════════════════════
+  # ACTIVITY (Observations)
+  # ════════════════════════════════════════════
+  /api-collection/observations:
+    get:
+      tags: [Activity]
+      summary: List recent observations across all plants
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+        - name: plant_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by specific plant
+        - name: condition
+          in: query
+          schema:
+            type: string
+            enum: [healthy, okay, concern, critical]
+      responses:
+        "200":
+          description: Paginated observations
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Observation"
+
+    post:
+      tags: [Activity]
+      summary: Create observation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ObservationCreate"
+      responses:
+        "201":
+          description: Observation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Observation"
+
+  /api-collection/observations/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Activity]
+      summary: Get observation by ID
+      responses:
+        "200":
+          description: Observation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Observation"
+    patch:
+      tags: [Activity]
+      summary: Update observation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                condition:
+                  type: string
+                  enum: [healthy, okay, concern, critical]
+                notes:
+                  type: string
+                photos:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+      responses:
+        "200":
+          description: Updated observation
+    delete:
+      tags: [Activity]
+      summary: Delete observation
+      responses:
+        "204":
+          description: Deleted
