@@ -20,6 +20,14 @@ function sanitizeSearchQuery(q: string): string {
 
 const VALID_SLUG_RE = /^[a-z0-9-]+$/;
 
+// Pseudonymize user ID for analytics (SHA-256 hash)
+async function pseudonymize(userId: string | null): Promise<string | null> {
+  if (!userId) return null;
+  const data = new TextEncoder().encode(userId + ":search-analytics-salt-fp");
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
+
 function isValidEnum(val: string | null, allowed: string[]): boolean {
   return val === null || allowed.includes(val);
 }
@@ -101,6 +109,7 @@ Deno.serve(async (req: Request) => {
       if (!validSorts.includes(sort)) throw new AppError("Invalid sort", 400, "INVALID_SORT");
 
       // Call the DB search function
+      const searchStartTime = Date.now();
       const serviceClient = createClient(
         Deno.env.get("SUPABASE_URL")!,
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -183,6 +192,42 @@ Deno.serve(async (req: Request) => {
           .filter((t) => t.length >= 2);
       }
 
+      const searchEndTime = Date.now();
+
+      // Async analytics logging (fire-and-forget)
+      const authHeader = req.headers.get("authorization");
+      const sessionId = url.searchParams.get("session_id") || null;
+      const userHash = await pseudonymize(authHeader?.replace("Bearer ", "") || null);
+
+      const svcForLog = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+
+      svcForLog.from("search_query_logs").insert({
+        query_text: q || "",
+        query_normalized: sanitizedQ || "",
+        filters: {
+          plant_type: plantType.length ? plantType : undefined,
+          difficulty: difficulty.length ? difficulty : undefined,
+          rarity: rarity.length ? rarity : undefined,
+          water: water.length ? water : undefined,
+          exposure: exposure.length ? exposure : undefined,
+          climate_zone: climateZones.length ? climateZones : undefined,
+          category: categorySlug || undefined,
+          min_price: minPrice,
+          max_price: maxPrice,
+        },
+        sort,
+        ab_variant: abVariant || "A",
+        total_results: result.total,
+        page,
+        page_size: pageSize,
+        response_time_ms: searchEndTime - searchStartTime,
+        user_hash: userHash,
+        session_id: sessionId,
+      }).then(() => {}).catch((e: unknown) => log.error("Failed to log search query", { error: e }));
+
       log.info("Search completed", { q: sanitizedQ, total: result.total, page, sort });
 
       return json({
@@ -200,6 +245,53 @@ Deno.serve(async (req: Request) => {
         query: sanitizedQ,
         relevance_variant: result.relevance_variant,
       });
+    }
+
+    // POST /search/click — Log click-through event
+    if (req.method === "POST" && path === "/search/click") {
+      const body = await req.json();
+      const { query_log_id, query_text, plant_id, position, score, session_id: clickSession } = body;
+
+      if (!plant_id || !query_text || typeof position !== "number") {
+        throw new AppError("Missing required fields: plant_id, query_text, position", 400, "INVALID_INPUT");
+      }
+
+      const clickAuthHeader = req.headers.get("authorization");
+      const clickUserHash = await pseudonymize(clickAuthHeader?.replace("Bearer ", "") || null);
+
+      const svcClick = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      const { error: clickErr } = await svcClick.from("search_click_logs").insert({
+        query_log_id: query_log_id || null,
+        query_text,
+        plant_id,
+        position,
+        score: score || null,
+        user_hash: clickUserHash,
+        session_id: clickSession || null,
+      });
+
+      if (clickErr) throw clickErr;
+      return json({ success: true });
+    }
+
+    // GET /search/analytics — Admin search metrics
+    if (req.method === "GET" && path === "/search/analytics") {
+      const days = Math.min(parseInt(url.searchParams.get("days") || "30") || 30, 365);
+      const limit = Math.min(parseInt(url.searchParams.get("limit") || "20") || 20, 100);
+
+      const authSupa = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: req.headers.get("authorization") || "" } } }
+      );
+
+      const { data: analytics, error: analyticsErr } = await authSupa.rpc("get_search_analytics", {
+        p_days: days,
+        p_limit: limit,
+      });
+
+      if (analyticsErr) throw analyticsErr;
+      return json({ success: true, data: analytics });
     }
 
     // GET /plants
