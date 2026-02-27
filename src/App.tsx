@@ -24,6 +24,7 @@ import ShippingInfo from "./pages/ShippingInfo";
 import ReferralProgram from "./pages/ReferralProgram";
 import TermsOfSale from "./pages/TermsOfSale";
 import FAQ from "./pages/FAQ";
+import SearchResults from "./pages/SearchResults";
 
 import { AdminLayout } from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -75,6 +76,7 @@ const App = () => (
                   <Account />
                 </ProtectedRoute>
               } />
+              <Route path="/search" element={<SearchResults />} />
               <Route path="/plant/:plantId" element={<PlantDetail />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/checkout/success" element={<CheckoutSuccess />} />
