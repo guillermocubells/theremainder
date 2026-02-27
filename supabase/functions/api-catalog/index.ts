@@ -60,6 +60,144 @@ Deno.serve(async (req: Request) => {
 
     log.info("Request", { method: req.method, path });
 
+    // GET /search — Full-text search with facets, filters, sort, pagination
+    if (req.method === "GET" && path === "/search") {
+      const q = url.searchParams.get("q")?.trim() || null;
+      const plantType = url.searchParams.getAll("plant_type").filter(Boolean);
+      const difficulty = url.searchParams.getAll("difficulty").filter(Boolean);
+      const rarity = url.searchParams.getAll("rarity").filter(Boolean);
+      const water = url.searchParams.getAll("water").filter(Boolean);
+      const humidity = url.searchParams.getAll("humidity").filter(Boolean);
+      const exposure = url.searchParams.getAll("exposure").filter(Boolean);
+      const climateZones = url.searchParams.getAll("climate_zone").filter(Boolean);
+      const hardinessZones = url.searchParams.getAll("hardiness_zone").filter(Boolean);
+      const plantUse = url.searchParams.getAll("plant_use").filter(Boolean);
+      const categorySlug = url.searchParams.get("category") || null;
+      const minPrice = url.searchParams.get("min_price") ? parseFloat(url.searchParams.get("min_price")!) : null;
+      const maxPrice = url.searchParams.get("max_price") ? parseFloat(url.searchParams.get("max_price")!) : null;
+      const inStock = url.searchParams.get("in_stock") !== "false";
+      const featured = url.searchParams.get("featured") === "true" ? true : null;
+      const sort = url.searchParams.get("sort") || "relevance";
+      const page = Math.max(parseInt(url.searchParams.get("page") || "1") || 1, 1);
+      const pageSize = Math.min(Math.max(parseInt(url.searchParams.get("page_size") || "24") || 24, 1), 100);
+
+      // Sanitize query
+      const sanitizedQ = q ? sanitizeSearchQuery(q) : null;
+      if (q && (!sanitizedQ || sanitizedQ.length < 1)) {
+        throw new AppError("Invalid search query", 400, "INVALID_QUERY");
+      }
+
+      // Resolve category slug → id
+      let categoryId: string | null = null;
+      if (categorySlug) {
+        if (!VALID_SLUG_RE.test(categorySlug)) throw new AppError("Invalid category slug", 400, "INVALID_FILTER");
+        const { data: cat } = await supabase.from("categories").select("id").eq("slug", categorySlug).single();
+        categoryId = cat?.id ?? null;
+      }
+
+      // Validate sort
+      const validSorts = ["relevance", "price_asc", "price_desc", "newest", "name_asc", "rarity_desc"];
+      if (!validSorts.includes(sort)) throw new AppError("Invalid sort", 400, "INVALID_SORT");
+
+      // Call the DB search function
+      const serviceClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+
+      const { data: searchResult, error: searchErr } = await serviceClient.rpc("search_catalog", {
+        p_query: sanitizedQ,
+        p_plant_type: plantType.length ? plantType : null,
+        p_difficulty: difficulty.length ? difficulty : null,
+        p_rarity: rarity.length ? rarity : null,
+        p_water: water.length ? water : null,
+        p_humidity: humidity.length ? humidity : null,
+        p_exposure: exposure.length ? exposure : null,
+        p_climate_zones: climateZones.length ? climateZones : null,
+        p_hardiness_zones: hardinessZones.length ? hardinessZones : null,
+        p_plant_use: plantUse.length ? plantUse : null,
+        p_category_id: categoryId,
+        p_min_price: minPrice,
+        p_max_price: maxPrice,
+        p_in_stock: inStock,
+        p_is_featured: featured,
+        p_sort: sort,
+        p_sort_dir: "asc",
+        p_page: page,
+        p_page_size: pageSize,
+      });
+
+      if (searchErr) throw searchErr;
+
+      const result = searchResult as {
+        total: number;
+        page: number;
+        page_size: number;
+        total_pages: number;
+        items: Array<{ plant_id: string; score: number }>;
+        facets: Record<string, Record<string, number>>;
+      };
+
+      // Hydrate plant data for matched IDs
+      const plantIds = result.items.map((i) => i.plant_id);
+      let plants: Record<string, unknown>[] = [];
+
+      if (plantIds.length > 0) {
+        const { data: plantData, error: plantErr } = await supabase
+          .from("plants")
+          .select(
+            `id, name, slug, scientific_name, common_name, short_description,
+             price, sale_price, stock_qty,
+             plant_type, difficulty, rarity, climate_zones, exposure,
+             water, humidity, growth_rate, min_temp_c,
+             images, primary_image, product_images,
+             is_featured, container_size, family,
+             categories (id, name, slug)`
+          )
+          .in("id", plantIds);
+
+        if (plantErr) throw plantErr;
+
+        // Re-order to match score ranking
+        const plantMap = new Map((plantData ?? []).map((p: { id: string }) => [p.id, p]));
+        plants = result.items
+          .map((item) => {
+            const plant = plantMap.get(item.plant_id);
+            if (!plant) return null;
+            return { ...plant, _score: item.score };
+          })
+          .filter(Boolean) as Record<string, unknown>[];
+      }
+
+      // Build highlight ranges for the query tokens (client can use these)
+      let highlightTokens: string[] = [];
+      if (sanitizedQ) {
+        highlightTokens = sanitizedQ
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .split(/\s+/)
+          .filter((t) => t.length >= 2);
+      }
+
+      log.info("Search completed", { q: sanitizedQ, total: result.total, page, sort });
+
+      return json({
+        success: true,
+        data: plants,
+        pagination: {
+          page: result.page,
+          page_size: result.page_size,
+          total: result.total,
+          total_pages: result.total_pages,
+          has_more: result.page < result.total_pages,
+        },
+        facets: result.facets,
+        highlight_tokens: highlightTokens,
+        query: sanitizedQ,
+      });
+    }
+
     // GET /plants
     if (req.method === "GET" && (path === "" || path === "/plants")) {
       const category = url.searchParams.get("category") || undefined;
