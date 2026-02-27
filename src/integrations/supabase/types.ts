@@ -5083,6 +5083,27 @@ export type Database = {
         }
         Relationships: []
       }
+      species_grow_stats: {
+        Row: {
+          avg_rating: number | null
+          germination_pct: number | null
+          log_count: number | null
+          refreshed_at: string | null
+          species: string | null
+          survival_pct: number | null
+          taxon_id: string | null
+          total_entries: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grow_logs_taxon_id_fkey"
+            columns: ["taxon_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       bump_synonym_version: { Args: never; Returns: number }
@@ -5325,6 +5346,7 @@ export type Database = {
             Returns: string
           }
       rarity_to_ordinal: { Args: { p_rarity: string }; Returns: number }
+      refresh_species_grow_stats: { Args: never; Returns: undefined }
       reindex_plant: { Args: { p_plant_id: string }; Returns: boolean }
       release_expired_reservations: { Args: never; Returns: number }
       release_reservation: {
