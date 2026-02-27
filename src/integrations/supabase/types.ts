@@ -949,6 +949,7 @@ export type Database = {
       collection_item_media: {
         Row: {
           alt_text: string | null
+          blurhash: string | null
           collection_item_id: string
           created_at: string
           file_size_bytes: number | null
@@ -967,6 +968,7 @@ export type Database = {
         }
         Insert: {
           alt_text?: string | null
+          blurhash?: string | null
           collection_item_id: string
           created_at?: string
           file_size_bytes?: number | null
@@ -985,6 +987,7 @@ export type Database = {
         }
         Update: {
           alt_text?: string | null
+          blurhash?: string | null
           collection_item_id?: string
           created_at?: string
           file_size_bytes?: number | null
@@ -1867,6 +1870,7 @@ export type Database = {
       }
       grow_entry_media: {
         Row: {
+          blurhash: string | null
           created_at: string
           entry_id: string
           file_name: string
@@ -1875,12 +1879,19 @@ export type Database = {
           id: string
           log_id: string
           mime_type: string
+          original_height: number | null
+          original_width: number | null
           sort_order: number
           storage_path: string
+          thumbnail_generated_at: string | null
+          thumbnail_height: number | null
+          thumbnail_storage_path: string | null
+          thumbnail_width: number | null
           user_id: string
           width: number | null
         }
         Insert: {
+          blurhash?: string | null
           created_at?: string
           entry_id: string
           file_name: string
@@ -1889,12 +1900,19 @@ export type Database = {
           id?: string
           log_id: string
           mime_type: string
+          original_height?: number | null
+          original_width?: number | null
           sort_order?: number
           storage_path: string
+          thumbnail_generated_at?: string | null
+          thumbnail_height?: number | null
+          thumbnail_storage_path?: string | null
+          thumbnail_width?: number | null
           user_id: string
           width?: number | null
         }
         Update: {
+          blurhash?: string | null
           created_at?: string
           entry_id?: string
           file_name?: string
@@ -1903,8 +1921,14 @@ export type Database = {
           id?: string
           log_id?: string
           mime_type?: string
+          original_height?: number | null
+          original_width?: number | null
           sort_order?: number
           storage_path?: string
+          thumbnail_generated_at?: string | null
+          thumbnail_height?: number | null
+          thumbnail_storage_path?: string | null
+          thumbnail_width?: number | null
           user_id?: string
           width?: number | null
         }
