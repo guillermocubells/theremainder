@@ -77,6 +77,28 @@ async function handleAuctionNotification(payload: Record<string, unknown>, supab
   }
 }
 
+async function handleReindexCatalog(payload: Record<string, unknown>, supabaseUrl: string, serviceRoleKey: string): Promise<JobResult> {
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/reindex-catalog`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      return { success: false, error: `HTTP ${response.status}: ${body.slice(0, 500)}` };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 async function handleGenericWebhook(payload: Record<string, unknown>): Promise<JobResult> {
   const { url, method, headers, body } = payload as {
     url?: string;
@@ -125,6 +147,10 @@ async function executeJob(
     case "auction_notification":
     case "send_auction_notification":
       return handleAuctionNotification(payload, supabaseUrl, serviceRoleKey);
+    case "reindex_catalog":
+    case "reindex_incremental":
+    case "reindex_backfill":
+      return handleReindexCatalog(payload, supabaseUrl, serviceRoleKey);
     case "webhook":
       return handleGenericWebhook(payload);
     default:

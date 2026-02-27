@@ -2627,6 +2627,110 @@ export type Database = {
           },
         ]
       }
+      plant_search_index: {
+        Row: {
+          category_id: string | null
+          checksum: string | null
+          climate_zones: string[] | null
+          common_name_tokens: string
+          description_tokens: string
+          difficulty: string | null
+          display_order: number
+          exposure: string[] | null
+          family_tokens: string
+          hardiness_zones: string[] | null
+          has_images: boolean
+          humidity: string | null
+          index_version: number
+          indexed_at: string
+          is_in_stock: boolean
+          is_on_sale: boolean
+          name_tokens: string
+          plant_id: string
+          plant_type: string | null
+          plant_use: string[] | null
+          price: number | null
+          rarity: string | null
+          rarity_ordinal: number
+          relevance_boost: number
+          sale_price: number | null
+          scientific_name_tokens: string
+          search_vector: unknown
+          variety_tokens: string
+          water: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          checksum?: string | null
+          climate_zones?: string[] | null
+          common_name_tokens?: string
+          description_tokens?: string
+          difficulty?: string | null
+          display_order?: number
+          exposure?: string[] | null
+          family_tokens?: string
+          hardiness_zones?: string[] | null
+          has_images?: boolean
+          humidity?: string | null
+          index_version?: number
+          indexed_at?: string
+          is_in_stock?: boolean
+          is_on_sale?: boolean
+          name_tokens?: string
+          plant_id: string
+          plant_type?: string | null
+          plant_use?: string[] | null
+          price?: number | null
+          rarity?: string | null
+          rarity_ordinal?: number
+          relevance_boost?: number
+          sale_price?: number | null
+          scientific_name_tokens?: string
+          search_vector?: unknown
+          variety_tokens?: string
+          water?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          checksum?: string | null
+          climate_zones?: string[] | null
+          common_name_tokens?: string
+          description_tokens?: string
+          difficulty?: string | null
+          display_order?: number
+          exposure?: string[] | null
+          family_tokens?: string
+          hardiness_zones?: string[] | null
+          has_images?: boolean
+          humidity?: string | null
+          index_version?: number
+          indexed_at?: string
+          is_in_stock?: boolean
+          is_on_sale?: boolean
+          name_tokens?: string
+          plant_id?: string
+          plant_type?: string | null
+          plant_use?: string[] | null
+          price?: number | null
+          rarity?: string | null
+          rarity_ordinal?: number
+          relevance_boost?: number
+          sale_price?: number | null
+          scientific_name_tokens?: string
+          search_vector?: unknown
+          variety_tokens?: string
+          water?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plant_search_index_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: true
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plants: {
         Row: {
           care_instructions: Json | null
@@ -3831,6 +3935,15 @@ export type Database = {
         Returns: number
       }
       close_ended_auctions: { Args: never; Returns: number }
+      compute_relevance_boost: {
+        Args: {
+          p_is_featured: boolean
+          p_product_images: string[]
+          p_sale_price: number
+          p_stock_qty: number
+        }
+        Returns: number
+      }
       confirm_reservation_by_session: {
         Args: { p_payment_intent_id?: string; p_session_id: string }
         Returns: number
@@ -3915,6 +4028,7 @@ export type Database = {
             }
             Returns: string
           }
+      full_reindex_catalog: { Args: { p_batch_size?: number }; Returns: Json }
       generate_invoice_number: { Args: never; Returns: string }
       generate_invoice_number_from_series: {
         Args: { p_series_type: string }
@@ -4009,6 +4123,8 @@ export type Database = {
             }
             Returns: string
           }
+      rarity_to_ordinal: { Args: { p_rarity: string }; Returns: number }
+      reindex_plant: { Args: { p_plant_id: string }; Returns: boolean }
       release_expired_reservations: { Args: never; Returns: number }
       release_reservation: {
         Args: { p_reservation_id: string }
@@ -4032,6 +4148,8 @@ export type Database = {
         Args: { p_dead_letter_id: string; p_max_attempts?: number }
         Returns: string
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "user"
