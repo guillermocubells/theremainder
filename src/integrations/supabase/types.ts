@@ -4222,8 +4222,33 @@ export type Database = {
         Args: { p_dead_letter_id: string; p_max_attempts?: number }
         Returns: string
       }
+      search_catalog: {
+        Args: {
+          p_category_id?: string
+          p_climate_zones?: string[]
+          p_difficulty?: string[]
+          p_exposure?: string[]
+          p_hardiness_zones?: string[]
+          p_humidity?: string[]
+          p_in_stock?: boolean
+          p_is_featured?: boolean
+          p_max_price?: number
+          p_min_price?: number
+          p_page?: number
+          p_page_size?: number
+          p_plant_type?: string[]
+          p_plant_use?: string[]
+          p_query?: string
+          p_rarity?: string[]
+          p_sort?: string
+          p_sort_dir?: string
+          p_water?: string[]
+        }
+        Returns: Json
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
