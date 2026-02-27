@@ -1422,6 +1422,157 @@ export type Database = {
         }
         Relationships: []
       }
+      index_checkpoints: {
+        Row: {
+          checkpoint_key: string
+          created_at: string
+          cursor_value: string | null
+          id: string
+          items_processed: number
+          metadata: Json
+          run_id: string
+          updated_at: string
+        }
+        Insert: {
+          checkpoint_key: string
+          created_at?: string
+          cursor_value?: string | null
+          id?: string
+          items_processed?: number
+          metadata?: Json
+          run_id: string
+          updated_at?: string
+        }
+        Update: {
+          checkpoint_key?: string
+          created_at?: string
+          cursor_value?: string | null
+          id?: string
+          items_processed?: number
+          metadata?: Json
+          run_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "index_checkpoints_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "index_job_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      index_dead_letters: {
+        Row: {
+          attempts: number
+          created_at: string
+          entity_id: string
+          entity_type: string
+          error_details: Json | null
+          error_message: string | null
+          id: string
+          last_attempted_at: string
+          max_attempts: number
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          run_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          entity_id: string
+          entity_type?: string
+          error_details?: Json | null
+          error_message?: string | null
+          id?: string
+          last_attempted_at?: string
+          max_attempts?: number
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          error_details?: Json | null
+          error_message?: string | null
+          id?: string
+          last_attempted_at?: string
+          max_attempts?: number
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "index_dead_letters_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "index_job_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      index_job_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_summary: string | null
+          failed_items: number
+          id: string
+          job_type: string
+          metadata: Json
+          processed_items: number
+          skipped_items: number
+          started_at: string | null
+          status: string
+          total_items: number
+          trigger_source: string
+          triggered_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_summary?: string | null
+          failed_items?: number
+          id?: string
+          job_type?: string
+          metadata?: Json
+          processed_items?: number
+          skipped_items?: number
+          started_at?: string | null
+          status?: string
+          total_items?: number
+          trigger_source?: string
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_summary?: string | null
+          failed_items?: number
+          id?: string
+          job_type?: string
+          metadata?: Json
+          processed_items?: number
+          skipped_items?: number
+          started_at?: string | null
+          status?: string
+          total_items?: number
+          trigger_source?: string
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invoice_records: {
         Row: {
           base_imponible: number
@@ -4281,6 +4432,14 @@ export type Database = {
         Args: { p_retention_days?: number }
         Returns: number
       }
+      cleanup_index_dead_letters: {
+        Args: { p_retention_days?: number }
+        Returns: number
+      }
+      cleanup_index_job_runs: {
+        Args: { p_retention_days?: number }
+        Returns: number
+      }
       cleanup_search_logs: {
         Args: { p_retention_days?: number }
         Returns: number
@@ -4507,6 +4666,7 @@ export type Database = {
         Args: { p_dead_letter_id: string; p_max_attempts?: number }
         Returns: string
       }
+      retry_index_dead_letter: { Args: { p_id: string }; Returns: boolean }
       search_catalog:
         | {
             Args: {
