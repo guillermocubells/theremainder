@@ -36,8 +36,7 @@ export function useCollections() {
     queryKey: ['collections', user?.id],
     enabled: !!user,
     queryFn: async () => {
-      // Fetch collections with item counts
-      const { data: collections, error } = await supabase
+      const { data, error } = await supabase
         .from('collections')
         .select('*')
         .is('deleted_at', null)
@@ -45,23 +44,7 @@ export function useCollections() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      // Get item counts per collection
-      const { data: counts, error: countError } = await supabase
-        .from('collection_items')
-        .select('collection_id');
-
-      if (countError) throw countError;
-
-      const countMap = (counts || []).reduce<Record<string, number>>((acc, item) => {
-        acc[item.collection_id] = (acc[item.collection_id] || 0) + 1;
-        return acc;
-      }, {});
-
-      return (collections || []).map((c) => ({
-        ...c,
-        item_count: countMap[c.id] || 0,
-      })) as Collection[];
+      return (data || []) as Collection[];
     },
   });
 }
