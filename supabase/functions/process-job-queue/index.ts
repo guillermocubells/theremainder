@@ -99,6 +99,30 @@ async function handleReindexCatalog(payload: Record<string, unknown>, supabaseUr
   }
 }
 
+async function handleGenerateThumbnails(payload: Record<string, unknown>, supabaseUrl: string, serviceRoleKey: string): Promise<JobResult> {
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/generate-thumbnails`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      return { success: false, error: `HTTP ${response.status}: ${text.slice(0, 500)}` };
+    }
+    const result = await response.json();
+    if (result.failed > 0) {
+      return { success: false, error: `${result.failed} items failed: ${JSON.stringify(result.errors?.slice(0, 3))}` };
+    }
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 async function handleGenericWebhook(payload: Record<string, unknown>): Promise<JobResult> {
   const { url, method, headers, body } = payload as {
     url?: string;
@@ -153,6 +177,8 @@ async function executeJob(
       return handleReindexCatalog(payload, supabaseUrl, serviceRoleKey);
     case "webhook":
       return handleGenericWebhook(payload);
+    case "generate_thumbnails":
+      return handleGenerateThumbnails(payload, supabaseUrl, serviceRoleKey);
     default:
       return { success: false, error: `Unknown job type: ${jobType}` };
   }

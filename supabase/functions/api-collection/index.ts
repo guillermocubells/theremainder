@@ -942,6 +942,19 @@ async function handleMedia(
     log.info("Media uploaded", { media_id: row.id, item_id: itemId, size: file.size });
     emitActivity(userId, "media_uploaded", "media", row.id, collectionId, { item_id: itemId, media_type: mediaType, size: file.size });
 
+    // Enqueue thumbnail generation job (fire-and-forget)
+    if (mediaType === "image") {
+      const svcJob = getServiceClient();
+      svcJob.from("job_queue").insert({
+        job_type: "generate_thumbnails",
+        payload: { media_ids: [row.id] },
+        priority: 5,
+        max_attempts: 3,
+      }).then(({ error: jErr }: { error: any }) => {
+        if (jErr) log.error("Failed to enqueue thumbnail job", { error: jErr.message });
+      });
+    }
+
     return new Response(JSON.stringify(result), {
       status: 201, headers: { ...rh, "Content-Type": "application/json" },
     });
