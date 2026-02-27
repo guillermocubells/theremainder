@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Leaf } from "lucide-react";
 
 interface Category {
   id: string;
@@ -14,6 +13,17 @@ interface CategoryCardsProps {
   selectedCategory: string;
   onSelectCategory: (slug: string) => void;
 }
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  palmeras: "🌴",
+  cicadas: "🌀",
+  "arboles-ornamentales": "🌳",
+  "arbustos-ornamentales": "🌺",
+  "helechos-arboreos": "🧬",
+  bambus: "🎋",
+  suculentas: "🌵",
+  cactus: "🏜️",
+};
 
 const CategoryCards = ({ selectedCategory, onSelectCategory }: CategoryCardsProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -53,15 +63,7 @@ const CategoryCards = ({ selectedCategory, onSelectCategory }: CategoryCardsProp
               : "bg-card border-border text-foreground hover:border-moss/50"
           }`}
         >
-          {cat.image_url ? (
-            <img
-              src={cat.image_url}
-              alt={cat.name}
-              className="h-6 w-6 rounded-full object-cover"
-            />
-          ) : (
-            <Leaf className="h-4 w-4" />
-          )}
+          <span aria-hidden="true">{CATEGORY_EMOJI[cat.slug] ?? "🌱"}</span>
           {cat.name}
         </button>
       ))}
