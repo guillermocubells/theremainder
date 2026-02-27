@@ -17,6 +17,17 @@ serve(async (req: Request) => {
   }
 
   try {
+    // Authenticate: only allow calls with the service role key
+    const authHeader = req.headers.get("Authorization") || "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
+      console.warn("[update-exchange-rates] Unauthorized call rejected");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
     console.log("[update-exchange-rates] Fetching latest rates from frankfurter.app");
 
     // Fetch rates from frankfurter.app (free, no API key needed)
