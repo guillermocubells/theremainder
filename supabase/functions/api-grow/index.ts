@@ -703,6 +703,21 @@ Deno.serve(async (req) => {
       return await handleFeed(req, userId, supabase, rh);
     }
 
+    // AGGREGATES routes
+    if (req.method === "GET" && route.resource === "stats") {
+      // GET /stats — user-level aggregates
+      if (!route.logId) {
+        const { data, error } = await supabase.rpc("grow_user_aggregates", { p_user_id: userId });
+        if (error) throw new AppError("Failed to compute aggregates", 500, "STATS_FAILED");
+        return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
+      }
+      // GET /stats/:logId — single log stats
+      assertUuid(route.logId, "log ID");
+      const { data, error } = await supabase.rpc("grow_log_stats", { p_log_id: route.logId, p_user_id: userId });
+      if (error || !data) throw new AppError("Log not found or stats unavailable", 404, "STATS_NOT_FOUND");
+      return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
+    }
+
     // LOG routes
     if (!sub) {
       if (req.method === "GET" && !route.logId) return await handleListLogs(req, userId, supabase, rh);

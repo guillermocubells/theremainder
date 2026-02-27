@@ -5341,6 +5341,11 @@ export type Database = {
         Returns: Json
       }
       get_shared_collection: { Args: { p_token: string }; Returns: Json }
+      grow_log_stats: {
+        Args: { p_log_id: string; p_user_id: string }
+        Returns: Json
+      }
+      grow_user_aggregates: { Args: { p_user_id: string }; Returns: Json }
       has_auction_consent: {
         Args: { p_consent_type: string; p_user_id: string }
         Returns: boolean
