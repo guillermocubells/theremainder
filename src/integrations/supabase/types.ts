@@ -1824,6 +1824,7 @@ export type Database = {
           notes: string | null
           occurred_at: string
           rating: number | null
+          tags: string[]
           type: string
           updated_at: string
           user_id: string
@@ -1836,6 +1837,7 @@ export type Database = {
           notes?: string | null
           occurred_at?: string
           rating?: number | null
+          tags?: string[]
           type?: string
           updated_at?: string
           user_id: string
@@ -1848,6 +1850,7 @@ export type Database = {
           notes?: string | null
           occurred_at?: string
           rating?: number | null
+          tags?: string[]
           type?: string
           updated_at?: string
           user_id?: string
