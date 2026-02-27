@@ -6,3 +6,4 @@ export * from './usePublicSharing';
 export * from './useStockNotifications';
 export * from './usePlantSharingControls';
 export * from './useGardenInquiries';
+export * from './useCollections';
