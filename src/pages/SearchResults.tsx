@@ -1,8 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import {
-  Search, X, SlidersHorizontal, ChevronDown, Package, Leaf, Sparkles, ArrowUpDown,
+  Search, X, Leaf, Sparkles, ArrowUpDown,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -12,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -21,13 +19,11 @@ import {
   PaginationNext, PaginationPrevious, PaginationEllipsis,
 } from "@/components/ui/pagination";
 import {
-  Collapsible, CollapsibleContent, CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  useSearchCatalog, SearchPlant, FacetBuckets, SortKey,
+  useSearchCatalog, SearchPlant, SortKey, SearchFilters,
 } from "@/hooks/useSearchCatalog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { OptimizedImage } from "@/components/ui/optimized-image";
+import { ActiveFilterChips, FacetSidebar, MobileFacetDrawer } from "@/components/search";
 
 // ── Sort options ─────────────────────────────────────────────────────
 const SORT_OPTIONS: { key: SortKey; label_es: string }[] = [
@@ -39,33 +35,6 @@ const SORT_OPTIONS: { key: SortKey; label_es: string }[] = [
   { key: "rarity_desc", label_es: "Más raro" },
 ];
 
-// ── Facet labels ─────────────────────────────────────────────────────
-const FACET_LABELS: Record<string, string> = {
-  plant_type: "Tipo de planta",
-  difficulty: "Dificultad",
-  rarity: "Rareza",
-  water: "Riego",
-  humidity: "Humedad",
-  exposure: "Exposición",
-  climate_zones: "Zona climática",
-  hardiness_zones: "Zona de rusticidad",
-  plant_use: "Uso",
-};
-
-// Map facet keys to filter param keys
-const FACET_TO_FILTER: Record<string, string> = {
-  plant_type: "plant_type",
-  difficulty: "difficulty",
-  rarity: "rarity",
-  water: "water",
-  humidity: "humidity",
-  exposure: "exposure",
-  climate_zones: "climate_zone",
-  hardiness_zones: "hardiness_zone",
-  plant_use: "plant_use",
-};
-
-// ── PAGE_SIZE options ────────────────────────────────────────────────
 const PAGE_SIZES = [12, 24, 48];
 
 // ── SearchResultCard ─────────────────────────────────────────────────
@@ -79,7 +48,6 @@ function SearchResultCard({ plant, highlight }: { plant: SearchPlant; highlight:
   const displayPrice = plant.sale_price ?? plant.price;
   const hasDiscount = plant.sale_price != null && plant.sale_price < plant.price;
 
-  // Highlight text helper
   function highlightText(text: string): React.ReactNode {
     if (!highlight.length || !text) return text;
     const regex = new RegExp(`(${highlight.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "gi");
@@ -132,7 +100,7 @@ function SearchResultCard({ plant, highlight }: { plant: SearchPlant; highlight:
               )}
             </div>
             {plant.stock_qty > 0 && plant.stock_qty <= 3 && (
-              <span className="text-[10px] text-warning-muted-foreground font-medium">
+              <span className="text-[10px] text-muted-foreground font-medium">
                 ¡Quedan {plant.stock_qty}!
               </span>
             )}
@@ -140,98 +108,6 @@ function SearchResultCard({ plant, highlight }: { plant: SearchPlant; highlight:
         </CardContent>
       </Card>
     </Link>
-  );
-}
-
-// ── FacetSection ─────────────────────────────────────────────────────
-function FacetSection({
-  facetKey,
-  buckets,
-  selected,
-  onToggle,
-}: {
-  facetKey: string;
-  buckets: Record<string, number>;
-  selected: string[];
-  onToggle: (value: string) => void;
-}) {
-  const [open, setOpen] = useState(selected.length > 0);
-  const label = FACET_LABELS[facetKey] || facetKey;
-  const entries = Object.entries(buckets)
-    .filter(([, count]) => count > 0)
-    .sort((a, b) => b[1] - a[1]);
-
-  if (entries.length === 0) return null;
-
-  return (
-    <Collapsible open={open} onOpenChange={setOpen} className="border-b border-border pb-3">
-      <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
-        <span className="flex items-center gap-2">
-          {label}
-          {selected.length > 0 && (
-            <Badge variant="secondary" className="h-5 min-w-[20px] text-[10px] px-1.5">
-              {selected.length}
-            </Badge>
-          )}
-        </span>
-        <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-1.5 pt-1">
-        {entries.map(([value, count]) => {
-          const isSelected = selected.includes(value);
-          return (
-            <label
-              key={value}
-              className="flex items-center gap-2 cursor-pointer text-sm py-0.5 hover:text-foreground text-muted-foreground"
-            >
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={() => onToggle(value)}
-                className="h-4 w-4"
-              />
-              <span className="flex-1 capitalize">{value.replace(/_/g, " ")}</span>
-              <span className="text-xs text-muted-foreground/60">{count}</span>
-            </label>
-          );
-        })}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
-
-// ── ActiveFilterChips ────────────────────────────────────────────────
-function ActiveFilterChips({
-  filters,
-  onRemove,
-  onClear,
-}: {
-  filters: Record<string, string[]>;
-  onRemove: (key: string, value: string) => void;
-  onClear: () => void;
-}) {
-  const allChips = Object.entries(filters).flatMap(([key, values]) =>
-    values.map(v => ({ key, value: v }))
-  );
-
-  if (allChips.length === 0) return null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-2 mb-4">
-      {allChips.map(({ key, value }) => (
-        <Badge
-          key={`${key}-${value}`}
-          variant="secondary"
-          className="gap-1 pr-1 capitalize cursor-pointer hover:bg-destructive/10 transition-colors"
-          onClick={() => onRemove(key, value)}
-        >
-          <span className="text-xs">{value.replace(/_/g, " ")}</span>
-          <X className="h-3 w-3" />
-        </Badge>
-      ))}
-      <Button variant="ghost" size="sm" onClick={onClear} className="h-6 text-xs text-muted-foreground hover:text-destructive">
-        Borrar todo
-      </Button>
-    </div>
   );
 }
 
@@ -270,12 +146,17 @@ function getVisiblePages(current: number, total: number): (number | "ellipsis")[
   return pages;
 }
 
+// ── Array filter keys for chip extraction ────────────────────────────
+const ARRAY_FILTER_KEYS = [
+  "plant_type", "difficulty", "rarity", "water", "humidity",
+  "exposure", "climate_zone", "hardiness_zone", "plant_use",
+] as const;
+
 // ── Main Page ────────────────────────────────────────────────────────
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const initialQuery = searchParams.get("q") || "";
 
@@ -299,95 +180,47 @@ const SearchResults = () => {
 
   // Collect active array filters for chips
   const activeArrayFilters = useMemo(() => {
-    const result: Record<string, string[]> = {};
-    const arrayKeys = ["plant_type", "difficulty", "rarity", "water", "humidity", "exposure", "climate_zone", "hardiness_zone", "plant_use"] as const;
-    for (const k of arrayKeys) {
-      const v = filters[k as keyof typeof filters];
+    const out: Record<string, string[]> = {};
+    for (const k of ARRAY_FILTER_KEYS) {
+      const v = filters[k as keyof SearchFilters];
       if (Array.isArray(v) && v.length > 0) {
-        result[k] = v as string[];
+        out[k] = v as string[];
       }
     }
-    return result;
+    return out;
   }, [filters]);
 
-  const handleRemoveChip = (key: string, value: string) => {
-    removeFilter(key as keyof typeof filters, value);
-  };
-
-  // ── Sidebar facets ─────────────────────────────────────────────────
-  const facetSidebar = (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4" />
-          Filtros
-        </h2>
-        {Object.keys(activeArrayFilters).length > 0 && (
-          <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-xs text-muted-foreground">
-            Limpiar
-          </Button>
-        )}
-      </div>
-
-      {/* Price range */}
-      <div className="border-b border-border pb-3 space-y-2">
-        <span className="text-sm font-medium text-foreground">Precio (€)</span>
-        <div className="flex items-center gap-2">
-          <Input
-            type="number"
-            placeholder="Mín"
-            className="h-8 text-xs"
-            value={filters.min_price ?? ""}
-            onChange={e => {
-              const v = e.target.value ? parseFloat(e.target.value) : undefined;
-              setFilters(prev => ({ ...prev, min_price: v }));
-            }}
-          />
-          <span className="text-muted-foreground text-xs">—</span>
-          <Input
-            type="number"
-            placeholder="Máx"
-            className="h-8 text-xs"
-            value={filters.max_price ?? ""}
-            onChange={e => {
-              const v = e.target.value ? parseFloat(e.target.value) : undefined;
-              setFilters(prev => ({ ...prev, max_price: v }));
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Dynamic facets from backend */}
-      {Object.entries(facets).map(([facetKey, buckets]) => {
-        const filterKey = FACET_TO_FILTER[facetKey] || facetKey;
-        const selected = (filters[filterKey as keyof typeof filters] as string[] | undefined) ?? [];
-        return (
-          <FacetSection
-            key={facetKey}
-            facetKey={facetKey}
-            buckets={buckets}
-            selected={selected}
-            onToggle={(value) => toggleFacetValue(filterKey as keyof typeof filters, value)}
-          />
-        );
-      })}
-
-      {/* Stock filter */}
-      <div className="border-b border-border pb-3 pt-2">
-        <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground">
-          <Checkbox
-            checked={filters.in_stock === true}
-            onCheckedChange={(checked) =>
-              setFilters(prev => ({ ...prev, in_stock: checked ? true : undefined }))
-            }
-            className="h-4 w-4"
-          />
-          <Package className="h-3.5 w-3.5" />
-          Solo disponibles
-        </label>
-      </div>
-    </div>
+  const activeCount = useMemo(
+    () => Object.values(activeArrayFilters).flat().length,
+    [activeArrayFilters]
   );
+
+  const handleRemoveChip = useCallback(
+    (key: string, value: string) => removeFilter(key as keyof SearchFilters, value),
+    [removeFilter]
+  );
+
+  const handleClearFacet = useCallback(
+    (facetKey: keyof SearchFilters) => {
+      setFilters(prev => {
+        const copy = { ...prev };
+        delete copy[facetKey];
+        return copy;
+      });
+    },
+    [setFilters]
+  );
+
+  // Shared facet sidebar props
+  const facetSidebarProps = {
+    facets,
+    filters,
+    activeCount,
+    onToggleFacet: toggleFacetValue,
+    onClearFacet: handleClearFacet,
+    onClearAll: clearAllFilters,
+    onSetFilters: setFilters,
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -426,24 +259,14 @@ const SearchResults = () => {
           onClear={clearAllFilters}
         />
 
-        {/* Toolbar: results count, sort, page size, mobile filter toggle */}
+        {/* Toolbar */}
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             {isMobile && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowMobileFilters(!showMobileFilters)}
-                className="gap-1.5 h-8"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
-                Filtros
-                {Object.keys(activeArrayFilters).length > 0 && (
-                  <Badge variant="secondary" className="h-4 min-w-[16px] text-[10px] px-1">
-                    {Object.values(activeArrayFilters).flat().length}
-                  </Badge>
-                )}
-              </Button>
+              <MobileFacetDrawer
+                {...facetSidebarProps}
+                totalResults={pagination?.total ?? 0}
+              />
             )}
             <p className="text-sm text-muted-foreground">
               {loading ? (
@@ -492,26 +315,8 @@ const SearchResults = () => {
           {/* Desktop sidebar */}
           {!isMobile && (
             <aside className="w-56 shrink-0 hidden md:block">
-              {facetSidebar}
+              <FacetSidebar {...facetSidebarProps} />
             </aside>
-          )}
-
-          {/* Mobile filters drawer */}
-          {isMobile && showMobileFilters && (
-            <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm overflow-y-auto p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Filtros</h2>
-                <Button variant="ghost" size="sm" onClick={() => setShowMobileFilters(false)}>
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-              {facetSidebar}
-              <div className="sticky bottom-0 pt-4 pb-2 bg-background">
-                <Button className="w-full" onClick={() => setShowMobileFilters(false)}>
-                  Ver {pagination?.total ?? 0} resultados
-                </Button>
-              </div>
-            </div>
           )}
 
           {/* Results grid */}
@@ -525,9 +330,7 @@ const SearchResults = () => {
               </div>
             )}
 
-            {loading && !error && (
-              <ResultsSkeleton count={pageSize} />
-            )}
+            {loading && !error && <ResultsSkeleton count={pageSize} />}
 
             {!loading && !error && plants.length === 0 && (
               <div className="text-center py-16">
@@ -546,15 +349,10 @@ const SearchResults = () => {
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                   {plants.map(plant => (
-                    <SearchResultCard
-                      key={plant.id}
-                      plant={plant}
-                      highlight={highlightTokens}
-                    />
+                    <SearchResultCard key={plant.id} plant={plant} highlight={highlightTokens} />
                   ))}
                 </div>
 
-                {/* Pagination */}
                 {pagination && pagination.total_pages > 1 && (
                   <Pagination className="mt-8">
                     <PaginationContent>
