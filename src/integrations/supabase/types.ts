@@ -905,6 +905,91 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_items: {
+        Row: {
+          added_at: string
+          collection_id: string
+          id: string
+          notes: string | null
+          owned_plant_id: string
+          sort_order: number
+        }
+        Insert: {
+          added_at?: string
+          collection_id: string
+          id?: string
+          notes?: string | null
+          owned_plant_id: string
+          sort_order?: number
+        }
+        Update: {
+          added_at?: string
+          collection_id?: string
+          id?: string
+          notes?: string | null
+          owned_plant_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_items_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_items_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       compliance_attestations: {
         Row: {
           accepts_platform_fee: boolean
@@ -1831,6 +1916,7 @@ export type Database = {
           media_type: string
           sort_order: number
           url: string
+          user_id: string | null
         }
         Insert: {
           alt_text?: string | null
@@ -1840,6 +1926,7 @@ export type Database = {
           media_type?: string
           sort_order?: number
           url: string
+          user_id?: string | null
         }
         Update: {
           alt_text?: string | null
@@ -1849,6 +1936,7 @@ export type Database = {
           media_type?: string
           sort_order?: number
           url?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1987,6 +2075,49 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_tags: {
+        Row: {
+          created_at: string
+          id: string
+          owned_plant_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owned_plant_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owned_plant_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_tags_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_tags_owned_plant_id_fkey"
+            columns: ["owned_plant_id"]
+            isOneToOne: false
+            referencedRelation: "owned_plants_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
             referencedColumns: ["id"]
           },
         ]
@@ -2440,6 +2571,7 @@ export type Database = {
           availability_intent: string
           common_name: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           inquiry_handling_mode: string
           location_id: string | null
@@ -2464,6 +2596,7 @@ export type Database = {
           availability_intent?: string
           common_name?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           inquiry_handling_mode?: string
           location_id?: string | null
@@ -2488,6 +2621,7 @@ export type Database = {
           availability_intent?: string
           common_name?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           inquiry_handling_mode?: string
           location_id?: string | null
@@ -2619,6 +2753,7 @@ export type Database = {
       plant_locations: {
         Row: {
           created_at: string
+          deleted_at: string | null
           description: string | null
           id: string
           name: string
@@ -2627,6 +2762,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           name: string
@@ -2635,6 +2771,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           name?: string
@@ -4100,6 +4237,30 @@ export type Database = {
           entry_count?: number
           id?: string
           version?: number
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
         }
         Relationships: []
       }
