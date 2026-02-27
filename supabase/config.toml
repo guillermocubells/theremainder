@@ -74,3 +74,6 @@ verify_jwt = false
 
 [functions.api-grow]
 verify_jwt = false
+
+[functions.generate-thumbnails]
+verify_jwt = false
