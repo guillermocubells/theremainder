@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.reindex-catalog]
 verify_jwt = false
+
+[functions.api-collection]
+verify_jwt = false
