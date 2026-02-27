@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.api-collection]
 verify_jwt = false
+
+[functions.api-grow]
+verify_jwt = false
