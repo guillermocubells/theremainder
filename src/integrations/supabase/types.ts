@@ -1001,6 +1001,59 @@ export type Database = {
           },
         ]
       }
+      collection_shares: {
+        Row: {
+          allow_download: boolean
+          collection_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          last_viewed_at: string | null
+          password_hash: string | null
+          share_token: string | null
+          updated_at: string
+          user_id: string
+          view_count: number
+          visibility: Database["public"]["Enums"]["share_visibility"]
+        }
+        Insert: {
+          allow_download?: boolean
+          collection_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          password_hash?: string | null
+          share_token?: string | null
+          updated_at?: string
+          user_id: string
+          view_count?: number
+          visibility?: Database["public"]["Enums"]["share_visibility"]
+        }
+        Update: {
+          allow_download?: boolean
+          collection_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          password_hash?: string | null
+          share_token?: string | null
+          updated_at?: string
+          user_id?: string
+          view_count?: number
+          visibility?: Database["public"]["Enums"]["share_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_shares_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: true
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collections: {
         Row: {
           cover_image_url: string | null
@@ -4845,6 +4898,7 @@ export type Database = {
         Args: { p_days?: number; p_limit?: number }
         Returns: Json
       }
+      get_shared_collection: { Args: { p_token: string }; Returns: Json }
       has_auction_consent: {
         Args: { p_consent_type: string; p_user_id: string }
         Returns: boolean
@@ -5115,6 +5169,7 @@ export type Database = {
         | "used"
         | "reversed"
         | "expired"
+      share_visibility: "private" | "link" | "public"
       wallet_transaction_source:
         | "referral_reward"
         | "order_discount"
@@ -5357,6 +5412,7 @@ export const Constants = {
         "reversed",
         "expired",
       ],
+      share_visibility: ["private", "link", "public"],
       wallet_transaction_source: [
         "referral_reward",
         "order_discount",

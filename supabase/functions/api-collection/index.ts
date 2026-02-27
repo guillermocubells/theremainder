@@ -76,6 +76,13 @@ const locationUpdate = z.object({
   description: z.string().max(500).nullable().optional(),
 });
 
+// ── Sharing schemas ──
+const shareUpdate = z.object({
+  visibility: z.enum(["private", "link", "public"]),
+  allow_download: z.boolean().default(false),
+  expires_at: z.string().datetime().nullable().optional(),
+});
+
 // ── Auth helper ──
 async function authenticateRequest(req: Request) {
   const authHeader = req.headers.get("Authorization");
@@ -172,13 +179,22 @@ function parsePath(url: URL): Route {
     };
   }
 
+  // /shared/:token (public, no auth)
+  if (resource === "shared") {
+    return { resource: "shared", primaryId: segments[2] };
+  }
+
   // /collections/:id/items/:itemId/media/:mediaId
+  // /collections/:id/share
   const collectionId = segments[2];
   const itemsLiteral = segments[3];
   const itemId = segments[4];
   const sub = segments[5];
   const subId = segments[6];
 
+  if (resource === "collections" && itemsLiteral === "share") {
+    return { resource: "collection-share", collectionId };
+  }
   if (resource === "collections" && itemsLiteral === "items") {
     return { resource: "items", collectionId, itemId, sub, subId };
   }
@@ -490,6 +506,95 @@ async function handleRef(
   }
 
   throw new AppError("Unknown reference resource", 404, "NOT_FOUND");
+}
+
+// ══════════════════════════════════════════
+// SHARING handler (owner manages share settings)
+// ══════════════════════════════════════════
+async function handleCollectionShare(
+  req: Request, route: Route, userId: string, supabase: any,
+  rh: Record<string, string>, log: any,
+): Promise<Response> {
+  const collectionId = route.collectionId;
+  if (!collectionId || !uuidRegex.test(collectionId)) throw new AppError("Invalid collection ID", 400, "INVALID_ID");
+  await verifyCollectionOwnership(supabase, collectionId, userId);
+
+  // GET share settings
+  if (req.method === "GET") {
+    const { data } = await supabase
+      .from("collection_shares").select("*")
+      .eq("collection_id", collectionId).eq("user_id", userId).maybeSingle();
+
+    if (!data) {
+      return new Response(JSON.stringify({ visibility: "private", share_token: null, allow_download: false, view_count: 0 }), {
+        headers: { ...rh, "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // PUT/PATCH share settings (upsert)
+  if (req.method === "PUT" || req.method === "PATCH") {
+    let body: unknown;
+    try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
+    const v = validate(shareUpdate, body, rh);
+    if (v.error) return v.error;
+
+    const { data: existing } = await supabase
+      .from("collection_shares").select("id")
+      .eq("collection_id", collectionId).eq("user_id", userId).maybeSingle();
+
+    let data: any;
+    let error: any;
+
+    if (existing) {
+      const upd: any = { visibility: v.data.visibility, allow_download: v.data.allow_download, updated_at: new Date().toISOString() };
+      if (v.data.expires_at !== undefined) upd.expires_at = v.data.expires_at;
+      ({ data, error } = await supabase.from("collection_shares").update(upd).eq("id", existing.id).select("*").single());
+    } else {
+      const ins: any = { collection_id: collectionId, user_id: userId, visibility: v.data.visibility, allow_download: v.data.allow_download };
+      if (v.data.expires_at !== undefined) ins.expires_at = v.data.expires_at;
+      ({ data, error } = await supabase.from("collection_shares").insert(ins).select("*").single());
+    }
+
+    if (error || !data) throw new AppError("Failed to update share settings", 500, "UPDATE_FAILED");
+    log.info("Share updated", { collection_id: collectionId, visibility: v.data.visibility });
+    return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // DELETE share (revoke)
+  if (req.method === "DELETE") {
+    const { error } = await supabase.from("collection_shares").delete().eq("collection_id", collectionId).eq("user_id", userId);
+    if (error) throw new AppError("Failed to revoke share", 500, "DELETE_FAILED");
+    log.info("Share revoked", { collection_id: collectionId });
+    return new Response(null, { status: 204, headers: rh });
+  }
+
+  throw new AppError("Method not allowed", 405, "METHOD_NOT_ALLOWED");
+}
+
+// ══════════════════════════════════════════
+// PUBLIC SHARED view (no auth, token-based)
+// ══════════════════════════════════════════
+async function handleSharedView(
+  req: Request, route: Route, rh: Record<string, string>, log: any,
+): Promise<Response> {
+  if (req.method !== "GET") throw new AppError("Method not allowed", 405, "METHOD_NOT_ALLOWED");
+
+  const token = route.primaryId;
+  if (!token || token.length < 16) throw new AppError("Invalid share token", 400, "INVALID_TOKEN");
+
+  const svc = getServiceClient();
+  const { data, error } = await svc.rpc("get_shared_collection", { p_token: token });
+
+  if (error) {
+    log.error("Shared view RPC error", { error: error.message });
+    throw new AppError("Failed to load shared collection", 500, "RPC_FAILED");
+  }
+  if (!data) throw new AppError("Collection not found or share expired", 404, "NOT_FOUND");
+
+  log.info("Shared view accessed", { token: token.slice(0, 8) + "..." });
+  return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
 }
 
 // ══════════════════════════════════════════
@@ -818,6 +923,11 @@ Deno.serve(async (req) => {
       return await handleRef(req, route, svc, rh);
     }
 
+    // ── Public shared view (no auth, token-based) ──
+    if (route.resource === "shared") {
+      return await handleSharedView(req, route, rh, log);
+    }
+
     // ── All other endpoints require auth ──
     const auth = await authenticateRequest(req);
     if ("error" in auth) {
@@ -838,6 +948,11 @@ Deno.serve(async (req) => {
     // ── Locations ──
     if (route.resource === "locations") {
       return await handleLocations(req, route, userId, supabase, rh, log);
+    }
+
+    // ── Collection share settings (owner) ──
+    if (route.resource === "collection-share") {
+      return await handleCollectionShare(req, route, userId, supabase, rh, log);
     }
 
     // ── Items (and Media sub-resource) ──
