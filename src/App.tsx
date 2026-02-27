@@ -47,7 +47,8 @@ import {
   CollectionDashboard, 
   PlantDetailPage, 
   LocationsPage, 
-  PublicPlantPage 
+  PublicPlantPage,
+  CollectionsListPage,
 } from "./pages/collection";
 
 // Wishlist module pages
@@ -101,6 +102,11 @@ const App = () => (
               <Route path="/garden/locations" element={
                 <ProtectedRoute>
                   <LocationsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/garden/collections" element={
+                <ProtectedRoute>
+                  <CollectionsListPage />
                 </ProtectedRoute>
               } />
               
