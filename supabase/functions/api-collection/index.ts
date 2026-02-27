@@ -114,6 +114,30 @@ function getServiceClient() {
   );
 }
 
+// ── Activity log helper (fire-and-forget) ──
+function emitActivity(
+  userId: string,
+  eventType: string,
+  entityType: string,
+  entityId: string | null,
+  collectionId: string | null,
+  metadata: Record<string, unknown> = {},
+) {
+  const svc = getServiceClient();
+  svc.from("collection_activity_log")
+    .insert({
+      user_id: userId,
+      event_type: eventType,
+      entity_type: entityType,
+      entity_id: entityId,
+      collection_id: collectionId,
+      metadata,
+    })
+    .then(({ error }: any) => {
+      if (error) console.error("[activity-log] insert failed:", error.message);
+    });
+}
+
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // ── Sort helpers ──
@@ -184,6 +208,11 @@ function parsePath(url: URL): Route {
     return { resource: "shared", primaryId: segments[2] };
   }
 
+  // /activity (authenticated)
+  if (resource === "activity") {
+    return { resource: "activity" };
+  }
+
   // /collections/:id/items/:itemId/media/:mediaId
   // /collections/:id/share
   const collectionId = segments[2];
@@ -220,6 +249,46 @@ const ALLOWED_MIME = new Set([
   "video/mp4", "video/webm",
 ]);
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+// ══════════════════════════════════════════
+// ACTIVITY LOG handler
+// ══════════════════════════════════════════
+async function handleActivity(
+  req: Request, userId: string, supabase: any,
+  rh: Record<string, string>,
+): Promise<Response> {
+  if (req.method !== "GET") throw new AppError("Method not allowed", 405, "METHOD_NOT_ALLOWED");
+
+  const url = new URL(req.url);
+  const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10));
+  const pageSize = Math.min(100, Math.max(1, parseInt(url.searchParams.get("page_size") ?? "30", 10)));
+  const collectionId = url.searchParams.get("collection_id");
+  const eventType = url.searchParams.get("event_type");
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
+    .from("collection_activity_log")
+    .select("*", { count: "exact" })
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (collectionId && uuidRegex.test(collectionId)) {
+    query = query.eq("collection_id", collectionId);
+  }
+  if (eventType) {
+    query = query.eq("event_type", eventType);
+  }
+
+  const { data, error, count } = await query;
+  if (error) throw new AppError("Failed to list activity", 500, "LIST_FAILED");
+
+  return new Response(
+    JSON.stringify({ data: data ?? [], total: count ?? 0, page, page_size: pageSize, has_more: (count ?? 0) > from + pageSize }),
+    { headers: { ...rh, "Content-Type": "application/json" } },
+  );
+}
 
 // ══════════════════════════════════════════
 // TAGS handler
@@ -559,6 +628,7 @@ async function handleCollectionShare(
 
     if (error || !data) throw new AppError("Failed to update share settings", 500, "UPDATE_FAILED");
     log.info("Share updated", { collection_id: collectionId, visibility: v.data.visibility });
+    emitActivity(userId, "share_updated", "share", data.id, collectionId, { visibility: v.data.visibility });
     return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
   }
 
@@ -567,6 +637,7 @@ async function handleCollectionShare(
     const { error } = await supabase.from("collection_shares").delete().eq("collection_id", collectionId).eq("user_id", userId);
     if (error) throw new AppError("Failed to revoke share", 500, "DELETE_FAILED");
     log.info("Share revoked", { collection_id: collectionId });
+    emitActivity(userId, "share_revoked", "share", null, collectionId);
     return new Response(null, { status: 204, headers: rh });
   }
 
@@ -717,6 +788,7 @@ async function handleItems(
     }
 
     log.info("Item added", { item_id: data.id, collection_id: collectionId });
+    emitActivity(userId, "item_added", "item", data.id, collectionId, { owned_plant_id: v.data.owned_plant_id });
     return new Response(JSON.stringify(data), {
       status: 201, headers: { ...rh, "Content-Type": "application/json" },
     });
@@ -764,6 +836,7 @@ async function handleItems(
     if (error) throw new AppError("Failed to delete item", 500, "DELETE_FAILED");
 
     log.info("Item deleted", { item_id: itemId, collection_id: collectionId });
+    emitActivity(userId, "item_removed", "item", itemId, collectionId);
     return new Response(null, { status: 204, headers: rh });
   }
 
@@ -867,6 +940,7 @@ async function handleMedia(
     };
 
     log.info("Media uploaded", { media_id: row.id, item_id: itemId, size: file.size });
+    emitActivity(userId, "media_uploaded", "media", row.id, collectionId, { item_id: itemId, media_type: mediaType, size: file.size });
 
     return new Response(JSON.stringify(result), {
       status: 201, headers: { ...rh, "Content-Type": "application/json" },
@@ -934,6 +1008,11 @@ Deno.serve(async (req) => {
       throw new AppError(auth.error, 401, "UNAUTHORIZED");
     }
     const { userId, supabase } = auth;
+
+    // ── Activity log ──
+    if (route.resource === "activity") {
+      return await handleActivity(req, userId, supabase, rh);
+    }
 
     // ── Tags ──
     if (route.resource === "tags") {
@@ -1014,6 +1093,7 @@ Deno.serve(async (req) => {
       if (error) throw new AppError("Failed to create collection", 500, "CREATE_FAILED");
 
       log.info("Collection created", { id: data.id });
+      emitActivity(userId, "collection_created", "collection", data.id, data.id, { name: v.data.name });
       return new Response(JSON.stringify(data), { status: 201, headers: { ...rh, "Content-Type": "application/json" } });
     }
 
@@ -1035,6 +1115,7 @@ Deno.serve(async (req) => {
       if (error || !data) throw new AppError("Failed to update collection", 500, "UPDATE_FAILED");
 
       log.info("Collection updated", { id });
+      emitActivity(userId, "collection_updated", "collection", id, id, { fields: Object.keys(v.data) });
       return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
     }
 
@@ -1051,6 +1132,7 @@ Deno.serve(async (req) => {
       if (error) throw new AppError("Failed to archive collection", 500, "ARCHIVE_FAILED");
 
       log.info("Collection archived", { id });
+      emitActivity(userId, "collection_archived", "collection", id, id);
       return new Response(null, { status: 204, headers: rh });
     }
 
