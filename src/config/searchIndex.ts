@@ -130,7 +130,9 @@ export const SORT_OPTIONS: SortOption[] = [
   { key: 'rarity_desc',  column: 'rarity',        direction: 'desc', label_es: 'Más raro',        label_en: 'Rarest first'   },
 ];
 
-// ── Relevance signals ────────────────────────────────────────────────
+// ── Relevance signals (server-side, stored in store_settings) ─────
+// These are the DEFAULT values. Actual values are loaded from
+// store_settings.search_relevance_config at query time for hot-reload.
 export interface RelevanceSignal {
   name: string;
   condition: string;
@@ -145,6 +147,28 @@ export const RELEVANCE_SIGNALS: RelevanceSignal[] = [
   { name: 'on_sale',            condition: 'sale_price IS NOT NULL',          weight: 1.05, description: 'Items on sale get 5% boost' },
   { name: 'viability_context',  condition: 'postal_code detected in query',  weight: 1.2,  description: 'Viability score multiplier when geo context present' },
 ];
+
+// ── A/B testing config ───────────────────────────────────────────────
+export const AB_VARIANTS = ['A', 'B'] as const;
+export type ABVariant = typeof AB_VARIANTS[number];
+
+/**
+ * Server-side relevance tuning is stored in store_settings:
+ * - search_relevance_config (variant A, default)
+ * - search_relevance_config_b (variant B)
+ *
+ * Config shape:
+ *   field_weights: { name, common_name, scientific_name, family, variety, description }
+ *   exact_match_bonus: { name, common_name, scientific_name }
+ *   prefix_match_bonus: number
+ *   trigram_multiplier: number
+ *   trigram_threshold: number (0-1)
+ *   typo_tolerance: { "1":0, "2":0, "3":0, "4":1, "5":1, "6":2 }
+ *   boosts: { is_featured, in_stock, has_images, on_sale }
+ *   tie_breakers: [{ field, direction }]
+ *
+ * Pass ?ab=B to /search to use variant B.
+ */
 
 // ── Synonym groups ───────────────────────────────────────────────────
 export const SYNONYM_GROUPS: Record<string, string[]> = {
