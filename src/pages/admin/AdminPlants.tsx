@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,12 +43,22 @@ interface Plant {
 
 export default function AdminPlants() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [plants, setPlants] = useState<Plant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlant, setEditingPlant] = useState<Plant | null>(null);
   const [deletingPlant, setDeletingPlant] = useState<Plant | null>(null);
+
+  // Sync search query to URL params
+  useEffect(() => {
+    if (searchQuery) {
+      setSearchParams({ search: searchQuery }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchQuery, setSearchParams]);
 
   const fetchPlants = async () => {
     setIsLoading(true);
