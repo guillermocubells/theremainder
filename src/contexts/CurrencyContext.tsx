@@ -71,7 +71,7 @@ const STORAGE_KEY = "frondaprima_currency";
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const [currency, setCurrencyState] = useState<string>(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY) || detectCurrencyFromLocale();
+      return localStorage.getItem(STORAGE_KEY) || "EUR";
     } catch {
       return "EUR";
     }
