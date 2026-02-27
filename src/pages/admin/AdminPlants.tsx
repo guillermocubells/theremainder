@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Loader2, Copy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { PlantFormDialog } from "@/components/admin/PlantFormDialog";
@@ -186,11 +186,37 @@ export default function AdminPlants() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium text-foreground">{plant.name}</p>
+                      <div className="group/name flex items-center gap-1">
+                        <p className="font-medium text-foreground">{plant.name}</p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(plant.name);
+                            toast.success("Nombre copiado");
+                          }}
+                          className="opacity-0 group-hover/name:opacity-100 transition-opacity p-0.5 rounded hover:bg-muted"
+                          title="Copiar nombre"
+                        >
+                          <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
+                      </div>
                       {plant.scientific_name && (
-                        <p className="text-sm text-muted-foreground italic">
-                          {plant.scientific_name}
-                        </p>
+                        <div className="group/sci flex items-center gap-1">
+                          <p className="text-sm text-muted-foreground italic">
+                            {plant.scientific_name}
+                          </p>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(plant.scientific_name!);
+                              toast.success("Nombre científico copiado");
+                            }}
+                            className="opacity-0 group-hover/sci:opacity-100 transition-opacity p-0.5 rounded hover:bg-muted"
+                            title="Copiar nombre científico"
+                          >
+                            <Copy className="h-3 w-3 text-muted-foreground" />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </TableCell>
