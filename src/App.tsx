@@ -56,7 +56,7 @@ import {
 import { WishlistDashboard } from "./pages/wishlist";
 
 // Unified Garden module
-import { MyGarden, SharedSearchListPage, LogDetailPage, GerminationDiaryPage } from "./pages/garden";
+import { MyGarden, SharedSearchListPage, LogDetailPage, GerminationDiaryPage, PublicLogPage } from "./pages/garden";
 
 const queryClient = new QueryClient();
 
@@ -136,6 +136,9 @@ const App = () => (
               
               {/* Public plant page (no auth required) */}
               <Route path="/p/:slug" element={<PublicPlantPage />} />
+              
+              {/* Public grow log (no auth required) */}
+              <Route path="/log/:slug" element={<PublicLogPage />} />
               
               {/* Public shared collection (no auth required) */}
               <Route path="/collection/shared/:token" element={<PublicCollectionPage />} />
