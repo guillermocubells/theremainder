@@ -93,8 +93,9 @@ export default function AdminPlants() {
 
       if (error) throw error;
 
+      // Immediately remove from local state for instant UI update
+      setPlants((prev) => prev.filter((p) => p.id !== deletingPlant.id));
       toast.success("Planta eliminada correctamente");
-      fetchPlants();
     } catch (error) {
       console.error("Error deleting plant:", error);
       toast.error("Error al eliminar la planta");

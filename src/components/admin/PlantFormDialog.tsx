@@ -36,7 +36,7 @@ interface PlantFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   plant?: any;
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
 }
 
 // ── Validation Schema ──
@@ -441,7 +441,7 @@ export function PlantFormDialog({
         toast.success("Planta creada correctamente");
       }
 
-      onSuccess();
+      await onSuccess();
       onOpenChange(false);
     } catch (error: any) {
       console.error("Error saving plant:", error);
