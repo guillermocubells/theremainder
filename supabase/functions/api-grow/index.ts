@@ -75,6 +75,27 @@ const germListParams = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
+// Media constants & schemas
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const ACCEPTED_MIME_TYPES = [
+  "image/jpeg", "image/png", "image/webp", "image/gif", "image/avif",
+] as const;
+
+const mediaUploadRequest = z.object({
+  entry_id: z.string().uuid(),
+  file_name: z.string().min(1).max(255),
+  mime_type: z.enum(ACCEPTED_MIME_TYPES as unknown as [string, ...string[]]),
+  file_size_bytes: z.number().int().min(1).max(MAX_FILE_SIZE),
+  width: z.number().int().min(1).max(20000).nullable().optional(),
+  height: z.number().int().min(1).max(20000).nullable().optional(),
+  sort_order: z.number().int().min(0).max(100).default(0),
+});
+
+const mediaListParams = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function assertUuid(id: string, label = "ID") {
@@ -379,6 +400,140 @@ async function handleCreateGermination(
   });
 }
 
+// ════════════════════════════════════════
+//  MEDIA HANDLERS
+// ════════════════════════════════════════
+
+function buildPublicUrl(storagePath: string): string {
+  const base = Deno.env.get("SUPABASE_URL")!;
+  return `${base}/storage/v1/object/public/grow-media/${storagePath}`;
+}
+
+async function handleCreateUpload(
+  req: Request, logId: string, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>, log: any,
+): Promise<Response> {
+  await verifyLogOwnership(supabase, logId, userId);
+
+  let body: unknown;
+  try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
+  const v = validate(mediaUploadRequest, body, rh);
+  if (v.error) return v.error;
+
+  // Verify entry belongs to this log
+  const { data: entry } = await supabase.from("grow_entries")
+    .select("id").eq("id", v.data.entry_id).eq("log_id", logId).single();
+  if (!entry) throw new AppError("Entry not found in this log", 404, "ENTRY_NOT_FOUND");
+
+  // Build storage path: {userId}/{logId}/{entryId}/{uuid}-{fileName}
+  const fileId = crypto.randomUUID();
+  const sanitized = v.data.file_name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const storagePath = `${userId}/${logId}/${v.data.entry_id}/${fileId}-${sanitized}`;
+
+  // Create signed upload URL
+  const adminClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  const { data: signedData, error: signError } = await adminClient.storage
+    .from("grow-media")
+    .createSignedUploadUrl(storagePath);
+
+  if (signError || !signedData) {
+    throw new AppError("Failed to create upload URL", 500, "UPLOAD_URL_FAILED");
+  }
+
+  // Insert media record (pending until client confirms upload)
+  const { data: media, error: insertErr } = await supabase.from("grow_entry_media").insert({
+    entry_id: v.data.entry_id,
+    log_id: logId,
+    user_id: userId,
+    storage_path: storagePath,
+    file_name: v.data.file_name,
+    mime_type: v.data.mime_type,
+    file_size_bytes: v.data.file_size_bytes,
+    width: v.data.width ?? null,
+    height: v.data.height ?? null,
+    sort_order: v.data.sort_order,
+  }).select("*").single();
+
+  if (insertErr || !media) throw new AppError("Failed to record media", 500, "CREATE_FAILED");
+
+  log.info("Media upload initiated", { id: media.id, logId, entryId: v.data.entry_id });
+
+  return new Response(JSON.stringify({
+    id: media.id,
+    signed_upload_url: signedData.signedUrl,
+    upload_token: signedData.token,
+    storage_path: storagePath,
+    public_url: buildPublicUrl(storagePath),
+    expires_in: 120,
+    constraints: {
+      max_size_bytes: MAX_FILE_SIZE,
+      accepted_types: ACCEPTED_MIME_TYPES,
+    },
+  }), { status: 201, headers: { ...rh, "Content-Type": "application/json" } });
+}
+
+async function handleListMedia(
+  req: Request, logId: string, userId: string | null, supabase: ReturnType<typeof createClient>, rh: Record<string, string>,
+): Promise<Response> {
+  await verifyLogAccess(supabase, logId, userId);
+
+  const qp = Object.fromEntries(new URL(req.url).searchParams);
+  const v = validate(mediaListParams, qp, rh);
+  if (v.error) return v.error;
+
+  const entryId = new URL(req.url).searchParams.get("entry_id");
+  const { page, limit } = v.data;
+  const from = (page - 1) * limit;
+
+  let query = supabase.from("grow_entry_media").select("*", { count: "exact" })
+    .eq("log_id", logId).order("sort_order", { ascending: true }).range(from, from + limit - 1);
+  if (entryId) {
+    assertUuid(entryId, "entry_id");
+    query = query.eq("entry_id", entryId);
+  }
+
+  const { data, error, count } = await query;
+  if (error) throw new AppError("Failed to list media", 500, "LIST_FAILED");
+
+  const enriched = (data ?? []).map((m: any) => ({
+    ...m,
+    public_url: buildPublicUrl(m.storage_path),
+  }));
+
+  return new Response(JSON.stringify({ data: enriched, meta: { page, limit, total: count ?? 0 } }),
+    { headers: { ...rh, "Content-Type": "application/json" } });
+}
+
+async function handleDeleteMedia(
+  logId: string, mediaId: string, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>, log: any,
+): Promise<Response> {
+  assertUuid(logId, "log ID");
+  assertUuid(mediaId, "media ID");
+
+  // Get the media record to find storage path
+  const { data: media } = await supabase.from("grow_entry_media")
+    .select("storage_path").eq("id", mediaId).eq("log_id", logId).eq("user_id", userId).single();
+  if (!media) throw new AppError("Media not found or not owned", 404, "MEDIA_NOT_FOUND");
+
+  // Delete from storage
+  const adminClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+  await adminClient.storage.from("grow-media").remove([media.storage_path]);
+
+  // Delete DB record
+  const { error } = await supabase.from("grow_entry_media").delete()
+    .eq("id", mediaId).eq("user_id", userId);
+  if (error) throw new AppError("Failed to delete media", 500, "DELETE_FAILED");
+
+  log.info("Media deleted", { id: mediaId, logId });
+  return new Response(null, { status: 204, headers: rh });
+}
+
 // ── Main handler ──
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -413,20 +568,21 @@ Deno.serve(async (req) => {
     //  PUBLIC GETs (visibility-gated)
     // ════════════════════════════════
     if (req.method === "GET") {
-      // GET /logs/:id (single log)
       if (route.logId && !sub) {
         const { userId, client } = await optionalAuth();
         return await handleGetLog(route.logId, userId, client, rh);
       }
-      // GET /logs/:id/entries
       if (route.logId && sub === "entries" && !route.subId) {
         const { userId, client } = await optionalAuth();
         return await handleListEntries(req, route.logId, userId, client, rh);
       }
-      // GET /logs/:id/germination
       if (route.logId && sub === "germination" && !route.subId) {
         const { userId, client } = await optionalAuth();
         return await handleListGermination(req, route.logId, userId, client, rh);
+      }
+      if (route.logId && sub === "media" && !route.subId) {
+        const { userId, client } = await optionalAuth();
+        return await handleListMedia(req, route.logId, userId, client, rh);
       }
     }
 
@@ -453,6 +609,12 @@ Deno.serve(async (req) => {
     // GERMINATION routes
     if (sub === "germination" && route.logId) {
       if (req.method === "POST" && !route.subId) return await handleCreateGermination(req, route.logId, userId, supabase, rh, log);
+    }
+
+    // MEDIA routes
+    if (sub === "media" && route.logId) {
+      if (req.method === "POST" && !route.subId) return await handleCreateUpload(req, route.logId, userId, supabase, rh, log);
+      if (req.method === "DELETE" && route.subId) return await handleDeleteMedia(route.logId, route.subId, userId, supabase, rh, log);
     }
 
     throw new AppError("Method not allowed", 405, "METHOD_NOT_ALLOWED");
