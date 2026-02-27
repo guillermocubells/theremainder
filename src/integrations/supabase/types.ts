@@ -1746,6 +1746,75 @@ export type Database = {
           },
         ]
       }
+      germination_events: {
+        Row: {
+          count_germinated: number
+          count_sown: number
+          created_at: string
+          first_sprout_at: string | null
+          humidity_pct: number | null
+          id: string
+          light: string | null
+          log_id: string
+          medium: string | null
+          method: string | null
+          notes: string | null
+          seed_batch_id: string | null
+          temp_c: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          count_germinated?: number
+          count_sown?: number
+          created_at?: string
+          first_sprout_at?: string | null
+          humidity_pct?: number | null
+          id?: string
+          light?: string | null
+          log_id: string
+          medium?: string | null
+          method?: string | null
+          notes?: string | null
+          seed_batch_id?: string | null
+          temp_c?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          count_germinated?: number
+          count_sown?: number
+          created_at?: string
+          first_sprout_at?: string | null
+          humidity_pct?: number | null
+          id?: string
+          light?: string | null
+          log_id?: string
+          medium?: string | null
+          method?: string | null
+          notes?: string | null
+          seed_batch_id?: string | null
+          temp_c?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "germination_events_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "grow_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "germination_events_seed_batch_id_fkey"
+            columns: ["seed_batch_id"]
+            isOneToOne: false
+            referencedRelation: "germination_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grow_entries: {
         Row: {
           created_at: string
