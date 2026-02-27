@@ -139,7 +139,7 @@ const LogDetailPage = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const publicUrl = publicSlug ? `${window.location.origin}/p/${publicSlug.slug}` : null;
+  const publicUrl = publicSlug ? `${window.location.origin}/log/${publicSlug.slug}` : null;
 
   if (isLoading) {
     return (

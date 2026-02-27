@@ -80,6 +80,45 @@ export const usePublicPlant = (slug: string | undefined) => {
   });
 };
 
+/** Full public log: plant + ALL observations for public timeline view */
+export const usePublicLog = (slug: string | undefined) => {
+  return useQuery({
+    queryKey: ['public-log', slug],
+    queryFn: async () => {
+      if (!slug) return null;
+
+      const { data: slugData, error: slugError } = await supabase
+        .from('plant_public_slugs')
+        .select('owned_plant_id')
+        .eq('slug', slug)
+        .eq('is_public', true)
+        .single();
+
+      if (slugError || !slugData) return null;
+
+      const { data: plantData, error: plantError } = await supabase
+        .from('owned_plants_public')
+        .select('id, nickname, scientific_name, common_name, photos, status')
+        .eq('id', slugData.owned_plant_id)
+        .single();
+
+      if (plantError) return null;
+
+      const { data: observations } = await supabase
+        .from('plant_observations')
+        .select('id, observation_date, condition, notes, photos')
+        .eq('owned_plant_id', slugData.owned_plant_id)
+        .order('observation_date', { ascending: false });
+
+      return {
+        ...plantData,
+        observations: observations || [],
+      };
+    },
+    enabled: !!slug,
+  });
+};
+
 export const useCreatePublicSlug = () => {
   const queryClient = useQueryClient();
 
