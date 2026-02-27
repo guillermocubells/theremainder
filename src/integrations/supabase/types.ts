@@ -955,8 +955,14 @@ export type Database = {
           id: string
           media_type: string
           mime_type: string | null
+          original_height: number | null
+          original_width: number | null
           sort_order: number
           storage_path: string
+          thumbnail_generated_at: string | null
+          thumbnail_height: number | null
+          thumbnail_storage_path: string | null
+          thumbnail_width: number | null
           user_id: string
         }
         Insert: {
@@ -967,8 +973,14 @@ export type Database = {
           id?: string
           media_type?: string
           mime_type?: string | null
+          original_height?: number | null
+          original_width?: number | null
           sort_order?: number
           storage_path: string
+          thumbnail_generated_at?: string | null
+          thumbnail_height?: number | null
+          thumbnail_storage_path?: string | null
+          thumbnail_width?: number | null
           user_id: string
         }
         Update: {
@@ -979,8 +991,14 @@ export type Database = {
           id?: string
           media_type?: string
           mime_type?: string | null
+          original_height?: number | null
+          original_width?: number | null
           sort_order?: number
           storage_path?: string
+          thumbnail_generated_at?: string | null
+          thumbnail_height?: number | null
+          thumbnail_storage_path?: string | null
+          thumbnail_width?: number | null
           user_id?: string
         }
         Relationships: [
