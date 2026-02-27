@@ -1,0 +1,599 @@
+openapi: 3.0.3
+info:
+  title: Grow Logs API
+  version: "1.0"
+  description: |
+    RESTful endpoints for managing grow logs, entries, germination events,
+    and photo uploads. All mutating operations require a valid Bearer token.
+
+servers:
+  - url: /functions/v1/api-grow
+    description: Edge function base
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Logs
+    description: Grow log CRUD
+  - name: Entries
+    description: Timeline entries within a log
+  - name: Germination
+    description: Germination event tracking
+  - name: Media
+    description: Photo uploads for entries
+
+paths:
+  /grow/logs:
+    get:
+      operationId: listLogs
+      tags: [Logs]
+      summary: List current user's grow logs
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - name: visibility
+          in: query
+          schema:
+            $ref: "#/components/schemas/Visibility"
+        - name: species
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GrowLog"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      operationId: createLog
+      tags: [Logs]
+      summary: Create a new grow log
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrowLogCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrowLog"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /grow/logs/{logId}:
+    parameters:
+      - $ref: "#/components/parameters/LogId"
+
+    get:
+      operationId: getLog
+      tags: [Logs]
+      summary: Get a single grow log
+      description: Returns the log if owned by user or if visibility is public/link.
+      responses:
+        "200":
+          description: Log detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrowLog"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    patch:
+      operationId: updateLog
+      tags: [Logs]
+      summary: Update a grow log
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrowLogUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrowLog"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: deleteLog
+      tags: [Logs]
+      summary: Delete a grow log and all children (cascade)
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /grow/logs/{logId}/entries:
+    parameters:
+      - $ref: "#/components/parameters/LogId"
+
+    get:
+      operationId: listEntries
+      tags: [Entries]
+      summary: List entries for a log
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [observation, watering, repotting, treatment, note, other]
+      responses:
+        "200":
+          description: Paginated entries (ordered by occurred_at DESC)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GrowEntry"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    post:
+      operationId: createEntry
+      tags: [Entries]
+      summary: Add a new entry to a log
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrowEntryCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrowEntry"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /grow/germination:
+    get:
+      operationId: listGerminationEvents
+      tags: [Germination]
+      summary: List germination events for current user
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - name: logId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: seedBatchId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Paginated germination events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GerminationEvent"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      operationId: createGerminationEvent
+      tags: [Germination]
+      summary: Record a germination event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GerminationEventCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GerminationEvent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /grow/logs/{logId}/entries/{entryId}/photos:
+    parameters:
+      - $ref: "#/components/parameters/LogId"
+      - $ref: "#/components/parameters/EntryId"
+
+    post:
+      operationId: uploadPhoto
+      tags: [Media]
+      summary: Upload a photo to an entry
+      description: |
+        Accepts multipart/form-data with a single `file` field.
+        The server stores the file in the `grow-photos` storage bucket,
+        creates a `grow_photos` row, and increments `media_count` on the entry.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file (JPEG, PNG, WebP). Max 10 MB.
+                sort_order:
+                  type: integer
+                  default: 0
+      responses:
+        "201":
+          description: Photo uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrowPhoto"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "413":
+          description: File too large
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    LogId:
+      name: logId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EntryId:
+      name: entryId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    Visibility:
+      type: string
+      enum: [private, link, public]
+      default: private
+
+    GrowLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        species:
+          type: string
+          nullable: true
+        taxon_id:
+          type: string
+          format: uuid
+          nullable: true
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    GrowLogCreate:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        species:
+          type: string
+          nullable: true
+        taxon_id:
+          type: string
+          format: uuid
+          nullable: true
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    GrowLogUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        species:
+          type: string
+          nullable: true
+        taxon_id:
+          type: string
+          format: uuid
+          nullable: true
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    GrowEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        log_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        type:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          nullable: true
+        media_count:
+          type: integer
+        photos:
+          type: array
+          items:
+            $ref: "#/components/schemas/GrowPhoto"
+        created_at:
+          type: string
+          format: date-time
+
+    GrowEntryCreate:
+      type: object
+      properties:
+        occurred_at:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [observation, watering, repotting, treatment, note, other]
+          default: observation
+        notes:
+          type: string
+          nullable: true
+          maxLength: 5000
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          nullable: true
+
+    GrowPhoto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        entry_id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+        hash:
+          type: string
+          nullable: true
+        sort_order:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    GerminationEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        log_id:
+          type: string
+          format: uuid
+        seed_batch_id:
+          type: string
+          format: uuid
+          nullable: true
+        method:
+          type: string
+          nullable: true
+        medium:
+          type: string
+          nullable: true
+        temp_c:
+          type: number
+          nullable: true
+        humidity_pct:
+          type: number
+          nullable: true
+        light:
+          type: string
+          nullable: true
+        count_sown:
+          type: integer
+        count_germinated:
+          type: integer
+        first_sprout_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    GerminationEventCreate:
+      type: object
+      required: [log_id, count_sown]
+      properties:
+        log_id:
+          type: string
+          format: uuid
+        seed_batch_id:
+          type: string
+          format: uuid
+          nullable: true
+        method:
+          type: string
+          nullable: true
+        medium:
+          type: string
+          nullable: true
+        temp_c:
+          type: number
+          nullable: true
+        humidity_pct:
+          type: number
+          nullable: true
+        light:
+          type: string
+          nullable: true
+        count_sown:
+          type: integer
+          minimum: 1
+        count_germinated:
+          type: integer
+          minimum: 0
+          default: 0
+        first_sprout_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+          maxLength: 5000
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+            request_id:
+              type: string
+            details:
+              type: object
