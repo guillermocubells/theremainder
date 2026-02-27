@@ -96,6 +96,15 @@ const mediaListParams = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
+const feedParams = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+  taxon_id: z.string().uuid().optional(),
+  type: z.enum(ENTRY_TYPES).optional(),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+});
+
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function assertUuid(id: string, label = "ID") {
@@ -534,6 +543,104 @@ async function handleDeleteMedia(
   return new Response(null, { status: 204, headers: rh });
 }
 
+// ════════════════════════════════════════
+//  FEED / TIMELINE HANDLER
+// ════════════════════════════════════════
+
+function buildPublicMediaUrl(storagePath: string): string {
+  const base = Deno.env.get("SUPABASE_URL")!;
+  return `${base}/storage/v1/object/public/grow-media/${storagePath}`;
+}
+
+async function handleFeed(
+  req: Request, userId: string, supabase: ReturnType<typeof createClient>, rh: Record<string, string>,
+): Promise<Response> {
+  const qp = Object.fromEntries(new URL(req.url).searchParams);
+  const v = validate(feedParams, qp, rh);
+  if (v.error) return v.error;
+
+  const { page, limit, taxon_id, type, from, to } = v.data;
+  const offset = (page - 1) * limit;
+
+  // Build entries query with joined log data
+  let query = supabase
+    .from("grow_entries")
+    .select(`
+      id, type, occurred_at, notes, rating, tags, created_at, updated_at,
+      log_id,
+      grow_logs!inner ( id, title, species, taxon_id, visibility, user_id )
+    `, { count: "exact" })
+    .eq("user_id", userId)
+    .order("occurred_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (taxon_id) query = query.eq("grow_logs.taxon_id", taxon_id);
+  if (type) query = query.eq("type", type);
+  if (from) query = query.gte("occurred_at", from);
+  if (to) query = query.lte("occurred_at", to);
+
+  const { data: entries, error, count } = await query;
+  if (error) throw new AppError("Failed to fetch feed", 500, "FEED_FAILED");
+
+  if (!entries || entries.length === 0) {
+    return new Response(JSON.stringify({ data: [], meta: { page, limit, total: 0 } }),
+      { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // Batch-fetch latest photos for returned entries
+  const entryIds = entries.map((e: any) => e.id);
+  const { data: mediaRows } = await supabase
+    .from("grow_entry_media")
+    .select("id, entry_id, storage_path, mime_type, width, height, sort_order")
+    .in("entry_id", entryIds)
+    .order("sort_order", { ascending: true })
+    .limit(200);
+
+  // Group media by entry, keep max 3 per entry
+  const mediaByEntry: Record<string, any[]> = {};
+  for (const m of mediaRows ?? []) {
+    const eid = m.entry_id as string;
+    if (!mediaByEntry[eid]) mediaByEntry[eid] = [];
+    if (mediaByEntry[eid].length < 3) {
+      mediaByEntry[eid].push({
+        id: m.id,
+        url: buildPublicMediaUrl(m.storage_path),
+        mime_type: m.mime_type,
+        width: m.width,
+        height: m.height,
+      });
+    }
+  }
+
+  // Shape response
+  const feed = entries.map((e: any) => {
+    const log = e.grow_logs;
+    const snippet = e.notes
+      ? e.notes.length > 280 ? e.notes.slice(0, 277) + "…" : e.notes
+      : null;
+
+    return {
+      id: e.id,
+      type: e.type,
+      occurred_at: e.occurred_at,
+      rating: e.rating,
+      tags: e.tags,
+      notes_snippet: snippet,
+      created_at: e.created_at,
+      log: {
+        id: log.id,
+        title: log.title,
+        species: log.species,
+        taxon_id: log.taxon_id,
+      },
+      photos: mediaByEntry[e.id] ?? [],
+    };
+  });
+
+  return new Response(JSON.stringify({ data: feed, meta: { page, limit, total: count ?? 0 } }),
+    { headers: { ...rh, "Content-Type": "application/json" } });
+}
+
 // ── Main handler ──
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -590,6 +697,11 @@ Deno.serve(async (req) => {
     //  AUTHENTICATED ROUTES
     // ════════════════════════════════
     const { userId, supabase } = await requireAuth();
+
+    // FEED route: GET /feed (no logId)
+    if (req.method === "GET" && route.resource === "feed" && !route.logId) {
+      return await handleFeed(req, userId, supabase, rh);
+    }
 
     // LOG routes
     if (!sub) {
