@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useMemo, useCallback, useEffect, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import {
   Search, X, Sparkles, ArrowUpDown,
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/pagination";
 import {
   useSearchCatalog, SearchPlant, SortKey, SearchFilters,
+  filtersFromSearchParams, filtersToSearchParams,
 } from "@/hooks/useSearchCatalog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { OptimizedImage } from "@/components/ui/optimized-image";
@@ -151,21 +152,30 @@ const ARRAY_FILTER_KEYS = [
 // ── Main Page ────────────────────────────────────────────────────────
 
 const SearchResults = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
 
-  const initialQuery = searchParams.get("q") || "";
+  // Hydrate initial state from URL
+  const initial = useMemo(() => filtersFromSearchParams(searchParams), []);// eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     filters, sort, page, pageSize, result, loading, error,
     setFilters, setSort, setPage, setPageSize, toggleFacetValue,
     clearAllFilters, removeFilter, setQuery,
-  } = useSearchCatalog({ initialPageSize: 24 });
-
-  // Set initial query from URL
-  useState(() => {
-    if (initialQuery) setQuery(initialQuery);
+  } = useSearchCatalog({
+    initialFilters: initial.filters,
+    initialSort: initial.sort,
+    initialPage: initial.page,
+    initialPageSize: initial.pageSize,
   });
+
+  // Write state changes back to URL (replace, no history spam)
+  const isFirstSync = useRef(true);
+  useEffect(() => {
+    if (isFirstSync.current) { isFirstSync.current = false; return; }
+    const next = filtersToSearchParams(filters, sort, page, pageSize);
+    setSearchParams(next, { replace: true });
+  }, [filters, sort, page, pageSize, setSearchParams]);
 
   const facets = result?.facets ?? {};
   const plants = result?.plants ?? [];

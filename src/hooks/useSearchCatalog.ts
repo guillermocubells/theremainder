@@ -71,19 +71,103 @@ export interface SearchResult {
   relevance_variant: string;
 }
 
+// ── URL serialization helpers ────────────────────────────────────────
+
+const ARRAY_FILTER_KEYS: (keyof SearchFilters)[] = [
+  "plant_type", "difficulty", "rarity", "water", "humidity",
+  "exposure", "climate_zone", "hardiness_zone", "plant_use",
+];
+
+const VALID_SORTS = new Set<SortKey>(["relevance", "price_asc", "price_desc", "newest", "name_asc", "rarity_desc"]);
+
+export function filtersFromSearchParams(sp: URLSearchParams): {
+  filters: SearchFilters;
+  sort: SortKey;
+  page: number;
+  pageSize: number;
+} {
+  const filters: SearchFilters = {};
+  const q = sp.get("q");
+  if (q) filters.q = q;
+
+  for (const key of ARRAY_FILTER_KEYS) {
+    const vals = sp.getAll(key);
+    if (vals.length) (filters as Record<string, unknown>)[key] = vals;
+  }
+
+  const category = sp.get("category");
+  if (category) filters.category = category;
+
+  const minPrice = sp.get("min_price");
+  if (minPrice) filters.min_price = Number(minPrice);
+  const maxPrice = sp.get("max_price");
+  if (maxPrice) filters.max_price = Number(maxPrice);
+
+  const inStock = sp.get("in_stock");
+  if (inStock === "true") filters.in_stock = true;
+  const featured = sp.get("featured");
+  if (featured === "true") filters.featured = true;
+
+  const rawSort = sp.get("sort") as SortKey | null;
+  const sort: SortKey = rawSort && VALID_SORTS.has(rawSort) ? rawSort : "relevance";
+
+  const rawPage = parseInt(sp.get("page") || "1", 10);
+  const page = rawPage > 0 ? rawPage : 1;
+
+  const rawPs = parseInt(sp.get("page_size") || "24", 10);
+  const pageSize = [12, 24, 48].includes(rawPs) ? rawPs : 24;
+
+  return { filters, sort, page, pageSize };
+}
+
+export function filtersToSearchParams(
+  filters: SearchFilters,
+  sort: SortKey,
+  page: number,
+  pageSize: number,
+): URLSearchParams {
+  const sp = new URLSearchParams();
+  if (filters.q) sp.set("q", filters.q);
+
+  for (const key of ARRAY_FILTER_KEYS) {
+    const vals = filters[key] as string[] | undefined;
+    if (vals?.length) vals.forEach(v => sp.append(key, v));
+  }
+
+  if (filters.category) sp.set("category", filters.category);
+  if (filters.min_price != null) sp.set("min_price", filters.min_price.toString());
+  if (filters.max_price != null) sp.set("max_price", filters.max_price.toString());
+  if (filters.in_stock) sp.set("in_stock", "true");
+  if (filters.featured) sp.set("featured", "true");
+  if (sort !== "relevance") sp.set("sort", sort);
+  if (page > 1) sp.set("page", page.toString());
+  if (pageSize !== 24) sp.set("page_size", pageSize.toString());
+
+  return sp;
+}
+
 // ── Hook ─────────────────────────────────────────────────────────────
 
 interface UseSearchCatalogOptions {
+  initialFilters?: SearchFilters;
+  initialSort?: SortKey;
+  initialPage?: number;
   initialPageSize?: number;
   debounceMs?: number;
 }
 
 export function useSearchCatalog(opts: UseSearchCatalogOptions = {}) {
-  const { initialPageSize = 24, debounceMs = 350 } = opts;
+  const {
+    initialFilters = {},
+    initialSort = "relevance",
+    initialPage = 1,
+    initialPageSize = 24,
+    debounceMs = 350,
+  } = opts;
 
-  const [filters, setFilters] = useState<SearchFilters>({});
-  const [sort, setSort] = useState<SortKey>("relevance");
-  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<SearchFilters>(initialFilters);
+  const [sort, setSort] = useState<SortKey>(initialSort);
+  const [page, setPage] = useState(initialPage);
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -106,23 +190,8 @@ export function useSearchCatalog(opts: UseSearchCatalogOptions = {}) {
     setError(null);
 
     try {
-      // Build URL params
-      const params = new URLSearchParams();
-      if (f.q) params.set("q", f.q);
-      f.plant_type?.forEach(v => params.append("plant_type", v));
-      f.difficulty?.forEach(v => params.append("difficulty", v));
-      f.rarity?.forEach(v => params.append("rarity", v));
-      f.water?.forEach(v => params.append("water", v));
-      f.humidity?.forEach(v => params.append("humidity", v));
-      f.exposure?.forEach(v => params.append("exposure", v));
-      f.climate_zone?.forEach(v => params.append("climate_zone", v));
-      f.hardiness_zone?.forEach(v => params.append("hardiness_zone", v));
-      f.plant_use?.forEach(v => params.append("plant_use", v));
-      if (f.category) params.set("category", f.category);
-      if (f.min_price != null) params.set("min_price", f.min_price.toString());
-      if (f.max_price != null) params.set("max_price", f.max_price.toString());
-      if (f.in_stock !== undefined) params.set("in_stock", f.in_stock.toString());
-      if (f.featured) params.set("featured", "true");
+      const params = filtersToSearchParams(f, s, p, ps);
+      // Always include sort & page for API
       params.set("sort", s);
       params.set("page", p.toString());
       params.set("page_size", ps.toString());
@@ -147,7 +216,6 @@ export function useSearchCatalog(opts: UseSearchCatalogOptions = {}) {
       }
 
       const body = await res.json();
-
       if (controller.signal.aborted) return;
 
       setResult({
@@ -222,7 +290,6 @@ export function useSearchCatalog(opts: UseSearchCatalogOptions = {}) {
   }, []);
 
   return {
-    // State
     filters,
     sort,
     page,
@@ -230,7 +297,6 @@ export function useSearchCatalog(opts: UseSearchCatalogOptions = {}) {
     result,
     loading,
     error,
-    // Actions
     setFilters: updateFilters,
     setSort: updateSort,
     setPage,
