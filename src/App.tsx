@@ -49,6 +49,7 @@ import {
   LocationsPage, 
   PublicPlantPage,
   CollectionsListPage,
+  PublicCollectionPage,
 } from "./pages/collection";
 
 // Wishlist module pages
@@ -125,6 +126,9 @@ const App = () => (
               
               {/* Public plant page (no auth required) */}
               <Route path="/p/:slug" element={<PublicPlantPage />} />
+              
+              {/* Public shared collection (no auth required) */}
+              <Route path="/collection/shared/:token" element={<PublicCollectionPage />} />
               
               {/* Public shared search list (no auth required) */}
               <Route path="/garden/shared/:slug" element={<SharedSearchListPage />} />

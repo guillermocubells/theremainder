@@ -5,7 +5,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Collection } from '@/hooks/collection/useCollections';
-import { FolderOpen, MoreVertical, Pencil, Archive, Star } from 'lucide-react';
+import { FolderOpen, MoreVertical, Pencil, Archive, Star, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -13,9 +13,10 @@ interface Props {
   collection: Collection;
   onEdit: (c: Collection) => void;
   onArchive: (id: string) => void;
+  onShare?: (c: Collection) => void;
 }
 
-const CollectionCard = ({ collection, onEdit, onArchive }: Props) => (
+const CollectionCard = ({ collection, onEdit, onArchive, onShare }: Props) => (
   <Card className="hover:shadow-md transition-shadow group">
     <CardContent className="p-5">
       <div className="flex items-start justify-between gap-3">
@@ -72,6 +73,12 @@ const CollectionCard = ({ collection, onEdit, onArchive }: Props) => (
                 <Pencil className="h-4 w-4 mr-2" />
                 Editar
               </DropdownMenuItem>
+              {onShare && (
+                <DropdownMenuItem onClick={() => onShare(collection)}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Compartir
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="text-destructive"
                 onClick={() => onArchive(collection.id)}

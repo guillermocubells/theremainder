@@ -20,6 +20,7 @@ import {
 } from '@/hooks/collection/useCollections';
 import CollectionCard from '@/components/collection/CollectionCard';
 import CollectionFormDialog from '@/components/collection/CollectionFormDialog';
+import CollectionShareDialog from '@/components/collection/CollectionShareDialog';
 
 const PAGE_SIZE = 12;
 
@@ -32,6 +33,7 @@ const CollectionsListPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Collection | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
+  const [shareTarget, setShareTarget] = useState<Collection | null>(null);
   const [page, setPage] = useState(0);
 
   // Pagination
@@ -125,6 +127,7 @@ const CollectionsListPage = () => {
                   collection={c}
                   onEdit={handleEdit}
                   onArchive={setArchiveTarget}
+                  onShare={setShareTarget}
                 />
               ))}
             </div>
@@ -199,6 +202,16 @@ const CollectionsListPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Share dialog */}
+      {shareTarget && (
+        <CollectionShareDialog
+          collectionId={shareTarget.id}
+          collectionName={shareTarget.name}
+          open={!!shareTarget}
+          onOpenChange={(open) => !open && setShareTarget(null)}
+        />
+      )}
     </div>
   );
 };
