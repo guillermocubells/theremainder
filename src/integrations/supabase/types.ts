@@ -4028,6 +4028,10 @@ export type Database = {
             }
             Returns: string
           }
+      enqueue_reindex_job: {
+        Args: { p_plant_ids: string[] }
+        Returns: undefined
+      }
       full_reindex_catalog: { Args: { p_batch_size?: number }; Returns: Json }
       generate_invoice_number: { Args: never; Returns: string }
       generate_invoice_number_from_series: {
