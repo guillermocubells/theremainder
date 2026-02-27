@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import {
   DropdownMenu,
@@ -10,8 +11,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Upload, X, Link as LinkIcon, Loader2, MoreVertical, Package, Star } from "lucide-react";
+import { Upload, X, Link as LinkIcon, Loader2, MoreVertical, Package, Star, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+
+interface UploadingFile {
+  id: string;
+  name: string;
+  progress: number;
+  error?: string;
+}
 
 interface ImageUploaderProps {
   images: string[];
@@ -22,6 +30,9 @@ interface ImageUploaderProps {
   onPrimaryImageChange?: (primaryImage: string | null) => void;
 }
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"];
+
 export function ImageUploader({
   images,
   onImagesChange,
@@ -30,51 +41,132 @@ export function ImageUploader({
   primaryImage,
   onPrimaryImageChange,
 }: ImageUploaderProps) {
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [urlInput, setUrlInput] = useState("");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const isUploading = uploadingFiles.some((f) => !f.error && f.progress < 100);
 
-    setIsUploading(true);
-    const uploadedUrls: string[] = [];
+  const validateFile = (file: File): string | null => {
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      return `"${file.name}" no es un formato válido (usa JPG, PNG, WebP)`;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return `"${file.name}" supera los 10 MB`;
+    }
+    return null;
+  };
+
+  const uploadSingleFile = async (file: File, fileId: string): Promise<string | null> => {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `plants/${fileName}`;
+
+    // Simulate progress since Supabase SDK doesn't expose upload progress
+    const progressInterval = setInterval(() => {
+      setUploadingFiles((prev) =>
+        prev.map((f) =>
+          f.id === fileId && f.progress < 90
+            ? { ...f, progress: Math.min(f.progress + 15 + Math.random() * 20, 90) }
+            : f
+        )
+      );
+    }, 200);
 
     try {
-      for (const file of Array.from(files)) {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = `plants/${fileName}`;
+      const { error: uploadError } = await supabase.storage
+        .from("plant-images")
+        .upload(filePath, file);
 
-        const { error: uploadError } = await supabase.storage
-          .from("plant-images")
-          .upload(filePath, file);
+      clearInterval(progressInterval);
 
-        if (uploadError) throw uploadError;
+      if (uploadError) throw uploadError;
 
-        const { data: urlData } = supabase.storage
-          .from("plant-images")
-          .getPublicUrl(filePath);
+      const { data: urlData } = supabase.storage
+        .from("plant-images")
+        .getPublicUrl(filePath);
 
-        uploadedUrls.push(urlData.publicUrl);
+      setUploadingFiles((prev) =>
+        prev.map((f) => (f.id === fileId ? { ...f, progress: 100 } : f))
+      );
+
+      return urlData.publicUrl;
+    } catch (error: any) {
+      clearInterval(progressInterval);
+      setUploadingFiles((prev) =>
+        prev.map((f) =>
+          f.id === fileId ? { ...f, error: error.message || "Error al subir", progress: 0 } : f
+        )
+      );
+      return null;
+    }
+  };
+
+  const handleFileUpload = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
+
+    // Validate all files first
+    const validFiles: { file: File; id: string }[] = [];
+    for (const file of fileArray) {
+      const err = validateFile(file);
+      if (err) {
+        toast.error(err);
+      } else {
+        const id = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
+        validFiles.push({ file, id });
       }
+    }
 
+    if (validFiles.length === 0) return;
+
+    // Add to uploading state
+    setUploadingFiles((prev) => [
+      ...prev,
+      ...validFiles.map(({ file, id }) => ({
+        id,
+        name: file.name,
+        progress: 0,
+      })),
+    ]);
+
+    // Upload all in parallel
+    const results = await Promise.all(
+      validFiles.map(({ file, id }) => uploadSingleFile(file, id))
+    );
+
+    const uploadedUrls = results.filter(Boolean) as string[];
+    if (uploadedUrls.length > 0) {
       onImagesChange([...images, ...uploadedUrls]);
       toast.success(`${uploadedUrls.length} imagen(es) subida(s)`);
-    } catch (error: any) {
-      console.error("Error uploading image:", error);
-      toast.error("Error al subir la imagen");
-    } finally {
-      setIsUploading(false);
+    }
+
+    // Clean completed uploads after a delay
+    setTimeout(() => {
+      setUploadingFiles((prev) => prev.filter((f) => f.error));
+    }, 1500);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      handleFileUpload(e.target.files);
       e.target.value = "";
+    }
+  };
+
+  const handleDropZone = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files.length > 0) {
+      handleFileUpload(e.dataTransfer.files);
     }
   };
 
   const handleAddUrl = () => {
     if (!urlInput.trim()) return;
-
     try {
       new URL(urlInput);
       onImagesChange([...images, urlInput.trim()]);
@@ -88,8 +180,6 @@ export function ImageUploader({
     const removedUrl = images[index];
     const newImages = images.filter((_, i) => i !== index);
     onImagesChange(newImages);
-
-    // Clean up product_images and primary_image references
     if (onProductImagesChange && productImages.includes(removedUrl)) {
       onProductImagesChange(productImages.filter((u) => u !== removedUrl));
     }
@@ -103,7 +193,6 @@ export function ImageUploader({
     const isProduct = productImages.includes(url);
     if (isProduct) {
       onProductImagesChange(productImages.filter((u) => u !== url));
-      // If it was also primary, clear primary
       if (onPrimaryImageChange && primaryImage === url) {
         onPrimaryImageChange(null);
       }
@@ -115,21 +204,16 @@ export function ImageUploader({
   const handleSetPrimary = (url: string) => {
     if (!onPrimaryImageChange || !onProductImagesChange) return;
     onPrimaryImageChange(url);
-    // Setting primary also sets isProduct
     if (!productImages.includes(url)) {
       onProductImagesChange([...productImages, url]);
     }
   };
 
-  const handleDragStart = (index: number) => {
-    setDragIndex(index);
-  };
-
+  const handleDragStart = (index: number) => setDragIndex(index);
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     setOverIndex(index);
   };
-
   const handleDrop = (e: React.DragEvent, toIndex: number) => {
     e.preventDefault();
     if (dragIndex === null || dragIndex === toIndex) {
@@ -144,10 +228,13 @@ export function ImageUploader({
     setDragIndex(null);
     setOverIndex(null);
   };
-
   const handleDragEnd = () => {
     setDragIndex(null);
     setOverIndex(null);
+  };
+
+  const dismissError = (id: string) => {
+    setUploadingFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
   const hasProductFeature = !!onProductImagesChange;
@@ -156,29 +243,65 @@ export function ImageUploader({
     <div className="space-y-4">
       <Label>Imágenes</Label>
 
-      {/* Upload area */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label className="flex items-center justify-center gap-2 px-4 py-8 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-moss/50 hover:bg-muted/50 transition-colors">
-            {isUploading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            ) : (
-              <Upload className="h-5 w-5 text-muted-foreground" />
-            )}
-            <span className="text-sm text-muted-foreground">
-              {isUploading ? "Subiendo..." : "Subir imágenes"}
-            </span>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileUpload}
-              className="hidden"
-              disabled={isUploading}
-            />
-          </label>
-        </div>
+      {/* Drop zone */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={handleDropZone}
+        onClick={() => fileInputRef.current?.click()}
+        className={`flex flex-col items-center justify-center gap-2 px-4 py-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+          isDragOver
+            ? "border-primary bg-primary/5"
+            : "border-border hover:border-moss/50 hover:bg-muted/50"
+        }`}
+      >
+        {isUploading ? (
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        ) : (
+          <Upload className="h-5 w-5 text-muted-foreground" />
+        )}
+        <span className="text-sm text-muted-foreground">
+          {isUploading ? "Subiendo..." : "Arrastra imágenes aquí o haz clic para seleccionar"}
+        </span>
+        <span className="text-xs text-muted-foreground">JPG, PNG, WebP · máx. 10 MB</span>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleInputChange}
+          className="hidden"
+          disabled={isUploading}
+        />
       </div>
+
+      {/* Upload progress indicators */}
+      {uploadingFiles.length > 0 && (
+        <div className="space-y-2">
+          {uploadingFiles.map((f) => (
+            <div key={f.id} className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground truncate max-w-[180px]">{f.name}</span>
+              {f.error ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <AlertCircle className="h-3.5 w-3.5 text-destructive flex-shrink-0" />
+                  <span className="text-xs text-destructive truncate">{f.error}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 ml-auto"
+                    onClick={() => dismissError(f.id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <Progress value={f.progress} className="flex-1 h-2" indicatorClassName={f.progress === 100 ? "bg-moss" : ""} />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* URL input */}
       <div className="flex gap-2">

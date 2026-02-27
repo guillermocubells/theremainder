@@ -22,9 +22,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, AlertCircle } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
 import { COUNTRIES } from "@/data/countries";
+import { z } from "zod";
 
 interface Category {
   id: string;
@@ -38,6 +39,42 @@ interface PlantFormDialogProps {
   onSuccess: () => void;
 }
 
+// ── Validation Schema ──
+const plantSchema = z.object({
+  name: z.string().trim().min(1, "El nombre es obligatorio").max(200, "Máx. 200 caracteres"),
+  slug: z.string().trim().min(1, "El slug es obligatorio").max(200).regex(/^[a-z0-9-]+$/, "Solo letras minúsculas, números y guiones"),
+  price: z.string().refine((v) => {
+    const n = parseFloat(v);
+    return !isNaN(n) && n >= 0;
+  }, "Introduce un precio válido ≥ 0"),
+  sale_price: z.string().refine((v) => {
+    if (!v) return true;
+    const n = parseFloat(v);
+    return !isNaN(n) && n >= 0;
+  }, "Precio oferta inválido").optional(),
+  stock: z.string().refine((v) => {
+    const n = parseInt(v);
+    return !isNaN(n) && n >= 0;
+  }, "Stock inválido"),
+  meta_title: z.string().max(60, "Máx. 60 caracteres").optional(),
+  meta_description: z.string().max(160, "Máx. 160 caracteres").optional(),
+  reference_url: z.string().url("URL no válida").or(z.literal("")).optional(),
+});
+
+type ValidationErrors = Partial<Record<string, string>>;
+
+// ── Field Error Component ──
+function FieldError({ error }: { error?: string }) {
+  if (!error) return null;
+  return (
+    <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+      {error}
+    </p>
+  );
+}
+
+// ── Constants ──
 const PLANT_TYPES = [
   { value: "palm", label: "Palmera" },
   { value: "fern", label: "Helecho arbóreo" },
@@ -181,7 +218,6 @@ const defaultForm = {
   images: [] as string[],
   product_images: [] as string[],
   primary_image: null as string | null,
-  // New attribute fields
   plant_type: "",
   water: "",
   humidity: "",
@@ -191,12 +227,12 @@ const defaultForm = {
   climate_zones: [] as string[],
   hardiness_zones: [] as string[],
   plant_use: [] as string[],
+  tags: [] as string[],
   min_temp_c: "",
   family: "",
   variety: "",
   weight_grams: "",
   notes: "",
-  // SEO
   meta_title: "",
   meta_description: "",
   image_alt_text: "",
@@ -213,9 +249,14 @@ export function PlantFormDialog({
   const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState({ ...defaultForm });
   const [hardinessInput, setHardinessInput] = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   useEffect(() => {
     if (open) {
+      setErrors({});
+      setHasAttemptedSubmit(false);
       fetchCategories();
       if (plant) {
         setFormData({
@@ -251,6 +292,7 @@ export function PlantFormDialog({
           climate_zones: plant.climate_zones || [],
           hardiness_zones: plant.hardiness_zones || [],
           plant_use: plant.plant_use || [],
+          tags: plant.tags || [],
           min_temp_c: plant.min_temp_c?.toString() || "",
           family: plant.family || "",
           variety: plant.variety || "",
@@ -283,6 +325,34 @@ export function PlantFormDialog({
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
 
+  const validate = (): boolean => {
+    const result = plantSchema.safeParse({
+      name: formData.name,
+      slug: formData.slug,
+      price: formData.price,
+      sale_price: formData.sale_price || undefined,
+      stock: formData.stock,
+      meta_title: formData.meta_title || undefined,
+      meta_description: formData.meta_description || undefined,
+      reference_url: formData.reference_url || undefined,
+    });
+
+    if (result.success) {
+      setErrors({});
+      return true;
+    }
+
+    const fieldErrors: ValidationErrors = {};
+    for (const issue of result.error.issues) {
+      const field = issue.path[0]?.toString();
+      if (field && !fieldErrors[field]) {
+        fieldErrors[field] = issue.message;
+      }
+    }
+    setErrors(fieldErrors);
+    return false;
+  };
+
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
@@ -291,10 +361,25 @@ export function PlantFormDialog({
       }
       return updated;
     });
+    // Clear error for this field on change
+    if (hasAttemptedSubmit && errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setHasAttemptedSubmit(true);
+
+    if (!validate()) {
+      toast.error("Corrige los errores antes de guardar");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -331,6 +416,7 @@ export function PlantFormDialog({
         climate_zones: formData.climate_zones,
         hardiness_zones: formData.hardiness_zones,
         plant_use: formData.plant_use,
+        tags: formData.tags,
         min_temp_c: formData.min_temp_c ? parseInt(formData.min_temp_c) : null,
         family: formData.family || null,
         variety: formData.variety || null,
@@ -373,6 +459,18 @@ export function PlantFormDialog({
     setHardinessInput("");
   };
 
+  const addTag = () => {
+    const v = tagInput.trim().toLowerCase();
+    if (v && !formData.tags.includes(v)) {
+      handleChange("tags", [...formData.tags, v]);
+    }
+    setTagInput("");
+  };
+
+  // Count errors per tab for badge indicators
+  const generalErrors = ["name", "slug", "price", "sale_price", "stock"].filter((k) => errors[k]).length;
+  const seoErrors = ["meta_title", "meta_description", "reference_url"].filter((k) => errors[k]).length;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh]">
@@ -386,12 +484,26 @@ export function PlantFormDialog({
           <ScrollArea className="h-[calc(90vh-150px)]">
             <Tabs defaultValue="general" className="w-full px-1">
               <TabsList className="grid grid-cols-6 w-full mb-4">
-                <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="general" className="relative">
+                  General
+                  {generalErrors > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                      {generalErrors}
+                    </span>
+                  )}
+                </TabsTrigger>
                 <TabsTrigger value="attributes">Atributos</TabsTrigger>
                 <TabsTrigger value="details">Detalles</TabsTrigger>
                 <TabsTrigger value="origin">Origen</TabsTrigger>
                 <TabsTrigger value="media">Imágenes</TabsTrigger>
-                <TabsTrigger value="seo">SEO</TabsTrigger>
+                <TabsTrigger value="seo" className="relative">
+                  SEO
+                  {seoErrors > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                      {seoErrors}
+                    </span>
+                  )}
+                </TabsTrigger>
               </TabsList>
 
               {/* ── General Tab ── */}
@@ -403,8 +515,9 @@ export function PlantFormDialog({
                       id="name"
                       value={formData.name}
                       onChange={(e) => handleChange("name", e.target.value)}
-                      required
+                      className={errors.name ? "border-destructive" : ""}
                     />
+                    <FieldError error={errors.name} />
                   </div>
                   <div>
                     <Label htmlFor="scientific_name">Nombre científico</Label>
@@ -426,12 +539,14 @@ export function PlantFormDialog({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="slug">Slug (URL)</Label>
+                    <Label htmlFor="slug">Slug (URL) *</Label>
                     <Input
                       id="slug"
                       value={formData.slug}
                       onChange={(e) => handleChange("slug", e.target.value)}
+                      className={errors.slug ? "border-destructive" : ""}
                     />
+                    <FieldError error={errors.slug} />
                   </div>
                 </div>
 
@@ -482,8 +597,9 @@ export function PlantFormDialog({
                       min="0"
                       value={formData.price}
                       onChange={(e) => handleChange("price", e.target.value)}
-                      required
+                      className={errors.price ? "border-destructive" : ""}
                     />
+                    <FieldError error={errors.price} />
                   </div>
                   <div>
                     <Label htmlFor="sale_price">Precio oferta (€)</Label>
@@ -494,20 +610,24 @@ export function PlantFormDialog({
                       min="0"
                       value={formData.sale_price}
                       onChange={(e) => handleChange("sale_price", e.target.value)}
+                      className={errors.sale_price ? "border-destructive" : ""}
                     />
+                    <FieldError error={errors.sale_price} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="stock">Stock</Label>
+                    <Label htmlFor="stock">Stock *</Label>
                     <Input
                       id="stock"
                       type="number"
                       min="0"
                       value={formData.stock}
                       onChange={(e) => handleChange("stock", e.target.value)}
+                      className={errors.stock ? "border-destructive" : ""}
                     />
+                    <FieldError error={errors.stock} />
                   </div>
                   <div>
                     <Label htmlFor="container_size">Tamaño contenedor</Label>
@@ -706,6 +826,41 @@ export function PlantFormDialog({
                     </Button>
                   </div>
                 </div>
+
+                {/* Tags as free-text chips */}
+                <div>
+                  <Label>Etiquetas</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1 mb-2">
+                    {formData.tags.map((t) => (
+                      <Badge key={t} variant="default" className="bg-moss gap-1">
+                        {t}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() =>
+                            handleChange("tags", formData.tags.filter((tag) => tag !== t))
+                          }
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addTag();
+                        }
+                      }}
+                      placeholder="ej: tropical, resistente, rara"
+                      className="max-w-[300px]"
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={addTag}>
+                      Añadir
+                    </Button>
+                  </div>
+                </div>
               </TabsContent>
 
               {/* ── Details Tab ── */}
@@ -869,10 +1024,14 @@ export function PlantFormDialog({
                     onChange={(e) => handleChange("meta_title", e.target.value)}
                     maxLength={60}
                     placeholder="Máx 60 caracteres"
+                    className={errors.meta_title ? "border-destructive" : ""}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.meta_title.length}/60
-                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <FieldError error={errors.meta_title} />
+                    <p className="text-xs text-muted-foreground">
+                      {formData.meta_title.length}/60
+                    </p>
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="meta_description">Meta descripción</Label>
@@ -883,10 +1042,14 @@ export function PlantFormDialog({
                     maxLength={160}
                     rows={2}
                     placeholder="Máx 160 caracteres"
+                    className={errors.meta_description ? "border-destructive" : ""}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.meta_description.length}/160
-                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <FieldError error={errors.meta_description} />
+                    <p className="text-xs text-muted-foreground">
+                      {formData.meta_description.length}/160
+                    </p>
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="image_alt_text">Alt text imagen</Label>
@@ -903,7 +1066,9 @@ export function PlantFormDialog({
                     value={formData.reference_url}
                     onChange={(e) => handleChange("reference_url", e.target.value)}
                     placeholder="https://..."
+                    className={errors.reference_url ? "border-destructive" : ""}
                   />
+                  <FieldError error={errors.reference_url} />
                 </div>
               </TabsContent>
             </Tabs>
