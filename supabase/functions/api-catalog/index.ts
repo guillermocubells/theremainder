@@ -78,6 +78,7 @@ Deno.serve(async (req: Request) => {
       const inStock = url.searchParams.get("in_stock") !== "false";
       const featured = url.searchParams.get("featured") === "true" ? true : null;
       const sort = url.searchParams.get("sort") || "relevance";
+      const abVariant = url.searchParams.get("ab") || null; // A/B testing variant
       const page = Math.max(parseInt(url.searchParams.get("page") || "1") || 1, 1);
       const pageSize = Math.min(Math.max(parseInt(url.searchParams.get("page_size") || "24") || 24, 1), 100);
 
@@ -125,6 +126,7 @@ Deno.serve(async (req: Request) => {
         p_sort_dir: "asc",
         p_page: page,
         p_page_size: pageSize,
+        p_ab_variant: abVariant,
       });
 
       if (searchErr) throw searchErr;
@@ -136,6 +138,7 @@ Deno.serve(async (req: Request) => {
         total_pages: number;
         items: Array<{ plant_id: string; score: number }>;
         facets: Record<string, Record<string, number>>;
+        relevance_variant: string;
       };
 
       // Hydrate plant data for matched IDs
@@ -195,6 +198,7 @@ Deno.serve(async (req: Request) => {
         facets: result.facets,
         highlight_tokens: highlightTokens,
         query: sanitizedQ,
+        relevance_variant: result.relevance_variant,
       });
     }
 
