@@ -16,6 +16,8 @@ const FACET_LABELS: Record<string, string> = {
   climate_zones: "Zona climática",
   hardiness_zones: "Zona de rusticidad",
   plant_use: "Uso",
+  tags: "Etiquetas",
+  origin_country: "Origen",
 };
 
 /** Map backend facet keys → filter param keys */
@@ -29,6 +31,8 @@ const FACET_TO_FILTER: Record<string, string> = {
   climate_zones: "climate_zone",
   hardiness_zones: "hardiness_zone",
   plant_use: "plant_use",
+  tags: "tags",
+  origin_country: "origin_country",
 };
 
 export interface FacetSidebarProps {

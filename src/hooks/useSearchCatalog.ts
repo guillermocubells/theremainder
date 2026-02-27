@@ -14,6 +14,8 @@ export interface SearchFilters {
   climate_zone?: string[];
   hardiness_zone?: string[];
   plant_use?: string[];
+  tags?: string[];
+  origin_country?: string[];
   category?: string;
   min_price?: number;
   max_price?: number;
@@ -76,6 +78,7 @@ export interface SearchResult {
 const ARRAY_FILTER_KEYS: (keyof SearchFilters)[] = [
   "plant_type", "difficulty", "rarity", "water", "humidity",
   "exposure", "climate_zone", "hardiness_zone", "plant_use",
+  "tags", "origin_country",
 ];
 
 const VALID_SORTS = new Set<SortKey>(["relevance", "price_asc", "price_desc", "newest", "name_asc", "rarity_desc"]);

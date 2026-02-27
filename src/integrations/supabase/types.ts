@@ -2797,6 +2797,7 @@ export type Database = {
           is_in_stock: boolean
           is_on_sale: boolean
           name_tokens: string
+          origin_country: string | null
           plant_id: string
           plant_type: string | null
           plant_use: string[] | null
@@ -2807,6 +2808,7 @@ export type Database = {
           sale_price: number | null
           scientific_name_tokens: string
           search_vector: unknown
+          tags: string[] | null
           variety_tokens: string
           water: string | null
         }
@@ -2828,6 +2830,7 @@ export type Database = {
           is_in_stock?: boolean
           is_on_sale?: boolean
           name_tokens?: string
+          origin_country?: string | null
           plant_id: string
           plant_type?: string | null
           plant_use?: string[] | null
@@ -2838,6 +2841,7 @@ export type Database = {
           sale_price?: number | null
           scientific_name_tokens?: string
           search_vector?: unknown
+          tags?: string[] | null
           variety_tokens?: string
           water?: string | null
         }
@@ -2859,6 +2863,7 @@ export type Database = {
           is_in_stock?: boolean
           is_on_sale?: boolean
           name_tokens?: string
+          origin_country?: string | null
           plant_id?: string
           plant_type?: string | null
           plant_use?: string[] | null
@@ -2869,6 +2874,7 @@ export type Database = {
           sale_price?: number | null
           scientific_name_tokens?: string
           search_vector?: unknown
+          tags?: string[] | null
           variety_tokens?: string
           water?: string | null
         }
@@ -2928,6 +2934,7 @@ export type Database = {
           slug: string
           specifications: Json | null
           stock_qty: number
+          tags: string[] | null
           updated_at: string
           variety: string | null
           water: Database["public"]["Enums"]["water_level"] | null
@@ -2978,6 +2985,7 @@ export type Database = {
           slug: string
           specifications?: Json | null
           stock_qty?: number
+          tags?: string[] | null
           updated_at?: string
           variety?: string | null
           water?: Database["public"]["Enums"]["water_level"] | null
@@ -3028,6 +3036,7 @@ export type Database = {
           slug?: string
           specifications?: Json | null
           stock_qty?: number
+          tags?: string[] | null
           updated_at?: string
           variety?: string | null
           water?: Database["public"]["Enums"]["water_level"] | null
@@ -4713,6 +4722,33 @@ export type Database = {
               p_rarity?: string[]
               p_sort?: string
               p_sort_dir?: string
+              p_water?: string[]
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_ab_variant?: string
+              p_category_id?: string
+              p_climate_zones?: string[]
+              p_difficulty?: string[]
+              p_exposure?: string[]
+              p_hardiness_zones?: string[]
+              p_humidity?: string[]
+              p_in_stock?: boolean
+              p_is_featured?: boolean
+              p_max_price?: number
+              p_min_price?: number
+              p_origin_country?: string[]
+              p_page?: number
+              p_page_size?: number
+              p_plant_type?: string[]
+              p_plant_use?: string[]
+              p_query?: string
+              p_rarity?: string[]
+              p_sort?: string
+              p_sort_dir?: string
+              p_tags?: string[]
               p_water?: string[]
             }
             Returns: Json

@@ -13,6 +13,8 @@ const FILTER_KEY_LABELS: Record<string, string> = {
   climate_zone: "Clima",
   hardiness_zone: "Rusticidad",
   plant_use: "Uso",
+  tags: "Etiqueta",
+  origin_country: "Origen",
 };
 
 export interface ActiveFilterChipsProps {

@@ -147,6 +147,7 @@ function getVisiblePages(current: number, total: number): (number | "ellipsis")[
 const ARRAY_FILTER_KEYS = [
   "plant_type", "difficulty", "rarity", "water", "humidity",
   "exposure", "climate_zone", "hardiness_zone", "plant_use",
+  "tags", "origin_country",
 ] as const;
 
 // ── Main Page ────────────────────────────────────────────────────────

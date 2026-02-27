@@ -80,6 +80,8 @@ Deno.serve(async (req: Request) => {
       const climateZones = url.searchParams.getAll("climate_zone").filter(Boolean);
       const hardinessZones = url.searchParams.getAll("hardiness_zone").filter(Boolean);
       const plantUse = url.searchParams.getAll("plant_use").filter(Boolean);
+      const tags = url.searchParams.getAll("tags").filter(Boolean);
+      const originCountry = url.searchParams.getAll("origin_country").filter(Boolean);
       const categorySlug = url.searchParams.get("category") || null;
       const minPrice = url.searchParams.get("min_price") ? parseFloat(url.searchParams.get("min_price")!) : null;
       const maxPrice = url.searchParams.get("max_price") ? parseFloat(url.searchParams.get("max_price")!) : null;
@@ -126,6 +128,8 @@ Deno.serve(async (req: Request) => {
         p_climate_zones: climateZones.length ? climateZones : null,
         p_hardiness_zones: hardinessZones.length ? hardinessZones : null,
         p_plant_use: plantUse.length ? plantUse : null,
+        p_tags: tags.length ? tags : null,
+        p_origin_country: originCountry.length ? originCountry : null,
         p_category_id: categoryId,
         p_min_price: minPrice,
         p_max_price: maxPrice,
