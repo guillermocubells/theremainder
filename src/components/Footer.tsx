@@ -38,7 +38,7 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { icon: Instagram, href: 'https://www.instagram.com/frondaprima/', label: 'Instagram' },
+    { icon: Instagram, href: 'https://www.instagram.com/theremainderpl/', label: 'Instagram' },
     { icon: MessageCircle, href: `https://wa.me/${STORE_CONTACT.whatsappNumber}?text=${encodeURIComponent(`Hola, tengo una consulta sobre ${STORE_BRAND.name}`)}`, label: 'WhatsApp' },
     { icon: Mail, href: 'mailto:guillermocubells@gmail.com?subject=Consulta%20desde%20The%20Remainder', label: 'Email' },
   ];
