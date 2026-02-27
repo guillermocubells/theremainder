@@ -3177,6 +3177,104 @@ export type Database = {
         }
         Relationships: []
       }
+      search_click_logs: {
+        Row: {
+          created_at: string
+          id: string
+          plant_id: string
+          position: number
+          query_log_id: string | null
+          query_text: string
+          score: number | null
+          session_id: string | null
+          user_hash: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plant_id: string
+          position: number
+          query_log_id?: string | null
+          query_text: string
+          score?: number | null
+          session_id?: string | null
+          user_hash?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plant_id?: string
+          position?: number
+          query_log_id?: string | null
+          query_text?: string
+          score?: number | null
+          session_id?: string | null
+          user_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_click_logs_query_log_id_fkey"
+            columns: ["query_log_id"]
+            isOneToOne: false
+            referencedRelation: "search_query_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      search_query_logs: {
+        Row: {
+          ab_variant: string | null
+          created_at: string
+          filters: Json | null
+          id: string
+          is_zero_result: boolean | null
+          locale: string | null
+          page: number | null
+          page_size: number | null
+          query_normalized: string
+          query_text: string
+          response_time_ms: number | null
+          session_id: string | null
+          sort: string | null
+          total_results: number
+          user_hash: string | null
+        }
+        Insert: {
+          ab_variant?: string | null
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          is_zero_result?: boolean | null
+          locale?: string | null
+          page?: number | null
+          page_size?: number | null
+          query_normalized: string
+          query_text: string
+          response_time_ms?: number | null
+          session_id?: string | null
+          sort?: string | null
+          total_results?: number
+          user_hash?: string | null
+        }
+        Update: {
+          ab_variant?: string | null
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          is_zero_result?: boolean | null
+          locale?: string | null
+          page?: number | null
+          page_size?: number | null
+          query_normalized?: string
+          query_text?: string
+          response_time_ms?: number | null
+          session_id?: string | null
+          sort?: string | null
+          total_results?: number
+          user_hash?: string | null
+        }
+        Relationships: []
+      }
       seller_addresses: {
         Row: {
           city: string
@@ -3973,6 +4071,20 @@ export type Database = {
           },
         ]
       }
+      search_metrics_daily: {
+        Row: {
+          ab_variant: string | null
+          avg_response_ms: number | null
+          avg_results: number | null
+          day: string | null
+          p95_response_ms: number | null
+          total_queries: number | null
+          unique_queries: number | null
+          unique_users: number | null
+          zero_result_queries: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       bump_synonym_version: { Args: never; Returns: number }
@@ -4001,6 +4113,10 @@ export type Database = {
         }[]
       }
       cleanup_completed_jobs: {
+        Args: { p_retention_days?: number }
+        Returns: number
+      }
+      cleanup_search_logs: {
         Args: { p_retention_days?: number }
         Returns: number
       }
@@ -4130,6 +4246,10 @@ export type Database = {
         Returns: Json
       }
       get_referral_setting: { Args: { setting_key: string }; Returns: Json }
+      get_search_analytics: {
+        Args: { p_days?: number; p_limit?: number }
+        Returns: Json
+      }
       has_auction_consent: {
         Args: { p_consent_type: string; p_user_id: string }
         Returns: boolean
