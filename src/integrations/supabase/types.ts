@@ -3177,6 +3177,60 @@ export type Database = {
         }
         Relationships: []
       }
+      search_boost_configs: {
+        Row: {
+          boosts: Json
+          created_at: string
+          created_by: string | null
+          exact_match_bonus: Json
+          field_weights: Json
+          id: string
+          is_active: boolean
+          prefix_match_bonus: number
+          tie_breakers: Json
+          trigram_multiplier: number
+          trigram_threshold: number
+          typo_tolerance: Json
+          updated_at: string
+          updated_by: string | null
+          variant: string
+        }
+        Insert: {
+          boosts?: Json
+          created_at?: string
+          created_by?: string | null
+          exact_match_bonus?: Json
+          field_weights?: Json
+          id?: string
+          is_active?: boolean
+          prefix_match_bonus?: number
+          tie_breakers?: Json
+          trigram_multiplier?: number
+          trigram_threshold?: number
+          typo_tolerance?: Json
+          updated_at?: string
+          updated_by?: string | null
+          variant?: string
+        }
+        Update: {
+          boosts?: Json
+          created_at?: string
+          created_by?: string | null
+          exact_match_bonus?: Json
+          field_weights?: Json
+          id?: string
+          is_active?: boolean
+          prefix_match_bonus?: number
+          tie_breakers?: Json
+          trigram_multiplier?: number
+          trigram_threshold?: number
+          typo_tolerance?: Json
+          updated_at?: string
+          updated_by?: string | null
+          variant?: string
+        }
+        Relationships: []
+      }
       search_click_logs: {
         Row: {
           created_at: string
@@ -3220,6 +3274,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      search_facet_definitions: {
+        Row: {
+          allowed_values: string[] | null
+          column_name: string
+          created_at: string
+          created_by: string | null
+          display_order: number
+          facet_type: string
+          id: string
+          is_active: boolean
+          label_en: string
+          label_es: string
+          multi_select: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          allowed_values?: string[] | null
+          column_name: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          facet_type?: string
+          id?: string
+          is_active?: boolean
+          label_en: string
+          label_es: string
+          multi_select?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          allowed_values?: string[] | null
+          column_name?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          facet_type?: string
+          id?: string
+          is_active?: boolean
+          label_en?: string
+          label_es?: string
+          multi_select?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       search_query_logs: {
         Row: {
@@ -3272,6 +3374,69 @@ export type Database = {
           sort?: string | null
           total_results?: number
           user_hash?: string | null
+        }
+        Relationships: []
+      }
+      search_stopwords: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          locale: string
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          locale?: string
+          word: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          locale?: string
+          word?: string
+        }
+        Relationships: []
+      }
+      search_synonyms: {
+        Row: {
+          canonical: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          locale: string
+          synonyms: string[]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          canonical: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          locale?: string
+          synonyms?: string[]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          canonical?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          locale?: string
+          synonyms?: string[]
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
