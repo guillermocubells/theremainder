@@ -8,3 +8,4 @@ export { default as FacetSection } from './FacetSection';
 export { default as FacetSidebar } from './FacetSidebar';
 export { default as ActiveFilterChips } from './ActiveFilterChips';
 export { default as MobileFacetDrawer } from './MobileFacetDrawer';
+export { default as ZeroResultsRecovery } from './ZeroResultsRecovery';
