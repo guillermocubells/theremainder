@@ -962,6 +962,7 @@ export type Database = {
           description: string | null
           id: string
           is_default: boolean
+          item_count: number
           name: string
           updated_at: string
           user_id: string
@@ -973,6 +974,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_default?: boolean
+          item_count?: number
           name: string
           updated_at?: string
           user_id: string
@@ -984,6 +986,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_default?: boolean
+          item_count?: number
           name?: string
           updated_at?: string
           user_id?: string
@@ -1915,6 +1918,7 @@ export type Database = {
           item_id: string
           media_type: string
           sort_order: number
+          updated_at: string
           url: string
           user_id: string | null
         }
@@ -1925,6 +1929,7 @@ export type Database = {
           item_id: string
           media_type?: string
           sort_order?: number
+          updated_at?: string
           url: string
           user_id?: string | null
         }
@@ -1935,6 +1940,7 @@ export type Database = {
           item_id?: string
           media_type?: string
           sort_order?: number
+          updated_at?: string
           url?: string
           user_id?: string | null
         }
