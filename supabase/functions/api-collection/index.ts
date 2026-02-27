@@ -49,6 +49,33 @@ const itemPagination = z.object({
   sort: z.enum(["added_asc", "added_desc", "sort_order", "name_asc"]).default("sort_order"),
 });
 
+// ── Tag schemas ──
+const tagCreate = z.object({
+  name: z.string().trim().min(1).max(60),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#6b7280"),
+});
+
+const tagUpdate = z.object({
+  name: z.string().trim().min(1).max(60).optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+});
+
+const tagPagination = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  page_size: z.coerce.number().int().min(1).max(100).default(50),
+});
+
+// ── Location schemas ──
+const locationCreate = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().max(500).nullable().optional(),
+});
+
+const locationUpdate = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  description: z.string().max(500).nullable().optional(),
+});
+
 // ── Auth helper ──
 async function authenticateRequest(req: Request) {
   const authHeader = req.headers.get("Authorization");
@@ -80,6 +107,8 @@ function getServiceClient() {
   );
 }
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // ── Sort helpers ──
 function applyCollectionSort(query: any, sort: string) {
   switch (sort) {
@@ -95,35 +124,59 @@ function applyItemSort(query: any, sort: string) {
   switch (sort) {
     case "added_asc": return query.order("added_at", { ascending: true });
     case "added_desc": return query.order("added_at", { ascending: false });
-    case "name_asc": return query.order("owned_plant_id", { ascending: true }); // best proxy
+    case "name_asc": return query.order("owned_plant_id", { ascending: true });
     case "sort_order":
     default: return query.order("sort_order", { ascending: true }).order("added_at", { ascending: false });
   }
 }
 
 // ── Route parser ──
-// Supports:
-//   /collections, /collections/:id
-//   /collections/:collId/items, /collections/:collId/items/:itemId
-//   /collections/:collId/items/:itemId/media, /collections/:collId/items/:itemId/media/:mediaId
 interface Route {
   resource: string;
   collectionId?: string;
   itemId?: string;
-  sub?: string; // "media"
+  sub?: string;
   subId?: string;
+  // For /tags, /locations, /ref, /plants routes
+  primaryId?: string;
+  secondaryResource?: string;
+  secondaryId?: string;
 }
-
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function parsePath(url: URL): Route {
   const segments = url.pathname.split("/").filter(Boolean);
   // segments[0] = "api-collection"
   const resource = segments[1] ?? "";
+  
+  // /tags, /tags/:id
+  if (resource === "tags") {
+    return { resource: "tags", primaryId: segments[2] };
+  }
+
+  // /locations, /locations/:id
+  if (resource === "locations") {
+    return { resource: "locations", primaryId: segments[2] };
+  }
+
+  // /ref/location-types, /ref/tag-categories
+  if (resource === "ref") {
+    return { resource: "ref", sub: segments[2] };
+  }
+
+  // /plants/:plantId/tags, /plants/:plantId/tags/:tagId
+  if (resource === "plants") {
+    return {
+      resource: "plant-tags",
+      primaryId: segments[2], // plantId
+      secondaryId: segments[4], // tagId
+    };
+  }
+
+  // /collections/:id/items/:itemId/media/:mediaId
   const collectionId = segments[2];
-  const itemsLiteral = segments[3]; // "items"
+  const itemsLiteral = segments[3];
   const itemId = segments[4];
-  const sub = segments[5]; // "media"
+  const sub = segments[5];
   const subId = segments[6];
 
   if (resource === "collections" && itemsLiteral === "items") {
@@ -153,6 +206,293 @@ const ALLOWED_MIME = new Set([
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 // ══════════════════════════════════════════
+// TAGS handler
+// ══════════════════════════════════════════
+async function handleTags(
+  req: Request, route: Route, userId: string, supabase: any,
+  rh: Record<string, string>, log: any,
+): Promise<Response> {
+  const id = route.primaryId;
+
+  // LIST tags
+  if (req.method === "GET" && !id) {
+    const url = new URL(req.url);
+    const qp = Object.fromEntries(url.searchParams);
+    const pv = validate(tagPagination, qp, rh);
+    if (pv.error) return pv.error;
+
+    const { page, page_size } = pv.data;
+    const from = (page - 1) * page_size;
+    const to = from + page_size - 1;
+
+    const { data, error, count } = await supabase
+      .from("tags")
+      .select("*", { count: "exact" })
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .order("name", { ascending: true })
+      .range(from, to);
+
+    if (error) throw new AppError("Failed to list tags", 500, "LIST_FAILED");
+
+    return new Response(
+      JSON.stringify({ data, total: count ?? 0, page, page_size, has_more: (count ?? 0) > from + page_size }),
+      { headers: { ...rh, "Content-Type": "application/json" } },
+    );
+  }
+
+  // GET tag
+  if (req.method === "GET" && id) {
+    if (!uuidRegex.test(id)) throw new AppError("Invalid tag ID", 400, "INVALID_ID");
+    const { data, error } = await supabase
+      .from("tags").select("*").eq("id", id).eq("user_id", userId).is("deleted_at", null).single();
+    if (error || !data) throw new AppError("Tag not found", 404, "TAG_NOT_FOUND");
+    return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // CREATE tag
+  if (req.method === "POST" && !id) {
+    let body: unknown;
+    try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
+    const v = validate(tagCreate, body, rh);
+    if (v.error) return v.error;
+
+    // Check duplicate name for this user
+    const { data: dup } = await supabase
+      .from("tags").select("id").eq("user_id", userId).ilike("name", v.data.name).is("deleted_at", null).maybeSingle();
+    if (dup) throw new AppError("Tag with this name already exists", 409, "DUPLICATE_TAG");
+
+    const { data, error } = await supabase
+      .from("tags").insert({ ...v.data, user_id: userId }).select("*").single();
+    if (error) throw new AppError("Failed to create tag", 500, "CREATE_FAILED");
+
+    log.info("Tag created", { id: data.id });
+    return new Response(JSON.stringify(data), { status: 201, headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // UPDATE tag
+  if (req.method === "PATCH" && id) {
+    if (!uuidRegex.test(id)) throw new AppError("Invalid tag ID", 400, "INVALID_ID");
+    let body: unknown;
+    try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
+    const v = validate(tagUpdate, body, rh);
+    if (v.error) return v.error;
+
+    if (v.data.name) {
+      const { data: dup } = await supabase
+        .from("tags").select("id").eq("user_id", userId).ilike("name", v.data.name).is("deleted_at", null).neq("id", id).maybeSingle();
+      if (dup) throw new AppError("Tag with this name already exists", 409, "DUPLICATE_TAG");
+    }
+
+    const { data, error } = await supabase
+      .from("tags").update({ ...v.data, updated_at: new Date().toISOString() })
+      .eq("id", id).eq("user_id", userId).is("deleted_at", null).select("*").single();
+    if (error || !data) throw new AppError("Failed to update tag", 500, "UPDATE_FAILED");
+
+    return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // DELETE (soft) tag
+  if (req.method === "DELETE" && id) {
+    if (!uuidRegex.test(id)) throw new AppError("Invalid tag ID", 400, "INVALID_ID");
+
+    // Remove all item_tags associations first
+    await supabase.from("item_tags").delete().eq("tag_id", id);
+
+    const { error } = await supabase
+      .from("tags").update({ deleted_at: new Date().toISOString() })
+      .eq("id", id).eq("user_id", userId).is("deleted_at", null);
+    if (error) throw new AppError("Failed to delete tag", 500, "DELETE_FAILED");
+
+    log.info("Tag deleted", { id });
+    return new Response(null, { status: 204, headers: rh });
+  }
+
+  throw new AppError("Method not allowed", 405, "METHOD_NOT_ALLOWED");
+}
+
+// ══════════════════════════════════════════
+// PLANT-TAGS handler (attach/detach)
+// ══════════════════════════════════════════
+async function handlePlantTags(
+  req: Request, route: Route, userId: string, supabase: any,
+  rh: Record<string, string>, log: any,
+): Promise<Response> {
+  const plantId = route.primaryId;
+  const tagId = route.secondaryId;
+
+  if (!plantId || !uuidRegex.test(plantId)) throw new AppError("Invalid plant ID", 400, "INVALID_ID");
+
+  // Verify plant ownership
+  const { data: plant } = await supabase
+    .from("owned_plants").select("id").eq("id", plantId).eq("user_id", userId).single();
+  if (!plant) throw new AppError("Plant not found or not owned by you", 404, "PLANT_NOT_FOUND");
+
+  // LIST tags for a plant
+  if (req.method === "GET" && !tagId) {
+    const { data, error } = await supabase
+      .from("item_tags")
+      .select("*, tags!inner(id, name, color)")
+      .eq("owned_plant_id", plantId);
+
+    if (error) throw new AppError("Failed to list plant tags", 500, "LIST_FAILED");
+    return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // ATTACH tag to plant
+  if (req.method === "POST" && !tagId) {
+    let body: unknown;
+    try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
+
+    const schema = z.object({ tag_id: z.string().uuid() });
+    const v = validate(schema, body, rh);
+    if (v.error) return v.error;
+
+    // Verify tag belongs to user
+    const { data: tag } = await supabase
+      .from("tags").select("id").eq("id", v.data.tag_id).eq("user_id", userId).is("deleted_at", null).single();
+    if (!tag) throw new AppError("Tag not found", 404, "TAG_NOT_FOUND");
+
+    // Check duplicate
+    const { data: dup } = await supabase
+      .from("item_tags").select("id")
+      .eq("owned_plant_id", plantId).eq("tag_id", v.data.tag_id).maybeSingle();
+    if (dup) throw new AppError("Tag already attached", 409, "DUPLICATE_TAG_ATTACHMENT");
+
+    const { data, error } = await supabase
+      .from("item_tags").insert({ owned_plant_id: plantId, tag_id: v.data.tag_id }).select("*, tags(id, name, color)").single();
+    if (error) throw new AppError("Failed to attach tag", 500, "CREATE_FAILED");
+
+    log.info("Tag attached", { plant_id: plantId, tag_id: v.data.tag_id });
+    return new Response(JSON.stringify(data), { status: 201, headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // DETACH tag from plant
+  if (req.method === "DELETE" && tagId) {
+    if (!uuidRegex.test(tagId)) throw new AppError("Invalid tag ID", 400, "INVALID_ID");
+
+    const { error } = await supabase
+      .from("item_tags").delete()
+      .eq("owned_plant_id", plantId).eq("tag_id", tagId);
+    if (error) throw new AppError("Failed to detach tag", 500, "DELETE_FAILED");
+
+    log.info("Tag detached", { plant_id: plantId, tag_id: tagId });
+    return new Response(null, { status: 204, headers: rh });
+  }
+
+  throw new AppError("Method not allowed", 405, "METHOD_NOT_ALLOWED");
+}
+
+// ══════════════════════════════════════════
+// LOCATIONS handler
+// ══════════════════════════════════════════
+async function handleLocations(
+  req: Request, route: Route, userId: string, supabase: any,
+  rh: Record<string, string>, log: any,
+): Promise<Response> {
+  const id = route.primaryId;
+
+  // LIST locations
+  if (req.method === "GET" && !id) {
+    const { data, error } = await supabase
+      .from("plant_locations")
+      .select("*")
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .order("name", { ascending: true });
+
+    if (error) throw new AppError("Failed to list locations", 500, "LIST_FAILED");
+    return new Response(JSON.stringify({ data }), { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // GET location
+  if (req.method === "GET" && id) {
+    if (!uuidRegex.test(id)) throw new AppError("Invalid location ID", 400, "INVALID_ID");
+    const { data, error } = await supabase
+      .from("plant_locations").select("*").eq("id", id).eq("user_id", userId).is("deleted_at", null).single();
+    if (error || !data) throw new AppError("Location not found", 404, "LOCATION_NOT_FOUND");
+    return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // CREATE location
+  if (req.method === "POST" && !id) {
+    let body: unknown;
+    try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
+    const v = validate(locationCreate, body, rh);
+    if (v.error) return v.error;
+
+    const { data, error } = await supabase
+      .from("plant_locations").insert({ ...v.data, user_id: userId }).select("*").single();
+    if (error) throw new AppError("Failed to create location", 500, "CREATE_FAILED");
+
+    log.info("Location created", { id: data.id });
+    return new Response(JSON.stringify(data), { status: 201, headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // UPDATE location
+  if (req.method === "PATCH" && id) {
+    if (!uuidRegex.test(id)) throw new AppError("Invalid location ID", 400, "INVALID_ID");
+    let body: unknown;
+    try { body = await req.json(); } catch { throw new AppError("Invalid JSON", 400, "INVALID_JSON"); }
+    const v = validate(locationUpdate, body, rh);
+    if (v.error) return v.error;
+
+    const { data, error } = await supabase
+      .from("plant_locations").update({ ...v.data, updated_at: new Date().toISOString() })
+      .eq("id", id).eq("user_id", userId).is("deleted_at", null).select("*").single();
+    if (error || !data) throw new AppError("Failed to update location", 500, "UPDATE_FAILED");
+
+    return new Response(JSON.stringify(data), { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  // DELETE (soft) location
+  if (req.method === "DELETE" && id) {
+    if (!uuidRegex.test(id)) throw new AppError("Invalid location ID", 400, "INVALID_ID");
+
+    // Unassign plants from this location
+    await supabase.from("owned_plants").update({ location_id: null }).eq("location_id", id).eq("user_id", userId);
+
+    const { error } = await supabase
+      .from("plant_locations").update({ deleted_at: new Date().toISOString() })
+      .eq("id", id).eq("user_id", userId).is("deleted_at", null);
+    if (error) throw new AppError("Failed to delete location", 500, "DELETE_FAILED");
+
+    log.info("Location deleted", { id });
+    return new Response(null, { status: 204, headers: rh });
+  }
+
+  throw new AppError("Method not allowed", 405, "METHOD_NOT_ALLOWED");
+}
+
+// ══════════════════════════════════════════
+// REF handler (public reference data)
+// ══════════════════════════════════════════
+async function handleRef(
+  req: Request, route: Route, supabase: any,
+  rh: Record<string, string>,
+): Promise<Response> {
+  if (req.method !== "GET") throw new AppError("Method not allowed", 405, "METHOD_NOT_ALLOWED");
+
+  if (route.sub === "location-types") {
+    const svc = getServiceClient();
+    const { data, error } = await svc
+      .from("ref_location_types").select("*").order("display_order", { ascending: true });
+    if (error) throw new AppError("Failed to list location types", 500, "LIST_FAILED");
+    return new Response(JSON.stringify({ data }), { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  if (route.sub === "tag-categories") {
+    const svc = getServiceClient();
+    const { data, error } = await svc
+      .from("ref_tag_categories").select("*").order("display_order", { ascending: true });
+    if (error) throw new AppError("Failed to list tag categories", 500, "LIST_FAILED");
+    return new Response(JSON.stringify({ data }), { headers: { ...rh, "Content-Type": "application/json" } });
+  }
+
+  throw new AppError("Unknown reference resource", 404, "NOT_FOUND");
+}
+
+// ══════════════════════════════════════════
 // ITEMS handler
 // ══════════════════════════════════════════
 async function handleItems(
@@ -179,22 +519,45 @@ async function handleItems(
     const from = (page - 1) * page_size;
     const to = from + page_size - 1;
 
+    // Support tag/location filters
+    const tagFilter = url.searchParams.get("tag");
+    const locationFilter = url.searchParams.get("location");
+
     let query = supabase
       .from("collection_items")
-      .select("*, owned_plants!inner(id, nickname, scientific_name, common_name, photos, status)", { count: "exact" })
+      .select("*, owned_plants!inner(id, nickname, scientific_name, common_name, photos, status, location_id)", { count: "exact" })
       .eq("collection_id", collectionId)
       .range(from, to);
 
-    query = applyItemSort(query, sort);
+    // Filter by location on owned_plants
+    if (locationFilter && uuidRegex.test(locationFilter)) {
+      query = query.eq("owned_plants.location_id", locationFilter);
+    }
 
+    query = applyItemSort(query, sort);
     const { data, error, count } = await query;
+
     if (error) {
       log.error("List items error", { error: error.message });
       throw new AppError("Failed to list items", 500, "LIST_FAILED");
     }
 
+    // If tag filter, post-filter by checking item_tags
+    let filtered = data;
+    if (tagFilter && uuidRegex.test(tagFilter) && data && data.length > 0) {
+      const plantIds = data.map((d: any) => d.owned_plant_id);
+      const { data: taggedPlants } = await supabase
+        .from("item_tags")
+        .select("owned_plant_id")
+        .eq("tag_id", tagFilter)
+        .in("owned_plant_id", plantIds);
+
+      const taggedSet = new Set((taggedPlants ?? []).map((t: any) => t.owned_plant_id));
+      filtered = data.filter((d: any) => taggedSet.has(d.owned_plant_id));
+    }
+
     return new Response(
-      JSON.stringify({ data, total: count ?? 0, page, page_size, has_more: (count ?? 0) > from + page_size }),
+      JSON.stringify({ data: filtered, total: tagFilter ? filtered.length : (count ?? 0), page, page_size, has_more: (count ?? 0) > from + page_size }),
       { headers: { ...rh, "Content-Type": "application/json" } },
     );
   }
@@ -205,14 +568,20 @@ async function handleItems(
 
     const { data, error } = await supabase
       .from("collection_items")
-      .select("*, owned_plants(id, nickname, scientific_name, common_name, photos, status), collection_item_media(*)")
+      .select("*, owned_plants(id, nickname, scientific_name, common_name, photos, status, location_id), collection_item_media(*)")
       .eq("id", itemId)
       .eq("collection_id", collectionId)
       .single();
 
     if (error || !data) throw new AppError("Item not found", 404, "ITEM_NOT_FOUND");
 
-    return new Response(JSON.stringify(data), {
+    // Enrich with tags
+    const { data: tags } = await supabase
+      .from("item_tags")
+      .select("tag_id, tags(id, name, color)")
+      .eq("owned_plant_id", data.owned_plant_id);
+
+    return new Response(JSON.stringify({ ...data, tags: tags ?? [] }), {
       headers: { ...rh, "Content-Type": "application/json" },
     });
   }
@@ -225,29 +594,17 @@ async function handleItems(
     const v = validate(itemCreate, body, rh);
     if (v.error) return v.error;
 
-    // Verify the owned_plant belongs to user
     const { data: plant } = await supabase
-      .from("owned_plants")
-      .select("id")
-      .eq("id", v.data.owned_plant_id)
-      .eq("user_id", userId)
-      .single();
+      .from("owned_plants").select("id").eq("id", v.data.owned_plant_id).eq("user_id", userId).single();
     if (!plant) throw new AppError("Plant not found or not owned by you", 404, "PLANT_NOT_FOUND");
 
-    // Check duplicate
     const { data: dup } = await supabase
-      .from("collection_items")
-      .select("id")
-      .eq("collection_id", collectionId)
-      .eq("owned_plant_id", v.data.owned_plant_id)
-      .maybeSingle();
+      .from("collection_items").select("id")
+      .eq("collection_id", collectionId).eq("owned_plant_id", v.data.owned_plant_id).maybeSingle();
     if (dup) throw new AppError("Plant already in this collection", 409, "DUPLICATE_ITEM");
 
     const { data, error } = await supabase
-      .from("collection_items")
-      .insert({ ...v.data, collection_id: collectionId })
-      .select("*")
-      .single();
+      .from("collection_items").insert({ ...v.data, collection_id: collectionId }).select("*").single();
 
     if (error) {
       log.error("Create item error", { error: error.message });
@@ -256,8 +613,7 @@ async function handleItems(
 
     log.info("Item added", { item_id: data.id, collection_id: collectionId });
     return new Response(JSON.stringify(data), {
-      status: 201,
-      headers: { ...rh, "Content-Type": "application/json" },
+      status: 201, headers: { ...rh, "Content-Type": "application/json" },
     });
   }
 
@@ -272,12 +628,8 @@ async function handleItems(
     if (v.error) return v.error;
 
     const { data, error } = await supabase
-      .from("collection_items")
-      .update(v.data)
-      .eq("id", itemId)
-      .eq("collection_id", collectionId)
-      .select("*")
-      .single();
+      .from("collection_items").update(v.data)
+      .eq("id", itemId).eq("collection_id", collectionId).select("*").single();
 
     if (error || !data) throw new AppError("Failed to update item", 500, "UPDATE_FAILED");
 
@@ -290,13 +642,10 @@ async function handleItems(
   if (req.method === "DELETE" && itemId) {
     if (!uuidRegex.test(itemId)) throw new AppError("Invalid item ID", 400, "INVALID_ID");
 
-    // Delete associated media files from storage first
     const svc = getServiceClient();
     const { data: mediaRows } = await supabase
-      .from("collection_item_media")
-      .select("storage_path")
-      .eq("collection_item_id", itemId)
-      .eq("user_id", userId);
+      .from("collection_item_media").select("storage_path")
+      .eq("collection_item_id", itemId).eq("user_id", userId);
 
     if (mediaRows && mediaRows.length > 0) {
       const paths = mediaRows.map((m: any) => m.storage_path);
@@ -304,10 +653,8 @@ async function handleItems(
     }
 
     const { error } = await supabase
-      .from("collection_items")
-      .delete()
-      .eq("id", itemId)
-      .eq("collection_id", collectionId);
+      .from("collection_items").delete()
+      .eq("id", itemId).eq("collection_id", collectionId);
 
     if (error) throw new AppError("Failed to delete item", 500, "DELETE_FAILED");
 
@@ -327,27 +674,20 @@ async function handleMedia(
 ): Promise<Response> {
   if (!itemId || !uuidRegex.test(itemId)) throw new AppError("Invalid item ID", 400, "INVALID_ID");
 
-  // Verify item belongs to this collection (RLS already scopes to user)
   const { data: item } = await supabase
-    .from("collection_items")
-    .select("id")
-    .eq("id", itemId)
-    .eq("collection_id", collectionId)
-    .single();
+    .from("collection_items").select("id")
+    .eq("id", itemId).eq("collection_id", collectionId).single();
   if (!item) throw new AppError("Item not found", 404, "ITEM_NOT_FOUND");
 
   // ── LIST media ──
   if (req.method === "GET" && !mediaId) {
     const { data, error } = await supabase
-      .from("collection_item_media")
-      .select("*")
-      .eq("collection_item_id", itemId)
-      .eq("user_id", userId)
+      .from("collection_item_media").select("*")
+      .eq("collection_item_id", itemId).eq("user_id", userId)
       .order("sort_order", { ascending: true });
 
     if (error) throw new AppError("Failed to list media", 500, "LIST_FAILED");
 
-    // Append public URLs
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const enriched = (data ?? []).map((m: any) => ({
       ...m,
@@ -370,7 +710,6 @@ async function handleMedia(
     const file = formData.get("file") as File | null;
     if (!file) throw new AppError("Missing 'file' field", 400, "MISSING_FILE");
 
-    // Validate file
     if (!ALLOWED_MIME.has(file.type)) {
       throw new AppError(`Unsupported file type: ${file.type}`, 400, "INVALID_FILE_TYPE");
     }
@@ -382,7 +721,6 @@ async function handleMedia(
     const sortOrder = parseInt((formData.get("sort_order") as string) ?? "0", 10) || 0;
     const mediaType = file.type.startsWith("video/") ? "video" : "image";
 
-    // Upload to storage: collection-photos/{userId}/{itemId}/{timestamp}_{filename}
     const ext = file.name.split(".").pop() ?? "bin";
     const safeName = `${Date.now()}_${crypto.randomUUID().slice(0, 8)}.${ext}`;
     const storagePath = `${userId}/${itemId}/${safeName}`;
@@ -390,17 +728,13 @@ async function handleMedia(
     const svc = getServiceClient();
     const { error: uploadError } = await svc.storage
       .from("collection-photos")
-      .upload(storagePath, file, {
-        contentType: file.type,
-        upsert: false,
-      });
+      .upload(storagePath, file, { contentType: file.type, upsert: false });
 
     if (uploadError) {
       log.error("Storage upload error", { error: uploadError.message });
       throw new AppError("Failed to upload file", 500, "UPLOAD_FAILED");
     }
 
-    // Insert metadata row
     const { data: row, error: dbError } = await supabase
       .from("collection_item_media")
       .insert({
@@ -413,11 +747,9 @@ async function handleMedia(
         mime_type: file.type,
         sort_order: sortOrder,
       })
-      .select("*")
-      .single();
+      .select("*").single();
 
     if (dbError) {
-      // Rollback storage
       await svc.storage.from("collection-photos").remove([storagePath]);
       log.error("Media record insert error", { error: dbError.message });
       throw new AppError("Failed to save media record", 500, "DB_INSERT_FAILED");
@@ -432,8 +764,7 @@ async function handleMedia(
     log.info("Media uploaded", { media_id: row.id, item_id: itemId, size: file.size });
 
     return new Response(JSON.stringify(result), {
-      status: 201,
-      headers: { ...rh, "Content-Type": "application/json" },
+      status: 201, headers: { ...rh, "Content-Type": "application/json" },
     });
   }
 
@@ -442,25 +773,16 @@ async function handleMedia(
     if (!uuidRegex.test(mediaId)) throw new AppError("Invalid media ID", 400, "INVALID_ID");
 
     const { data: media } = await supabase
-      .from("collection_item_media")
-      .select("storage_path")
-      .eq("id", mediaId)
-      .eq("collection_item_id", itemId)
-      .eq("user_id", userId)
-      .single();
+      .from("collection_item_media").select("storage_path")
+      .eq("id", mediaId).eq("collection_item_id", itemId).eq("user_id", userId).single();
 
     if (!media) throw new AppError("Media not found", 404, "MEDIA_NOT_FOUND");
 
-    // Delete from storage
     const svc = getServiceClient();
     await svc.storage.from("collection-photos").remove([media.storage_path]);
 
-    // Delete DB row
-    await supabase
-      .from("collection_item_media")
-      .delete()
-      .eq("id", mediaId)
-      .eq("user_id", userId);
+    await supabase.from("collection_item_media").delete()
+      .eq("id", mediaId).eq("user_id", userId);
 
     log.info("Media deleted", { media_id: mediaId });
     return new Response(null, { status: 204, headers: rh });
@@ -487,14 +809,36 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const url = new URL(req.url);
+    const route = parsePath(url);
+
+    // ── Ref endpoints (public, no auth needed) ──
+    if (route.resource === "ref") {
+      const svc = getServiceClient();
+      return await handleRef(req, route, svc, rh);
+    }
+
+    // ── All other endpoints require auth ──
     const auth = await authenticateRequest(req);
     if ("error" in auth) {
       throw new AppError(auth.error, 401, "UNAUTHORIZED");
     }
     const { userId, supabase } = auth;
 
-    const url = new URL(req.url);
-    const route = parsePath(url);
+    // ── Tags ──
+    if (route.resource === "tags") {
+      return await handleTags(req, route, userId, supabase, rh, log);
+    }
+
+    // ── Plant-Tags (attach/detach) ──
+    if (route.resource === "plant-tags") {
+      return await handlePlantTags(req, route, userId, supabase, rh, log);
+    }
+
+    // ── Locations ──
+    if (route.resource === "locations") {
+      return await handleLocations(req, route, userId, supabase, rh, log);
+    }
 
     // ── Items (and Media sub-resource) ──
     if (route.resource === "items") {
@@ -519,9 +863,7 @@ Deno.serve(async (req) => {
       const to = from + page_size - 1;
 
       let query = supabase
-        .from("collections")
-        .select("*", { count: "exact" })
-        .eq("user_id", userId);
+        .from("collections").select("*", { count: "exact" }).eq("user_id", userId);
 
       if (!include_archived) query = query.is("deleted_at", null);
       query = applyCollectionSort(query, sort);
