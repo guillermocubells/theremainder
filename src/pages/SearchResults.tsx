@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import {
-  Search, X, Leaf, Sparkles, ArrowUpDown,
+  Search, X, Sparkles, ArrowUpDown,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -24,6 +24,8 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { ActiveFilterChips, FacetSidebar, MobileFacetDrawer } from "@/components/search";
+import ZeroResultsRecovery from "@/components/search/ZeroResultsRecovery";
+import { useHighlight } from "@/utils/highlightText";
 
 // ── Sort options ─────────────────────────────────────────────────────
 const SORT_OPTIONS: { key: SortKey; label_es: string }[] = [
@@ -38,7 +40,7 @@ const SORT_OPTIONS: { key: SortKey; label_es: string }[] = [
 const PAGE_SIZES = [12, 24, 48];
 
 // ── SearchResultCard ─────────────────────────────────────────────────
-function SearchResultCard({ plant, highlight }: { plant: SearchPlant; highlight: string[] }) {
+function SearchResultCard({ plant, hl }: { plant: SearchPlant; hl: (text: string | null | undefined) => React.ReactNode }) {
   const imgSrc =
     plant.primary_image ||
     (plant.product_images && plant.product_images[0]) ||
@@ -47,17 +49,6 @@ function SearchResultCard({ plant, highlight }: { plant: SearchPlant; highlight:
 
   const displayPrice = plant.sale_price ?? plant.price;
   const hasDiscount = plant.sale_price != null && plant.sale_price < plant.price;
-
-  function highlightText(text: string): React.ReactNode {
-    if (!highlight.length || !text) return text;
-    const regex = new RegExp(`(${highlight.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "gi");
-    const parts = text.split(regex);
-    return parts.map((part, i) =>
-      regex.test(part) ? (
-        <mark key={i} className="bg-warning/30 text-foreground rounded-sm px-0.5">{part}</mark>
-      ) : part
-    );
-  }
 
   return (
     <Link to={`/plant/${plant.slug}`} className="group">
@@ -81,11 +72,16 @@ function SearchResultCard({ plant, highlight }: { plant: SearchPlant; highlight:
         </div>
         <CardContent className="p-3 sm:p-4 space-y-1.5">
           <h3 className="font-semibold text-sm leading-tight line-clamp-1 text-foreground">
-            {highlightText(plant.name)}
+            {hl(plant.name)}
           </h3>
-          {plant.scientific_name && (
+          {(plant.scientific_name || plant.common_name) && (
             <p className="text-xs text-muted-foreground italic line-clamp-1">
-              {highlightText(plant.scientific_name)}
+              {hl(plant.common_name || plant.scientific_name)}
+            </p>
+          )}
+          {plant.short_description && (
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+              {hl(plant.short_description)}
             </p>
           )}
           <div className="flex items-center justify-between pt-1">
@@ -121,6 +117,7 @@ function ResultsSkeleton({ count = 12 }: { count?: number }) {
           <CardContent className="p-3 space-y-2">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-3 w-1/2" />
+            <Skeleton className="h-3 w-full" />
             <Skeleton className="h-5 w-16" />
           </CardContent>
         </Card>
@@ -146,7 +143,6 @@ function getVisiblePages(current: number, total: number): (number | "ellipsis")[
   return pages;
 }
 
-// ── Array filter keys for chip extraction ────────────────────────────
 const ARRAY_FILTER_KEYS = [
   "plant_type", "difficulty", "rarity", "water", "humidity",
   "exposure", "climate_zone", "hardiness_zone", "plant_use",
@@ -168,9 +164,7 @@ const SearchResults = () => {
 
   // Set initial query from URL
   useState(() => {
-    if (initialQuery) {
-      setQuery(initialQuery);
-    }
+    if (initialQuery) setQuery(initialQuery);
   });
 
   const facets = result?.facets ?? {};
@@ -178,14 +172,13 @@ const SearchResults = () => {
   const pagination = result?.pagination;
   const highlightTokens = result?.highlight_tokens ?? [];
 
-  // Collect active array filters for chips
+  const hl = useHighlight(highlightTokens);
+
   const activeArrayFilters = useMemo(() => {
     const out: Record<string, string[]> = {};
     for (const k of ARRAY_FILTER_KEYS) {
       const v = filters[k as keyof SearchFilters];
-      if (Array.isArray(v) && v.length > 0) {
-        out[k] = v as string[];
-      }
+      if (Array.isArray(v) && v.length > 0) out[k] = v as string[];
     }
     return out;
   }, [filters]);
@@ -202,20 +195,13 @@ const SearchResults = () => {
 
   const handleClearFacet = useCallback(
     (facetKey: keyof SearchFilters) => {
-      setFilters(prev => {
-        const copy = { ...prev };
-        delete copy[facetKey];
-        return copy;
-      });
+      setFilters(prev => { const copy = { ...prev }; delete copy[facetKey]; return copy; });
     },
     [setFilters]
   );
 
-  // Shared facet sidebar props
   const facetSidebarProps = {
-    facets,
-    filters,
-    activeCount,
+    facets, filters, activeCount,
     onToggleFacet: toggleFacetValue,
     onClearFacet: handleClearFacet,
     onClearAll: clearAllFilters,
@@ -252,21 +238,13 @@ const SearchResults = () => {
           )}
         </div>
 
-        {/* Active filter chips */}
-        <ActiveFilterChips
-          filters={activeArrayFilters}
-          onRemove={handleRemoveChip}
-          onClear={clearAllFilters}
-        />
+        <ActiveFilterChips filters={activeArrayFilters} onRemove={handleRemoveChip} onClear={clearAllFilters} />
 
         {/* Toolbar */}
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             {isMobile && (
-              <MobileFacetDrawer
-                {...facetSidebarProps}
-                totalResults={pagination?.total ?? 0}
-              />
+              <MobileFacetDrawer {...facetSidebarProps} totalResults={pagination?.total ?? 0} />
             )}
             <p className="text-sm text-muted-foreground">
               {loading ? (
@@ -296,7 +274,6 @@ const SearchResults = () => {
                 ))}
               </SelectContent>
             </Select>
-
             <Select value={pageSize.toString()} onValueChange={v => setPageSize(parseInt(v))}>
               <SelectTrigger className="h-8 w-[70px] text-xs">
                 <SelectValue />
@@ -312,14 +289,12 @@ const SearchResults = () => {
 
         {/* Layout: sidebar + results */}
         <div className="flex gap-6">
-          {/* Desktop sidebar */}
           {!isMobile && (
             <aside className="w-56 shrink-0 hidden md:block">
               <FacetSidebar {...facetSidebarProps} />
             </aside>
           )}
 
-          {/* Results grid */}
           <div className="flex-1 min-w-0">
             {error && (
               <div className="text-center py-8">
@@ -333,23 +308,19 @@ const SearchResults = () => {
             {loading && !error && <ResultsSkeleton count={pageSize} />}
 
             {!loading && !error && plants.length === 0 && (
-              <div className="text-center py-16">
-                <Leaf className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-1">Sin resultados</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  No encontramos plantas con estos criterios.
-                </p>
-                <Button variant="outline" size="sm" onClick={clearAllFilters}>
-                  Borrar filtros
-                </Button>
-              </div>
+              <ZeroResultsRecovery
+                query={filters.q}
+                activeFilterCount={activeCount}
+                onClearFilters={clearAllFilters}
+                onSuggestedQuery={setQuery}
+              />
             )}
 
             {!loading && !error && plants.length > 0 && (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                   {plants.map(plant => (
-                    <SearchResultCard key={plant.id} plant={plant} highlight={highlightTokens} />
+                    <SearchResultCard key={plant.id} plant={plant} hl={hl} />
                   ))}
                 </div>
 
@@ -365,9 +336,7 @@ const SearchResults = () => {
                       </PaginationItem>
                       {getVisiblePages(page, pagination.total_pages).map((p, i) =>
                         p === "ellipsis" ? (
-                          <PaginationItem key={`e-${i}`}>
-                            <PaginationEllipsis />
-                          </PaginationItem>
+                          <PaginationItem key={`e-${i}`}><PaginationEllipsis /></PaginationItem>
                         ) : (
                           <PaginationItem key={p}>
                             <PaginationLink
