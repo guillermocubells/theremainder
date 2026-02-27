@@ -7,6 +7,8 @@ import { GardenKanban, GardenEmptyState } from '@/components/garden';
 import { ShareSearchListButton } from '@/components/garden/ShareSearchListButton';
 import AddPlantDialog from '@/components/collection/AddPlantDialog';
 import { AddWishlistItemDialog } from '@/components/wishlist';
+import { SpeciesInsightsWidget } from '@/components/garden/SpeciesInsightsWidget';
+import { useSpeciesInsights } from '@/hooks/garden/useSpeciesInsights';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Leaf, Plus, Search, Loader2, ArrowLeft } from 'lucide-react';
@@ -21,6 +23,7 @@ const MyGarden = () => {
 
   const { data: plants, isLoading } = useMyGarden({ filter: 'all', search: searchQuery });
   const { data: stats } = useGardenStats();
+  const { data: speciesInsights, isLoading: insightsLoading } = useSpeciesInsights();
 
   // Count searching items for share button
   const searchingCount = useMemo(() => {
@@ -93,7 +96,19 @@ const MyGarden = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : plants && plants.length > 0 ? (
-          <GardenKanban items={plants} />
+          <>
+            {speciesInsights && speciesInsights.length > 0 && (
+              <div className="mb-6">
+                <SpeciesInsightsWidget
+                  insights={speciesInsights}
+                  isLoading={insightsLoading}
+                  limit={4}
+                  compact
+                />
+              </div>
+            )}
+            <GardenKanban items={plants} />
+          </>
         ) : (
           <GardenEmptyState
             filter="all"

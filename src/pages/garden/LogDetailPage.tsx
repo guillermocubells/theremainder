@@ -21,7 +21,9 @@ import { toast } from 'sonner';
 import EntryComposer from '@/components/collection/EntryComposer';
 import TimelineEntry from '@/components/garden/TimelineEntry';
 import TimelineFilters, { type TimelineFilterState, EMPTY_FILTERS, hasActiveFilters } from '@/components/garden/TimelineFilters';
-import { isWithinInterval, parseISO } from 'date-fns';
+import { SpeciesInsightCard } from '@/components/garden/SpeciesInsightsWidget';
+import { useSpeciesInsight } from '@/hooks/garden/useSpeciesInsights';
+import { parseISO } from 'date-fns';
 
 /* ─── Filter helpers ─── */
 
@@ -79,6 +81,8 @@ const LogDetailPage = () => {
   const createPublicSlug = useCreatePublicSlug();
   const togglePublic = useTogglePublicSharing();
   const deleteObservation = useDeleteObservation();
+
+  const { data: speciesInsight } = useSpeciesInsight(plant?.scientific_name || plant?.nickname);
 
   const [composerOpen, setComposerOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<Observation | null>(null);
@@ -231,6 +235,13 @@ const LogDetailPage = () => {
               )}
             </div>
           </div>
+
+          {/* Species insights */}
+          {speciesInsight && (
+            <div className="mb-6 animate-fade-in">
+              <SpeciesInsightCard insight={speciesInsight} />
+            </div>
+          )}
 
           {/* Timeline */}
           <div className="space-y-1">
