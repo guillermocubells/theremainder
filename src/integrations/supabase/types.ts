@@ -1746,6 +1746,138 @@ export type Database = {
           },
         ]
       }
+      grow_entries: {
+        Row: {
+          created_at: string
+          id: string
+          log_id: string
+          media_count: number
+          notes: string | null
+          occurred_at: string
+          rating: number | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          log_id: string
+          media_count?: number
+          notes?: string | null
+          occurred_at?: string
+          rating?: number | null
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          log_id?: string
+          media_count?: number
+          notes?: string | null
+          occurred_at?: string
+          rating?: number | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grow_entries_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "grow_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grow_logs: {
+        Row: {
+          created_at: string
+          id: string
+          species: string | null
+          taxon_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          species?: string | null
+          taxon_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          species?: string | null
+          taxon_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grow_logs_taxon_id_fkey"
+            columns: ["taxon_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grow_photos: {
+        Row: {
+          created_at: string
+          entry_id: string
+          hash: string | null
+          height: number | null
+          id: string
+          sort_order: number
+          url: string
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          hash?: string | null
+          height?: number | null
+          id?: string
+          sort_order?: number
+          url: string
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          hash?: string | null
+          height?: number | null
+          id?: string
+          sort_order?: number
+          url?: string
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grow_photos_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "grow_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       increment_schemas: {
         Row: {
           created_at: string
