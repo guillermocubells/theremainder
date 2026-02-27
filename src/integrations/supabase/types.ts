@@ -1865,6 +1865,66 @@ export type Database = {
           },
         ]
       }
+      grow_entry_media: {
+        Row: {
+          created_at: string
+          entry_id: string
+          file_name: string
+          file_size_bytes: number
+          height: number | null
+          id: string
+          log_id: string
+          mime_type: string
+          sort_order: number
+          storage_path: string
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          file_name: string
+          file_size_bytes: number
+          height?: number | null
+          id?: string
+          log_id: string
+          mime_type: string
+          sort_order?: number
+          storage_path: string
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          file_name?: string
+          file_size_bytes?: number
+          height?: number | null
+          id?: string
+          log_id?: string
+          mime_type?: string
+          sort_order?: number
+          storage_path?: string
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grow_entry_media_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "grow_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grow_entry_media_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "grow_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grow_logs: {
         Row: {
           created_at: string
