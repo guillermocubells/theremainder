@@ -3301,6 +3301,36 @@ export type Database = {
           },
         ]
       }
+      plant_ai_cache: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          payload_json: Json
+          query_hash: string
+          scientific_name: string | null
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          payload_json?: Json
+          query_hash: string
+          scientific_name?: string | null
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          payload_json?: Json
+          query_hash?: string
+          scientific_name?: string | null
+          source?: string
+        }
+        Relationships: []
+      }
       plant_locations: {
         Row: {
           created_at: string

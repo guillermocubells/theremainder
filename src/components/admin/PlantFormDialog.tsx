@@ -22,7 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, X, AlertCircle } from "lucide-react";
+import { Loader2, X, AlertCircle, Sparkles, ShieldCheck } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
 import { COUNTRIES } from "@/data/countries";
 import { z } from "zod";
@@ -253,10 +253,24 @@ export function PlantFormDialog({
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
+  // AI autocomplete state
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiPreserveEdited, setAiPreserveEdited] = useState(true);
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  const [aiResult, setAiResult] = useState<{
+    confidence: number;
+    confidenceByField: Record<string, number>;
+    priceSuggestion: string;
+    warnings: string[];
+    filledCount: number;
+  } | null>(null);
+
   useEffect(() => {
     if (open) {
       setErrors({});
       setHasAttemptedSubmit(false);
+      setTouchedFields({});
+      setAiResult(null);
       fetchCategories();
       if (plant) {
         setFormData({
@@ -361,6 +375,8 @@ export function PlantFormDialog({
       }
       return updated;
     });
+    // Mark as manually touched
+    setTouchedFields((prev) => ({ ...prev, [field]: true }));
     // Clear error for this field on change
     if (hasAttemptedSubmit && errors[field]) {
       setErrors((prev) => {
@@ -368,6 +384,104 @@ export function PlantFormDialog({
         delete next[field];
         return next;
       });
+    }
+  };
+
+  // ── AI Autocomplete ──
+  const handleAiAutocomplete = async () => {
+    const textQuery = formData.scientific_name || formData.name || formData.common_name;
+    const imageUrls = formData.images.filter((url) => url.startsWith("http"));
+
+    if (!textQuery && imageUrls.length === 0) {
+      toast.error("Introduce un nombre o sube imágenes antes de usar el autocompletado");
+      return;
+    }
+
+    setIsAiLoading(true);
+    setAiResult(null);
+
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+      if (!token) {
+        toast.error("Sesión expirada");
+        return;
+      }
+
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-plant-autocomplete`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            textQuery,
+            imageUrls: imageUrls.slice(0, 3),
+          }),
+        }
+      );
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({ error: "Error desconocido" }));
+        throw new Error(errData.error || `Error ${resp.status}`);
+      }
+
+      const result = await resp.json();
+      const aiData: Record<string, any> = result.data || {};
+
+      // Fields that should NOT be touched by AI
+      const skipFields = new Set(["price", "sale_price", "stock", "germination_date", "is_active", "is_featured", "images", "product_images", "primary_image", "tags"]);
+
+      let filledCount = 0;
+
+      setFormData((prev) => {
+        const updated = { ...prev };
+        for (const [field, value] of Object.entries(aiData)) {
+          if (skipFields.has(field)) continue;
+          if (!(field in defaultForm)) continue;
+
+          // Check if field has meaningful value from AI
+          const hasValue = Array.isArray(value) ? value.length > 0 : value !== "" && value != null;
+          if (!hasValue) continue;
+
+          // Respect manually edited fields if toggle is on
+          if (aiPreserveEdited && touchedFields[field]) continue;
+
+          // Check if field already has a value (from editing existing plant)
+          const currentValue = (prev as any)[field];
+          const currentHasValue = Array.isArray(currentValue) ? currentValue.length > 0 : currentValue !== "" && currentValue != null && currentValue !== false;
+          if (aiPreserveEdited && currentHasValue && plant) continue;
+
+          (updated as any)[field] = value;
+          filledCount++;
+        }
+        return updated;
+      });
+
+      setAiResult({
+        confidence: result.confidence || 0,
+        confidenceByField: result.confidenceByField || {},
+        priceSuggestion: result.priceSuggestion || "",
+        warnings: result.warnings || [],
+        filledCount,
+      });
+
+      if (result.priceSuggestion) {
+        toast.info(`💰 Sugerencia de precio: ${result.priceSuggestion}`, { duration: 8000 });
+      }
+
+      toast.success(
+        `Autocompletado listo (${filledCount} campos). ` +
+        `Confianza: ${Math.round((result.confidence || 0) * 100)}%. Revisa los valores.`,
+        { duration: 6000 }
+      );
+    } catch (err: any) {
+      console.error("AI autocomplete error:", err);
+      toast.error(err.message || "Error al autocompletar con IA");
+    } finally {
+      setIsAiLoading(false);
     }
   };
 
@@ -475,9 +589,51 @@ export function PlantFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>
-            {plant ? "Editar Planta" : "Nueva Planta"}
-          </DialogTitle>
+          <div className="flex items-center justify-between gap-4">
+            <DialogTitle>
+              {plant ? "Editar Planta" : "Nueva Planta"}
+            </DialogTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <Switch
+                  id="ai-preserve"
+                  checked={aiPreserveEdited}
+                  onCheckedChange={setAiPreserveEdited}
+                  className="scale-75"
+                />
+                <Label htmlFor="ai-preserve" className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap">
+                  <ShieldCheck className="h-3 w-3 inline mr-0.5" />
+                  No sobrescribir
+                </Label>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAiAutocomplete}
+                disabled={isAiLoading}
+              >
+                {isAiLoading ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-1.5" />
+                )}
+                {isAiLoading ? "Analizando…" : "Autocompletar con IA"}
+              </Button>
+            </div>
+          </div>
+          {aiResult && (
+            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+              <span>
+                ✅ {aiResult.filledCount} campos · Confianza {Math.round(aiResult.confidence * 100)}%
+              </span>
+              {aiResult.warnings.length > 0 && (
+                <span className="text-destructive">
+                  ⚠ {aiResult.warnings[0]}
+                </span>
+              )}
+            </div>
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
