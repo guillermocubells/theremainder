@@ -21,7 +21,7 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
-import AddObservationDialog from '@/components/collection/AddObservationDialog';
+import EntryComposer from '@/components/collection/EntryComposer';
 import { cn } from '@/lib/utils';
 
 const conditionConfig: Record<string, { label: string; color: string; dot: string }> = {
@@ -42,10 +42,21 @@ const LogDetailPage = () => {
   const togglePublic = useTogglePublicSharing();
   const deleteObservation = useDeleteObservation();
 
-  const [addObsOpen, setAddObsOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<Observation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const openNewEntry = () => {
+    setEditingEntry(null);
+    setComposerOpen(true);
+  };
+
+  const openEditEntry = (obs: Observation) => {
+    setEditingEntry(obs);
+    setComposerOpen(true);
+  };
 
   const isLoading = plantLoading || obsLoading;
 
@@ -158,7 +169,7 @@ const LogDetailPage = () => {
                 </div>
               </div>
 
-              <Button onClick={() => setAddObsOpen(true)} size="sm">
+              <Button onClick={openNewEntry} size="sm">
                 <Plus className="h-4 w-4 mr-1.5" />
                 Añadir
               </Button>
@@ -225,7 +236,7 @@ const LogDetailPage = () => {
                   <Camera className="h-10 w-10 text-muted-foreground/40 mb-3" />
                   <p className="text-muted-foreground font-medium">Sin observaciones aún</p>
                   <p className="text-xs text-muted-foreground mt-1">Registra la primera entrada de tu grow log</p>
-                  <Button onClick={() => setAddObsOpen(true)} variant="outline" size="sm" className="mt-4">
+                  <Button onClick={openNewEntry} variant="outline" size="sm" className="mt-4">
                     <Plus className="h-4 w-4 mr-1.5" />
                     Primera entrada
                   </Button>
@@ -242,6 +253,7 @@ const LogDetailPage = () => {
                       key={obs.id}
                       observation={obs}
                       isFirst={idx === 0}
+                      onEdit={() => openEditEntry(obs)}
                       onDelete={() => setDeleteTarget(obs.id)}
                       onPhotoClick={(src) => setLightboxSrc(src)}
                     />
@@ -255,12 +267,13 @@ const LogDetailPage = () => {
 
       <Footer />
 
-      {/* Add observation dialog */}
-      <AddObservationDialog
-        open={addObsOpen}
-        onOpenChange={setAddObsOpen}
+      {/* Entry composer */}
+      <EntryComposer
+        open={composerOpen}
+        onOpenChange={setComposerOpen}
         plants={plant ? [plant] : []}
         preselectedPlantId={id}
+        editingEntry={editingEntry}
       />
 
       {/* Delete confirmation */}
@@ -307,11 +320,12 @@ const LogDetailPage = () => {
 interface TimelineEntryProps {
   observation: Observation;
   isFirst: boolean;
+  onEdit: () => void;
   onDelete: () => void;
   onPhotoClick: (src: string) => void;
 }
 
-const TimelineEntry = ({ observation, isFirst, onDelete, onPhotoClick }: TimelineEntryProps) => {
+const TimelineEntry = ({ observation, isFirst, onEdit, onDelete, onPhotoClick }: TimelineEntryProps) => {
   const config = conditionConfig[observation.condition] ?? conditionConfig.healthy;
   const obsDate = new Date(observation.observation_date);
   const relativeTime = formatDistanceToNow(obsDate, { addSuffix: true, locale: es });
@@ -344,14 +358,24 @@ const TimelineEntry = ({ observation, isFirst, onDelete, onPhotoClick }: Timelin
               </span>
             </div>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
-              onClick={onDelete}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            <div className="flex items-center gap-0.5 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-primary"
+                onClick={onEdit}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={onDelete}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
 
           {/* Notes */}
