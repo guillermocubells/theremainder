@@ -3611,6 +3611,75 @@ export type Database = {
         }
         Relationships: []
       }
+      synonym_dictionary: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entry_type: string
+          group_label: string | null
+          id: string
+          is_active: boolean
+          language: string
+          source_term: string
+          target_terms: string[]
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entry_type?: string
+          group_label?: string | null
+          id?: string
+          is_active?: boolean
+          language?: string
+          source_term: string
+          target_terms?: string[]
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entry_type?: string
+          group_label?: string | null
+          id?: string
+          is_active?: boolean
+          language?: string
+          source_term?: string
+          target_terms?: string[]
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
+      synonym_versions: {
+        Row: {
+          applied_at: string
+          checksum: string | null
+          entry_count: number
+          id: string
+          version: number
+        }
+        Insert: {
+          applied_at?: string
+          checksum?: string | null
+          entry_count?: number
+          id?: string
+          version?: number
+        }
+        Update: {
+          applied_at?: string
+          checksum?: string | null
+          entry_count?: number
+          id?: string
+          version?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -3906,6 +3975,7 @@ export type Database = {
       }
     }
     Functions: {
+      bump_synonym_version: { Args: never; Returns: number }
       calculate_backoff: { Args: { p_attempts: number }; Returns: unknown }
       calculate_invoice_hash: {
         Args: {
