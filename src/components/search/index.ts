@@ -4,3 +4,7 @@ export { default as ViabilityAnalysisPanel } from './ViabilityAnalysisPanel';
 export { default as SearchSuggestions } from './SearchSuggestions';
 export { default as AISearchStatus } from './AISearchStatus';
 export { default as AutocompleteDropdown } from './AutocompleteDropdown';
+export { default as FacetSection } from './FacetSection';
+export { default as FacetSidebar } from './FacetSidebar';
+export { default as ActiveFilterChips } from './ActiveFilterChips';
+export { default as MobileFacetDrawer } from './MobileFacetDrawer';
