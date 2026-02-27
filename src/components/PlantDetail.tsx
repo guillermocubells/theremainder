@@ -62,17 +62,29 @@ const PlantDetail = () => {
     let cancelled = false;
     setLoading(true);
     
-    supabase
-      .from("plants")
-      .select("*")
-      .eq("slug", plantId)
-      .eq("is_active", true)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled || !data) {
-          setLoading(false);
-          return;
-        }
+    const fetchPlant = async () => {
+      // Try slug first
+      let { data } = await supabase
+        .from("plants")
+        .select("*")
+        .eq("slug", plantId)
+        .eq("is_active", true)
+        .maybeSingle();
+      
+      // Fallback: try by UUID id
+      if (!data && plantId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        const res = await supabase
+          .from("plants")
+          .select("*")
+          .eq("id", plantId)
+          .maybeSingle();
+        data = res.data;
+      }
+
+      if (cancelled || !data) {
+        setLoading(false);
+        return;
+      }
         
         const row = data as Record<string, unknown>;
         const images = (row.images as string[] | null) || [];
@@ -144,7 +156,9 @@ const PlantDetail = () => {
         
         setDbDetail(detail);
         setLoading(false);
-      });
+    };
+
+    fetchPlant();
     
     return () => { cancelled = true; };
   }, [plantId, staticPlant]);
