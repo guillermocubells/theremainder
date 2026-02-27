@@ -905,6 +905,53 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_item_media: {
+        Row: {
+          alt_text: string | null
+          collection_item_id: string
+          created_at: string
+          file_size_bytes: number | null
+          id: string
+          media_type: string
+          mime_type: string | null
+          sort_order: number
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          alt_text?: string | null
+          collection_item_id: string
+          created_at?: string
+          file_size_bytes?: number | null
+          id?: string
+          media_type?: string
+          mime_type?: string | null
+          sort_order?: number
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          alt_text?: string | null
+          collection_item_id?: string
+          created_at?: string
+          file_size_bytes?: number | null
+          id?: string
+          media_type?: string
+          mime_type?: string | null
+          sort_order?: number
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_item_media_collection_item_id_fkey"
+            columns: ["collection_item_id"]
+            isOneToOne: false
+            referencedRelation: "collection_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_items: {
         Row: {
           added_at: string
