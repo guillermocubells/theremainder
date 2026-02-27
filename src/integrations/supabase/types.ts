@@ -3318,6 +3318,54 @@ export type Database = {
         }
         Relationships: []
       }
+      ref_location_types: {
+        Row: {
+          description: string | null
+          display_order: number
+          icon: string | null
+          id: string
+          label: string
+        }
+        Insert: {
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id: string
+          label: string
+        }
+        Update: {
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      ref_tag_categories: {
+        Row: {
+          color: string
+          description: string | null
+          display_order: number
+          id: string
+          label: string
+        }
+        Insert: {
+          color?: string
+          description?: string | null
+          display_order?: number
+          id: string
+          label: string
+        }
+        Update: {
+          color?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          label?: string
+        }
+        Relationships: []
+      }
       referral_codes: {
         Row: {
           code: string
