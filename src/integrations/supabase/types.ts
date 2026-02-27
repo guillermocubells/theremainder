@@ -1648,6 +1648,104 @@ export type Database = {
           },
         ]
       }
+      germination_batches: {
+        Row: {
+          common_name: string | null
+          created_at: string
+          ended_at: string | null
+          humidity_pct: number | null
+          id: string
+          light_hours: number | null
+          method: string
+          notes: string | null
+          photos: string[] | null
+          seed_count: number
+          species_name: string
+          started_at: string
+          substrate: string | null
+          temperature_c: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          common_name?: string | null
+          created_at?: string
+          ended_at?: string | null
+          humidity_pct?: number | null
+          id?: string
+          light_hours?: number | null
+          method?: string
+          notes?: string | null
+          photos?: string[] | null
+          seed_count?: number
+          species_name: string
+          started_at?: string
+          substrate?: string | null
+          temperature_c?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          common_name?: string | null
+          created_at?: string
+          ended_at?: string | null
+          humidity_pct?: number | null
+          id?: string
+          light_hours?: number | null
+          method?: string
+          notes?: string | null
+          photos?: string[] | null
+          seed_count?: number
+          species_name?: string
+          started_at?: string
+          substrate?: string | null
+          temperature_c?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      germination_entries: {
+        Row: {
+          batch_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          observed_at: string
+          photo_url: string | null
+          sprout_count: number
+          user_id: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          observed_at?: string
+          photo_url?: string | null
+          sprout_count?: number
+          user_id: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          observed_at?: string
+          photo_url?: string | null
+          sprout_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "germination_entries_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "germination_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       increment_schemas: {
         Row: {
           created_at: string

@@ -56,7 +56,7 @@ import {
 import { WishlistDashboard } from "./pages/wishlist";
 
 // Unified Garden module
-import { MyGarden, SharedSearchListPage, LogDetailPage } from "./pages/garden";
+import { MyGarden, SharedSearchListPage, LogDetailPage, GerminationDiaryPage } from "./pages/garden";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +103,11 @@ const App = () => (
               <Route path="/garden/logs/:id" element={
                 <ProtectedRoute>
                   <LogDetailPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/garden/germination" element={
+                <ProtectedRoute>
+                  <GerminationDiaryPage />
                 </ProtectedRoute>
               } />
               <Route path="/garden/locations" element={
