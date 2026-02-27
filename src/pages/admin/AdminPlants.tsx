@@ -12,7 +12,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Pencil, Trash2, Loader2, Copy } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Loader2, Copy, Download } from "lucide-react";
+import { exportCatalogXlsx } from "@/utils/exportCatalogXlsx";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { PlantFormDialog } from "@/components/admin/PlantFormDialog";
@@ -50,6 +51,7 @@ export default function AdminPlants() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlant, setEditingPlant] = useState<Plant | null>(null);
   const [deletingPlant, setDeletingPlant] = useState<Plant | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Sync search query to URL params
   useEffect(() => {
@@ -122,16 +124,56 @@ export default function AdminPlants() {
             Gestiona el catálogo de plantas
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingPlant(null);
-            setIsFormOpen(true);
-          }}
-          className="bg-moss hover:bg-moss/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Añadir Planta
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={async () => {
+              setIsExporting(true);
+              try {
+                const { data: allPlants, error: pErr } = await supabase
+                  .from("plants")
+                  .select("*")
+                  .order("display_order", { ascending: true });
+                if (pErr) throw pErr;
+
+                const { data: cats } = await supabase
+                  .from("categories")
+                  .select("id, slug");
+                const catMap: Record<string, string> = {};
+                (cats || []).forEach((c: any) => { catMap[c.id] = c.slug; });
+
+                await exportCatalogXlsx(
+                  (allPlants || []) as Record<string, unknown>[],
+                  catMap
+                );
+                toast.success("Catálogo exportado correctamente");
+              } catch (err) {
+                console.error(err);
+                toast.error("Error al exportar el catálogo");
+              } finally {
+                setIsExporting(false);
+              }
+            }}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            Exportar Excel
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingPlant(null);
+              setIsFormOpen(true);
+            }}
+            className="bg-moss hover:bg-moss/90"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Añadir Planta
+          </Button>
+        </div>
       </div>
 
       <div className="bg-card border border-border rounded-xl">
