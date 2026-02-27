@@ -38,6 +38,8 @@ const CollectionPlantCard = ({ plant }: CollectionPlantCardProps) => {
                 src={plant.photos[0]} 
                 alt={plant.nickname}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
