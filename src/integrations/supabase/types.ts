@@ -5034,6 +5034,56 @@ export type Database = {
         }
         Relationships: []
       }
+      species_climate_thresholds: {
+        Row: {
+          created_at: string
+          frost_warning_temp_c: number | null
+          hardiness_zone_max: string | null
+          hardiness_zone_min: string | null
+          heat_warning_temp_c: number | null
+          id: string
+          max_temp_c: number | null
+          min_temp_c: number | null
+          notes: string | null
+          plant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          frost_warning_temp_c?: number | null
+          hardiness_zone_max?: string | null
+          hardiness_zone_min?: string | null
+          heat_warning_temp_c?: number | null
+          id?: string
+          max_temp_c?: number | null
+          min_temp_c?: number | null
+          notes?: string | null
+          plant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          frost_warning_temp_c?: number | null
+          hardiness_zone_max?: string | null
+          hardiness_zone_min?: string | null
+          heat_warning_temp_c?: number | null
+          id?: string
+          max_temp_c?: number | null
+          min_temp_c?: number | null
+          notes?: string | null
+          plant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "species_climate_thresholds_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: true
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_notifications: {
         Row: {
           created_at: string
@@ -5227,6 +5277,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      toxicity_warnings: {
+        Row: {
+          created_at: string
+          first_aid: string | null
+          id: string
+          plant_id: string
+          severity: string
+          source_url: string | null
+          symptoms: string | null
+          toxic_parts: string[] | null
+          toxic_to_children: boolean
+          toxic_to_humans: boolean
+          toxic_to_pets: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_aid?: string | null
+          id?: string
+          plant_id: string
+          severity?: string
+          source_url?: string | null
+          symptoms?: string | null
+          toxic_parts?: string[] | null
+          toxic_to_children?: boolean
+          toxic_to_humans?: boolean
+          toxic_to_pets?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_aid?: string | null
+          id?: string
+          plant_id?: string
+          severity?: string
+          source_url?: string | null
+          symptoms?: string | null
+          toxic_parts?: string[] | null
+          toxic_to_children?: boolean
+          toxic_to_humans?: boolean
+          toxic_to_pets?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "toxicity_warnings_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: true
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_badges: {
         Row: {
@@ -5457,6 +5560,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      watering_stress_thresholds: {
+        Row: {
+          climate_zone: string | null
+          created_at: string
+          drought_tolerance: string | null
+          id: string
+          ideal_soil_moisture_pct: number | null
+          max_days_between_watering: number | null
+          min_days_between_watering: number | null
+          notes: string | null
+          overwater_sensitivity: string | null
+          plant_id: string
+          season: string | null
+          updated_at: string
+        }
+        Insert: {
+          climate_zone?: string | null
+          created_at?: string
+          drought_tolerance?: string | null
+          id?: string
+          ideal_soil_moisture_pct?: number | null
+          max_days_between_watering?: number | null
+          min_days_between_watering?: number | null
+          notes?: string | null
+          overwater_sensitivity?: string | null
+          plant_id: string
+          season?: string | null
+          updated_at?: string
+        }
+        Update: {
+          climate_zone?: string | null
+          created_at?: string
+          drought_tolerance?: string | null
+          id?: string
+          ideal_soil_moisture_pct?: number | null
+          max_days_between_watering?: number | null
+          min_days_between_watering?: number | null
+          notes?: string | null
+          overwater_sensitivity?: string | null
+          plant_id?: string
+          season?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watering_stress_thresholds_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       webhook_events: {
         Row: {
