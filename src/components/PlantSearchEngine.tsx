@@ -114,7 +114,7 @@ const PlantSearchEngine = ({ plants, onFilteredPlantsChange, onSearchStart }: Pl
   return (
     <div className="mb-6 sm:mb-8 space-y-4">
       {/* Search Card */}
-      <Card className="bg-card/90 backdrop-blur-sm border-border shadow-sm">
+      <Card className="bg-card/90 backdrop-blur-sm border-border shadow-sm relative z-20">
         <CardContent className="p-3 sm:p-4">
           <div className="flex flex-col gap-3">
             {/* Search Input */}
