@@ -190,9 +190,9 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body = await req.json();
-    const { user_prompt, filters, catalog_subset } = body;
+    const { user_prompt, filters, catalog_subset, address_id, climate_fit_min } = body;
 
-    console.log("[recommend-plants] Request:", { user_prompt, filters: !!filters, catalog: !!catalog_subset });
+    console.log("[recommend-plants] Request:", { user_prompt, filters: !!filters, catalog: !!catalog_subset, address_id });
 
     let catalog: CatalogPlant[];
     
@@ -201,9 +201,44 @@ serve(async (req) => {
     } else {
       let dbQuery = supabase.from("plants").select("id, name, scientific_name, plant_type, exposure, growth_rate, climate_zones, min_temp_c, water, humidity, plant_use, rarity, difficulty, price, images, stock_qty").eq("is_active", true);
       dbQuery = dbQuery.gt("stock_qty", 0);
+
+      // Apply climate pre-filters
+      if (filters?.hardiness_min) {
+        dbQuery = dbQuery.gte("hardiness_zones", `{${filters.hardiness_min}}`);
+      }
+      if (filters?.min_temp_max !== undefined && filters?.min_temp_max !== null) {
+        dbQuery = dbQuery.lte("min_temp_c", filters.min_temp_max);
+      }
+
       const { data: plants, error: dbError } = await dbQuery;
       if (dbError) throw new Error("Failed to fetch catalog");
       catalog = (plants || []) as CatalogPlant[];
+    }
+
+    // If address_id provided, enrich with fit scores and optionally filter
+    let fitScoreMap: Map<string, number> = new Map();
+    if (address_id && catalog.length > 0) {
+      const plantIds = catalog.map(p => p.id);
+      const { data: scores } = await supabase
+        .from("fit_score_cache")
+        .select("plant_id, score")
+        .eq("address_id", address_id)
+        .eq("stale", false)
+        .in("plant_id", plantIds);
+      
+      if (scores) {
+        for (const s of scores) {
+          fitScoreMap.set(s.plant_id, s.score);
+        }
+      }
+
+      // Filter by minimum fit score if requested
+      if (climate_fit_min && climate_fit_min > 0) {
+        catalog = catalog.filter(p => {
+          const score = fitScoreMap.get(p.id);
+          return score === undefined || score >= climate_fit_min;
+        });
+      }
     }
 
     console.log("[recommend-plants] Catalog size:", catalog.length);
@@ -247,7 +282,13 @@ serve(async (req) => {
       .slice(0, 3)
       .map((rec: { plant_id: string; fit_score: number; reasoning: string; tradeoffs: string }) => {
         const plant = catalog.find(p => p.id === rec.plant_id)!;
-        return { ...rec, viability: calculateViability(plant, user_prompt) };
+        const viability = calculateViability(plant, user_prompt);
+        const cachedFit = fitScoreMap.get(rec.plant_id);
+        return { 
+          ...rec, 
+          viability,
+          climate_fit_score: cachedFit ?? null,
+        };
       });
 
     console.log("[recommend-plants] Returning", validRecommendations.length, "recommendations");

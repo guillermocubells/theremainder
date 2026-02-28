@@ -21,9 +21,15 @@ export interface SearchFilters {
   max_price?: number;
   in_stock?: boolean;
   featured?: boolean;
+  // Climate filters
+  hardiness_min?: string;
+  hardiness_max?: string;
+  min_temp_max?: number;
+  climate_fit_min?: number;
+  address_id?: string;
 }
 
-export type SortKey = "relevance" | "price_asc" | "price_desc" | "newest" | "name_asc" | "rarity_desc";
+export type SortKey = "relevance" | "price_asc" | "price_desc" | "newest" | "name_asc" | "rarity_desc" | "climate_fit";
 
 export interface SearchPagination {
   page: number;
@@ -81,7 +87,7 @@ const ARRAY_FILTER_KEYS: (keyof SearchFilters)[] = [
   "tags", "origin_country",
 ];
 
-const VALID_SORTS = new Set<SortKey>(["relevance", "price_asc", "price_desc", "newest", "name_asc", "rarity_desc"]);
+const VALID_SORTS = new Set<SortKey>(["relevance", "price_asc", "price_desc", "newest", "name_asc", "rarity_desc", "climate_fit"]);
 
 export function filtersFromSearchParams(sp: URLSearchParams): {
   filters: SearchFilters;
@@ -110,6 +116,18 @@ export function filtersFromSearchParams(sp: URLSearchParams): {
   if (inStock === "true") filters.in_stock = true;
   const featured = sp.get("featured");
   if (featured === "true") filters.featured = true;
+
+  // Climate filters
+  const hardinessMin = sp.get("hardiness_min");
+  if (hardinessMin) filters.hardiness_min = hardinessMin;
+  const hardinessMax = sp.get("hardiness_max");
+  if (hardinessMax) filters.hardiness_max = hardinessMax;
+  const minTempMax = sp.get("min_temp_max");
+  if (minTempMax) filters.min_temp_max = Number(minTempMax);
+  const climateFitMin = sp.get("climate_fit_min");
+  if (climateFitMin) filters.climate_fit_min = Number(climateFitMin);
+  const addressId = sp.get("address_id");
+  if (addressId) filters.address_id = addressId;
 
   const rawSort = sp.get("sort") as SortKey | null;
   const sort: SortKey = rawSort && VALID_SORTS.has(rawSort) ? rawSort : "relevance";
@@ -142,6 +160,14 @@ export function filtersToSearchParams(
   if (filters.max_price != null) sp.set("max_price", filters.max_price.toString());
   if (filters.in_stock) sp.set("in_stock", "true");
   if (filters.featured) sp.set("featured", "true");
+
+  // Climate filters
+  if (filters.hardiness_min) sp.set("hardiness_min", filters.hardiness_min);
+  if (filters.hardiness_max) sp.set("hardiness_max", filters.hardiness_max);
+  if (filters.min_temp_max != null) sp.set("min_temp_max", filters.min_temp_max.toString());
+  if (filters.climate_fit_min != null) sp.set("climate_fit_min", filters.climate_fit_min.toString());
+  if (filters.address_id) sp.set("address_id", filters.address_id);
+
   if (sort !== "relevance") sp.set("sort", sort);
   if (page > 1) sp.set("page", page.toString());
   if (pageSize !== 24) sp.set("page_size", pageSize.toString());

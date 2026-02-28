@@ -3869,6 +3869,7 @@ export type Database = {
           indexed_at: string
           is_in_stock: boolean
           is_on_sale: boolean
+          min_temp_c: number | null
           name_tokens: string
           origin_country: string | null
           plant_id: string
@@ -3902,6 +3903,7 @@ export type Database = {
           indexed_at?: string
           is_in_stock?: boolean
           is_on_sale?: boolean
+          min_temp_c?: number | null
           name_tokens?: string
           origin_country?: string | null
           plant_id: string
@@ -3935,6 +3937,7 @@ export type Database = {
           indexed_at?: string
           is_in_stock?: boolean
           is_on_sale?: boolean
+          min_temp_c?: number | null
           name_tokens?: string
           origin_country?: string | null
           plant_id?: string
@@ -6639,6 +6642,38 @@ export type Database = {
               p_is_featured?: boolean
               p_max_price?: number
               p_min_price?: number
+              p_origin_country?: string[]
+              p_page?: number
+              p_page_size?: number
+              p_plant_type?: string[]
+              p_plant_use?: string[]
+              p_query?: string
+              p_rarity?: string[]
+              p_sort?: string
+              p_sort_dir?: string
+              p_tags?: string[]
+              p_water?: string[]
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_ab_variant?: string
+              p_address_id?: string
+              p_category_id?: string
+              p_climate_fit_min?: number
+              p_climate_zones?: string[]
+              p_difficulty?: string[]
+              p_exposure?: string[]
+              p_hardiness_max?: string
+              p_hardiness_min?: string
+              p_hardiness_zones?: string[]
+              p_humidity?: string[]
+              p_in_stock?: boolean
+              p_is_featured?: boolean
+              p_max_price?: number
+              p_min_price?: number
+              p_min_temp_max?: number
               p_origin_country?: string[]
               p_page?: number
               p_page_size?: number
