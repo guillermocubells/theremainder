@@ -1357,6 +1357,8 @@ export type Database = {
           entity_type: string
           id: string
           reason: string
+          resolution_action: string | null
+          resolution_notes: string | null
           resolved_at: string | null
           resolved_by: string | null
           status: string
@@ -1369,6 +1371,8 @@ export type Database = {
           entity_type: string
           id?: string
           reason: string
+          resolution_action?: string | null
+          resolution_notes?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           status?: string
@@ -1381,6 +1385,8 @@ export type Database = {
           entity_type?: string
           id?: string
           reason?: string
+          resolution_action?: string | null
+          resolution_notes?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           status?: string
@@ -5958,7 +5964,7 @@ export type Database = {
       wilson_score: { Args: { pos: number; total: number }; Returns: number }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "moderator"
       auction_status:
         | "draft"
         | "scheduled"
@@ -6191,7 +6197,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "moderator"],
       auction_status: [
         "draft",
         "scheduled",

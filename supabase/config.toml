@@ -89,3 +89,6 @@ verify_jwt = false
 
 [functions.process-reputation]
 verify_jwt = false
+
+[functions.api-moderation]
+verify_jwt = false
