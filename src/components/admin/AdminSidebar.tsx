@@ -16,6 +16,7 @@ import {
   MessageSquare,
   ScrollText,
   Eye,
+  BarChart3,
 } from "lucide-react";
 
 const navItems = [
@@ -31,6 +32,7 @@ const navItems = [
   { path: "/admin/disputes", icon: MessageSquare, label: "admin.disputes" },
   { path: "/admin/moderation", icon: Eye, label: "admin.moderation" },
   { path: "/admin/audit", icon: ScrollText, label: "admin.audit" },
+  { path: "/admin/validation-analytics", icon: BarChart3, label: "admin.validationAnalytics" },
   { path: "/admin/settings", icon: Settings, label: "admin.settings" },
 ];
 
