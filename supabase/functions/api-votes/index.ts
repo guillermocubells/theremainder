@@ -141,7 +141,7 @@ async function handleCastVote(
   // Refresh aggregates (score on plant_reviews)
   await refreshReviewScore(supabase, review_id, log);
 
-  // Fire-and-forget reputation events
+  // Fire-and-forget reputation events + notifications
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (serviceKey && reviewOwner?.user_id) {
     const repUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/process-reputation`;
@@ -159,6 +159,17 @@ async function handleCastVote(
       user_id: reviewOwner.user_id, action_key: ownerAction,
       source_entity_type: "review", source_entity_id: review_id,
     }) }).catch(() => {});
+
+    // Notify review owner about the vote (only upvotes to avoid spam)
+    if (vote_type === 1 && reviewOwner.user_id !== userId) {
+      const { emitNotification } = await import("../_shared/notify.ts");
+      const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);
+      emitNotification(adminClient, {
+        userId: reviewOwner.user_id,
+        eventType: "review_upvoted",
+        payload: { review_id, voter_id: userId },
+      }).catch(() => {});
+    }
   }
 
   return new Response(JSON.stringify({ data }), {
