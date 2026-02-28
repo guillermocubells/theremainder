@@ -101,3 +101,6 @@ verify_jwt = false
 
 [functions.api-climate]
 verify_jwt = false
+
+[functions.climate-ingest]
+verify_jwt = false
