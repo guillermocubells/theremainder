@@ -23,9 +23,13 @@ const PlantsGrid = () => {
     setVisibleCount(BATCH_SIZE);
   }, []);
 
-  const basePlants = filteredPlants ?? plants;
+  // Hide out-of-stock plants from catalog listing (detail page remains accessible via URL/SEO)
+  const inStockPlants = useMemo(() => plants.filter((p) => (p.quantity ?? 0) > 0), [plants]);
+  const basePlants = filteredPlants
+    ? filteredPlants.filter((p) => (p.quantity ?? 0) > 0)
+    : inStockPlants;
   const displayPlants = selectedCategory
-    ? basePlants.filter((p) => p.plantGroup === getCategoryName(selectedCategory, plants))
+    ? basePlants.filter((p) => p.plantGroup === getCategoryName(selectedCategory, inStockPlants))
     : basePlants;
 
   const visiblePlants = useMemo(
@@ -77,7 +81,7 @@ const PlantsGrid = () => {
           onSelectCategory={handleCategoryChange}
         />
         <PlantSearchEngine
-          plants={plants}
+          plants={inStockPlants}
           onFilteredPlantsChange={handleFilteredPlantsChange}
           onSearchStart={() => setIsSearching(true)}
         />
