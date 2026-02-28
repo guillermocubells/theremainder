@@ -14,6 +14,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { createLogger, withCorrelationId } from "../_shared/logger.ts";
 import { AppError, handleError, errorResponse } from "../_shared/errors.ts";
 import { validate, schemas, z } from "../_shared/validation.ts";
+import { computeFitScore } from "../_shared/fit-score-engine.ts";
+import type { ClimateZoneData, ClimateThresholds, CareProfile, WateringThreshold, AddressProfile } from "../_shared/fit-score-engine.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -25,8 +27,9 @@ const corsHeaders: Record<string, string> = {
 
 const fitQuerySchema = z.object({
   speciesId: schemas.uuid,
-  lat: z.coerce.number().min(-90).max(90),
-  lon: z.coerce.number().min(-180).max(180),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lon: z.coerce.number().min(-180).max(180).optional(),
+  addressId: schemas.uuid.optional(),
 });
 
 const careProfileBodySchema = z.object({
@@ -139,79 +142,128 @@ Deno.serve(async (req: Request) => {
     if (method === "GET" && segments[0] === "fit") {
       const v = validate(fitQuerySchema, {
         speciesId: params.get("speciesId"),
-        lat: params.get("lat"),
-        lon: params.get("lon"),
+        lat: params.get("lat") ?? undefined,
+        lon: params.get("lon") ?? undefined,
+        addressId: params.get("addressId") ?? undefined,
       }, h);
       if (v.error) return v.error;
-      const { speciesId, lat, lon } = v.data;
+      const { speciesId, lat, lon, addressId } = v.data;
 
-      log.info("Fit score request", { speciesId, lat, lon });
+      log.info("Fit score request", { speciesId, lat, lon, addressId });
 
-      // 1. Find matching region override by lat/lon
-      const { data: regions } = await serviceClient
-        .from("region_overrides")
-        .select("id, climate_zone_id, country_code, local_label")
-        .lte("lat_min", lat)
-        .gte("lat_max", lat)
-        .lte("lon_min", lon)
-        .gte("lon_max", lon)
-        .eq("is_active", true)
-        .limit(1);
-
-      const region = regions?.[0] ?? null;
-
-      // 2. Check fit_score_cache
-      let cached = null;
-      if (region?.climate_zone_id) {
+      // 1. Load address profile if provided
+      let addressProfile: AddressProfile | null = null;
+      if (addressId) {
         const { data } = await serviceClient
-          .from("fit_score_cache")
-          .select("score, factors, updated_at")
+          .from("addresses")
+          .select("climate_zone, sun_exposure, soil_type, drainage, humidity_level, min_winter_temp_c, avg_annual_rainfall_mm, wind_exposure, altitude_m, frost_frequency, soil_ph")
+          .eq("id", addressId)
+          .maybeSingle();
+        addressProfile = data as AddressProfile | null;
+      }
+
+      // 2. Find matching region override by lat/lon
+      let region = null;
+      if (lat !== undefined && lon !== undefined) {
+        const { data: regions } = await serviceClient
+          .from("region_overrides")
+          .select("id, climate_zone_id, country_code, local_label")
+          .lte("lat_min", lat)
+          .gte("lat_max", lat)
+          .lte("lon_min", lon)
+          .gte("lon_max", lon)
+          .eq("is_active", true)
+          .limit(1);
+        region = regions?.[0] ?? null;
+      }
+
+      // 3. Parallel fetch: thresholds, care profile, watering, zone info, cache, aggregate
+      const climateZoneId = region?.climate_zone_id ?? null;
+
+      const [thresholdsRes, careRes, wateringRes, zoneRes, cacheRes, aggRes] = await Promise.all([
+        serviceClient
+          .from("species_climate_thresholds")
+          .select("*")
           .eq("plant_id", speciesId)
-          .eq("climate_zone_id", region.climate_zone_id)
-          .eq("stale", false)
-          .maybeSingle();
-        cached = data;
-      }
+          .maybeSingle(),
+        serviceClient
+          .from("species_care_profiles")
+          .select("ideal_temp_min_c, ideal_temp_max_c, ideal_humidity_pct_min, ideal_humidity_pct_max, preferred_soil_type, preferred_soil_ph, light_requirement")
+          .eq("plant_id", speciesId)
+          .eq("moderation_status", "approved")
+          .maybeSingle(),
+        serviceClient
+          .from("watering_stress_thresholds")
+          .select("climate_zone, season, drought_tolerance, overwater_sensitivity")
+          .eq("plant_id", speciesId),
+        climateZoneId
+          ? serviceClient
+              .from("climate_zones")
+              .select("system, code, label, min_temp_c, max_temp_c")
+              .eq("id", climateZoneId)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        climateZoneId
+          ? serviceClient
+              .from("fit_score_cache")
+              .select("score, factors, updated_at")
+              .eq("plant_id", speciesId)
+              .eq("climate_zone_id", climateZoneId)
+              .eq("stale", false)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        climateZoneId
+          ? serviceClient
+              .from("fit_score_agg")
+              .select("avg_score, min_score, max_score, sample_count")
+              .eq("species_id", speciesId)
+              .eq("region_id", climateZoneId)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
 
-      // 3. Check aggregated scores
-      let aggregate = null;
-      if (region?.climate_zone_id) {
-        const { data } = await serviceClient
-          .from("fit_score_agg")
-          .select("avg_score, min_score, max_score, sample_count")
-          .eq("species_id", speciesId)
-          .eq("region_id", region.climate_zone_id)
-          .maybeSingle();
-        aggregate = data;
-      }
+      const thresholds = thresholdsRes.data as ClimateThresholds | null;
+      const careProfile = careRes.data as CareProfile | null;
+      const wateringThresholds = (wateringRes.data ?? []) as WateringThreshold[];
+      const zoneInfo = zoneRes.data as ClimateZoneData | null;
+      const cached = cacheRes.data;
+      const aggregate = aggRes.data;
 
-      // 4. Get climate thresholds
-      const { data: thresholds } = await serviceClient
-        .from("species_climate_thresholds")
-        .select("*")
-        .eq("plant_id", speciesId)
-        .maybeSingle();
+      // 4. Compute live fit score
+      const computed = computeFitScore(
+        zoneInfo,
+        thresholds,
+        careProfile,
+        wateringThresholds,
+        addressProfile,
+      );
 
-      // 5. Get climate zone info
-      let zoneInfo = null;
-      if (region?.climate_zone_id) {
-        const { data } = await serviceClient
-          .from("climate_zones")
-          .select("system, code, label, min_temp_c, max_temp_c")
-          .eq("id", region.climate_zone_id)
-          .maybeSingle();
-        zoneInfo = data;
+      // 5. Cache the result if we have a zone
+      if (climateZoneId && addressId) {
+        await serviceClient
+          .from("fit_score_cache")
+          .upsert({
+            plant_id: speciesId,
+            address_id: addressId,
+            climate_zone_id: climateZoneId,
+            region_override_id: region?.id ?? null,
+            score: computed.score,
+            factors: { factors: computed.factors, badges: computed.badges, warnings: computed.warnings },
+            stale: false,
+          }, { onConflict: "plant_id,address_id" });
       }
 
       return json({
         species_id: speciesId,
-        location: { lat, lon },
+        location: lat !== undefined ? { lat, lon } : null,
+        address_id: addressId ?? null,
         region: region ? {
           country_code: region.country_code,
           local_label: region.local_label,
           climate_zone: zoneInfo,
         } : null,
-        fit_score: cached ? {
+        computed,
+        cached: cached ? {
           score: cached.score,
           factors: cached.factors,
           updated_at: cached.updated_at,
