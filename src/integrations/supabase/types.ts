@@ -728,6 +728,42 @@ export type Database = {
         }
         Relationships: []
       }
+      badge_thresholds: {
+        Row: {
+          badge_key: string
+          color: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          icon: string | null
+          id: string
+          label: string
+          min_score: number
+        }
+        Insert: {
+          badge_key: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          label: string
+          min_score: number
+        }
+        Update: {
+          badge_key?: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          label?: string
+          min_score?: number
+        }
+        Relationships: []
+      }
       bid_increment_rules: {
         Row: {
           auction_id: string
@@ -4187,6 +4223,36 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      reputation_rules: {
+        Row: {
+          action_key: string
+          created_at: string
+          delta: number
+          description: string | null
+          id: string
+          is_active: boolean
+          label: string
+        }
+        Insert: {
+          action_key: string
+          created_at?: string
+          delta: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+        }
+        Update: {
+          action_key?: string
+          created_at?: string
+          delta?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
         }
         Relationships: []
       }
