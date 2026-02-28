@@ -3496,6 +3496,45 @@ export type Database = {
           },
         ]
       }
+      plant_review_stats: {
+        Row: {
+          activity_decay: number
+          avg_rating: number
+          confidence_score: number
+          last_activity_at: string | null
+          net_votes: number
+          plant_id: string
+          total_downvotes: number
+          total_reviews: number
+          total_upvotes: number
+          updated_at: string
+        }
+        Insert: {
+          activity_decay?: number
+          avg_rating?: number
+          confidence_score?: number
+          last_activity_at?: string | null
+          net_votes?: number
+          plant_id: string
+          total_downvotes?: number
+          total_reviews?: number
+          total_upvotes?: number
+          updated_at?: string
+        }
+        Update: {
+          activity_decay?: number
+          avg_rating?: number
+          confidence_score?: number
+          last_activity_at?: string | null
+          net_votes?: number
+          plant_id?: string
+          total_downvotes?: number
+          total_reviews?: number
+          total_upvotes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       plant_reviews: {
         Row: {
           author_name: string
@@ -5536,6 +5575,10 @@ export type Database = {
             Returns: string
           }
       rarity_to_ordinal: { Args: { p_rarity: string }; Returns: number }
+      refresh_plant_review_stats: {
+        Args: { p_plant_id: string }
+        Returns: undefined
+      }
       refresh_species_grow_stats: { Args: never; Returns: undefined }
       reindex_plant: { Args: { p_plant_id: string }; Returns: boolean }
       release_expired_reservations: { Args: never; Returns: number }
@@ -5642,6 +5685,7 @@ export type Database = {
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       unaccent: { Args: { "": string }; Returns: string }
+      wilson_score: { Args: { pos: number; total: number }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"
