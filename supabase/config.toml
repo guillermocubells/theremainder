@@ -98,3 +98,6 @@ verify_jwt = false
 
 [functions.nightly-reputation-maintenance]
 verify_jwt = false
+
+[functions.api-climate]
+verify_jwt = false

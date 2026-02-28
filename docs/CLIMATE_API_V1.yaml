@@ -1,0 +1,403 @@
+openapi: "3.0.3"
+info:
+  title: Climate Fit & Care API
+  version: "1.0.0"
+  description: |
+    Endpoints for species climate fit scoring, care profiles, and hazard warnings.
+    Base path: /api-climate
+
+servers:
+  - url: "{supabaseUrl}/functions/v1/api-climate"
+    variables:
+      supabaseUrl:
+        default: "https://qsjnjitjbegtrxgwqygg.supabase.co"
+
+paths:
+  /fit:
+    get:
+      summary: Get fit score for a species at a location
+      operationId: getFitScore
+      parameters:
+        - name: speciesId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Plant UUID
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+            minimum: -90
+            maximum: 90
+        - name: lon
+          in: query
+          required: true
+          schema:
+            type: number
+            minimum: -180
+            maximum: 180
+      responses:
+        "200":
+          description: Fit score result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FitScoreResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /care/{speciesId}:
+    get:
+      summary: Get care profile and approved community notes
+      operationId: getCareProfile
+      parameters:
+        - name: speciesId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Care profile with notes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareProfileResponse"
+
+  /warnings/{speciesId}:
+    get:
+      summary: Get hazard warnings for a species
+      operationId: getWarnings
+      parameters:
+        - name: speciesId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: lat
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: lon
+          in: query
+          required: false
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Warnings response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WarningsResponse"
+
+  /care-profiles:
+    post:
+      summary: Create a care profile (admin only)
+      operationId: createCareProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareProfileInput"
+      responses:
+        "201":
+          description: Created
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Duplicate profile for this plant
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /care-profiles/{id}:
+    put:
+      summary: Update a care profile (admin only)
+      operationId: updateCareProfile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareProfileUpdate"
+      responses:
+        "200":
+          description: Updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Profile not found
+
+    delete:
+      summary: Delete a care profile (admin only)
+      operationId: deleteCareProfile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  responses:
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              issues:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    path:
+                      type: string
+                    message:
+                      type: string
+    Unauthorized:
+      description: Missing or invalid auth token
+    Forbidden:
+      description: User is not an admin
+
+  schemas:
+    FitScoreResponse:
+      type: object
+      properties:
+        species_id:
+          type: string
+          format: uuid
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+            lon:
+              type: number
+        region:
+          type: object
+          nullable: true
+          properties:
+            country_code:
+              type: string
+            local_label:
+              type: string
+            climate_zone:
+              $ref: "#/components/schemas/ClimateZoneInfo"
+        fit_score:
+          type: object
+          nullable: true
+          properties:
+            score:
+              type: number
+            factors:
+              type: object
+            updated_at:
+              type: string
+              format: date-time
+        aggregate:
+          type: object
+          nullable: true
+          properties:
+            avg_score:
+              type: number
+            min_score:
+              type: number
+            max_score:
+              type: number
+            sample_count:
+              type: integer
+        climate_thresholds:
+          $ref: "#/components/schemas/ClimateThresholds"
+
+    ClimateZoneInfo:
+      type: object
+      properties:
+        system:
+          type: string
+        code:
+          type: string
+        label:
+          type: string
+        min_temp_c:
+          type: number
+          nullable: true
+        max_temp_c:
+          type: number
+          nullable: true
+
+    ClimateThresholds:
+      type: object
+      nullable: true
+      properties:
+        min_temp_c:
+          type: number
+        frost_warning_temp_c:
+          type: number
+        max_temp_c:
+          type: number
+        heat_warning_temp_c:
+          type: number
+        hardiness_zone_min:
+          type: string
+        hardiness_zone_max:
+          type: string
+
+    CareProfileResponse:
+      type: object
+      properties:
+        profile:
+          type: object
+          nullable: true
+        notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/CareNote"
+
+    CareNote:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        locale:
+          type: string
+        category:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        region_verified:
+          type: boolean
+        country_code:
+          type: string
+        climate_zone_code:
+          type: string
+        season:
+          type: string
+        source_url:
+          type: string
+        source_type:
+          type: string
+        upvote_count:
+          type: integer
+        downvote_count:
+          type: integer
+
+    WarningsResponse:
+      type: object
+      properties:
+        species_id:
+          type: string
+          format: uuid
+        toxicity:
+          type: object
+          nullable: true
+        climate_thresholds:
+          $ref: "#/components/schemas/ClimateThresholds"
+        watering_thresholds:
+          type: array
+          items:
+            type: object
+        region:
+          type: object
+          nullable: true
+
+    CareProfileInput:
+      type: object
+      required:
+        - plant_id
+      properties:
+        plant_id:
+          type: string
+          format: uuid
+        watering_frequency:
+          type: string
+        fertilizing_frequency:
+          type: string
+        pruning_season:
+          type: string
+        ideal_temp_min_c:
+          type: number
+        ideal_temp_max_c:
+          type: number
+        preferred_soil_type:
+          type: string
+        preferred_soil_ph:
+          type: string
+          enum: [acid, neutral, alkaline, any]
+        light_requirement:
+          type: string
+          enum: [full_sun, partial_shade, shade, indirect, any]
+        propagation_methods:
+          type: array
+          items:
+            type: string
+        common_pests:
+          type: array
+          items:
+            type: string
+        common_diseases:
+          type: array
+          items:
+            type: string
+
+    CareProfileUpdate:
+      description: Same as CareProfileInput but all fields optional, no plant_id
+      type: object
+      properties:
+        watering_frequency:
+          type: string
+        fertilizing_frequency:
+          type: string
+        ideal_temp_min_c:
+          type: number
+        ideal_temp_max_c:
+          type: number
+        preferred_soil_ph:
+          type: string
+          enum: [acid, neutral, alkaline, any]
+        light_requirement:
+          type: string
+          enum: [full_sun, partial_shade, shade, indirect, any]
