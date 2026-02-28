@@ -702,7 +702,7 @@ export function PlantFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <ScrollArea className="flex-1 min-h-0" style={{ maxHeight: "calc(90vh - 220px)" }}>
+          <div className="flex-1 overflow-y-auto min-h-0 pr-2" style={{ maxHeight: "calc(90vh - 220px)" }}>
             <Tabs defaultValue="general" className="w-full px-1">
               <TabsList className="grid grid-cols-6 w-full mb-4">
                 <TabsTrigger value="general" className="relative">
@@ -1293,7 +1293,7 @@ export function PlantFormDialog({
                 </div>
               </TabsContent>
             </Tabs>
-          </ScrollArea>
+          </div>
 
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
             <Button
