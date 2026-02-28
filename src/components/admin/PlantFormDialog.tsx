@@ -529,9 +529,9 @@ export function PlantFormDialog({
           if (photoUrls.length >= 5) break;
           if (seenIds.has(photo.id)) continue;
           seenIds.add(photo.id);
-          // Replace "square" with "medium" for better quality
-          const mediumUrl = (photo.url || "").replace("/square.", "/medium.");
-          if (mediumUrl) photoUrls.push(mediumUrl);
+          // Replace "square" with "original" for highest quality
+          const hiResUrl = (photo.url || "").replace("/square.", "/original.");
+          if (hiResUrl) photoUrls.push(hiResUrl);
         }
       }
 
