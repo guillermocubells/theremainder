@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useClimateFit, type ClimateFitData, type HardinessBadge, type ClimateFitWarning } from "@/hooks/useClimateFit";
 import { useLocationPreference } from "@/hooks/useLocationPreference";
+import LocationEmptyState from "@/components/location/LocationEmptyState";
 import LocationSelector from "@/components/search/LocationSelector";
 
 // ── Score ring ───────────────────────────────────────────────────────
@@ -191,25 +192,7 @@ function WarningItem({ warning }: { warning: ClimateFitWarning }) {
 }
 
 // ── No-location prompt ───────────────────────────────────────────────
-
-function NoLocationPrompt() {
-  return (
-    <Card>
-      <CardContent className="py-6 text-center space-y-3">
-        <MapPin className="h-8 w-8 text-muted-foreground mx-auto" />
-        <div>
-          <p className="text-sm font-medium text-foreground">
-            Indica tu ubicación para ver la adaptación climática
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Sabrás si esta especie se adapta a tu zona
-          </p>
-        </div>
-        <LocationSelector />
-      </CardContent>
-    </Card>
-  );
-}
+// Replaced by LocationEmptyState
 
 // ── Loading skeleton ─────────────────────────────────────────────────
 
@@ -248,7 +231,7 @@ const ClimateFitWidget = ({ plantId, className }: ClimateFitWidgetProps) => {
   const { location } = useLocationPreference();
   const { data: fit, isLoading } = useClimateFit(plantId);
 
-  if (!location) return <NoLocationPrompt />;
+  if (!location) return <LocationEmptyState variant="card" contextLabel={undefined} className={className} />;
   if (isLoading) return <ClimateFitSkeleton />;
   if (!fit) return null;
 
