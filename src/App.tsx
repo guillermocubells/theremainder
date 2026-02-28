@@ -40,6 +40,7 @@ import AdminAuctions from "./pages/admin/AdminAuctions";
 import AdminDisputes from "./pages/admin/AdminDisputes";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminModeration from "./pages/admin/AdminModeration";
+import AdminValidationAnalytics from "./pages/admin/AdminValidationAnalytics";
 import AuctionPreview from "./pages/AuctionPreview";
 import AuctionDetail from "./pages/AuctionDetail";
 
@@ -171,6 +172,7 @@ const App = () => (
                 <Route path="disputes" element={<AdminDisputes />} />
                 <Route path="moderation" element={<AdminModeration />} />
                 <Route path="audit" element={<AdminAuditLog />} />
+                <Route path="validation-analytics" element={<AdminValidationAnalytics />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
               
