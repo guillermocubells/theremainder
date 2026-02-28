@@ -4435,9 +4435,11 @@ export type Database = {
         Row: {
           altitude_max_m: number | null
           altitude_min_m: number | null
+          change_reason: string | null
           climate_zone_id: string
           country_code: string
           created_at: string
+          created_by: string | null
           id: string
           is_active: boolean
           lat_max: number | null
@@ -4445,17 +4447,24 @@ export type Database = {
           local_label: string | null
           lon_max: number | null
           lon_min: number | null
+          moderated_at: string | null
+          moderated_by: string | null
+          moderation_status: string
           notes: string | null
           postal_prefix: string | null
+          previous_version_id: string | null
           province: string | null
           updated_at: string
+          version: number
         }
         Insert: {
           altitude_max_m?: number | null
           altitude_min_m?: number | null
+          change_reason?: string | null
           climate_zone_id: string
           country_code: string
           created_at?: string
+          created_by?: string | null
           id?: string
           is_active?: boolean
           lat_max?: number | null
@@ -4463,17 +4472,24 @@ export type Database = {
           local_label?: string | null
           lon_max?: number | null
           lon_min?: number | null
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_status?: string
           notes?: string | null
           postal_prefix?: string | null
+          previous_version_id?: string | null
           province?: string | null
           updated_at?: string
+          version?: number
         }
         Update: {
           altitude_max_m?: number | null
           altitude_min_m?: number | null
+          change_reason?: string | null
           climate_zone_id?: string
           country_code?: string
           created_at?: string
+          created_by?: string | null
           id?: string
           is_active?: boolean
           lat_max?: number | null
@@ -4481,10 +4497,15 @@ export type Database = {
           local_label?: string | null
           lon_max?: number | null
           lon_min?: number | null
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_status?: string
           notes?: string | null
           postal_prefix?: string | null
+          previous_version_id?: string | null
           province?: string | null
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -4492,6 +4513,13 @@ export type Database = {
             columns: ["climate_zone_id"]
             isOneToOne: false
             referencedRelation: "climate_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "region_overrides_previous_version_id_fkey"
+            columns: ["previous_version_id"]
+            isOneToOne: false
+            referencedRelation: "region_overrides"
             referencedColumns: ["id"]
           },
         ]
@@ -5300,6 +5328,7 @@ export type Database = {
       }
       species_care_profiles: {
         Row: {
+          change_reason: string | null
           common_diseases: string[] | null
           common_pests: string[] | null
           companion_plants: string[] | null
@@ -5319,16 +5348,20 @@ export type Database = {
           plant_id: string
           preferred_soil_ph: string | null
           preferred_soil_type: string | null
+          previous_version_id: string | null
           propagation_methods: string[] | null
           pruning_notes: string | null
           pruning_season: string | null
+          rejection_reason: string | null
           repotting_frequency: string | null
           repotting_notes: string | null
           updated_at: string
+          version: number
           watering_frequency: string | null
           watering_notes: string | null
         }
         Insert: {
+          change_reason?: string | null
           common_diseases?: string[] | null
           common_pests?: string[] | null
           companion_plants?: string[] | null
@@ -5348,16 +5381,20 @@ export type Database = {
           plant_id: string
           preferred_soil_ph?: string | null
           preferred_soil_type?: string | null
+          previous_version_id?: string | null
           propagation_methods?: string[] | null
           pruning_notes?: string | null
           pruning_season?: string | null
+          rejection_reason?: string | null
           repotting_frequency?: string | null
           repotting_notes?: string | null
           updated_at?: string
+          version?: number
           watering_frequency?: string | null
           watering_notes?: string | null
         }
         Update: {
+          change_reason?: string | null
           common_diseases?: string[] | null
           common_pests?: string[] | null
           companion_plants?: string[] | null
@@ -5377,12 +5414,15 @@ export type Database = {
           plant_id?: string
           preferred_soil_ph?: string | null
           preferred_soil_type?: string | null
+          previous_version_id?: string | null
           propagation_methods?: string[] | null
           pruning_notes?: string | null
           pruning_season?: string | null
+          rejection_reason?: string | null
           repotting_frequency?: string | null
           repotting_notes?: string | null
           updated_at?: string
+          version?: number
           watering_frequency?: string | null
           watering_notes?: string | null
         }
@@ -5392,6 +5432,13 @@ export type Database = {
             columns: ["plant_id"]
             isOneToOne: true
             referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "species_care_profiles_previous_version_id_fkey"
+            columns: ["previous_version_id"]
+            isOneToOne: false
+            referencedRelation: "species_care_profiles"
             referencedColumns: ["id"]
           },
         ]
