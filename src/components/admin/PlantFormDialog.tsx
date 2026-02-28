@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PLANT_TYPE_TO_CATEGORY_SLUG } from "@/utils/taxonomyMapping";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -30,6 +31,7 @@ import { z } from "zod";
 interface Category {
   id: string;
   name: string;
+  slug: string;
 }
 
 interface PlantFormDialogProps {
@@ -326,7 +328,7 @@ export function PlantFormDialog({
   const fetchCategories = async () => {
     const { data } = await supabase
       .from("categories")
-      .select("id, name")
+      .select("id, name, slug")
       .order("display_order", { ascending: true });
     setCategories(data || []);
   };
@@ -432,7 +434,7 @@ export function PlantFormDialog({
       const aiData: Record<string, any> = result.data || {};
 
       // Fields that should NOT be touched by AI
-      const skipFields = new Set(["price", "sale_price", "stock", "germination_date", "is_active", "is_featured", "images", "product_images", "primary_image", "tags"]);
+      const skipFields = new Set(["price", "sale_price", "stock", "germination_date", "is_active", "is_featured", "images", "product_images", "primary_image"]);
 
       let filledCount = 0;
 
@@ -457,6 +459,22 @@ export function PlantFormDialog({
           (updated as any)[field] = value;
           filledCount++;
         }
+
+        // Auto-map plant_type → category_id if not manually set
+        if (updated.plant_type && (!aiPreserveEdited || !touchedFields["category_id"])) {
+          const slug = PLANT_TYPE_TO_CATEGORY_SLUG[updated.plant_type];
+          if (slug) {
+            const match = categories.find((c) => c.slug === slug);
+            if (match) {
+              const prevCatHasValue = prev.category_id !== "" && prev.category_id != null;
+              if (!(aiPreserveEdited && prevCatHasValue && plant)) {
+                updated.category_id = match.id;
+                filledCount++;
+              }
+            }
+          }
+        }
+
         return updated;
       });
 
