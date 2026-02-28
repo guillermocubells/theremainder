@@ -605,9 +605,9 @@ export function PlantFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 pr-6">
             <DialogTitle>
               {plant ? "Editar Planta" : "Nueva Planta"}
             </DialogTitle>
@@ -654,8 +654,8 @@ export function PlantFormDialog({
           )}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <ScrollArea className="h-[calc(90vh-150px)]">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <ScrollArea className="flex-1">
             <Tabs defaultValue="general" className="w-full px-1">
               <TabsList className="grid grid-cols-6 w-full mb-4">
                 <TabsTrigger value="general" className="relative">
