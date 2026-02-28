@@ -4226,6 +4226,66 @@ export type Database = {
         }
         Relationships: []
       }
+      reputation_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json | null
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json | null
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reputation_ledger: {
+        Row: {
+          action_key: string
+          created_at: string
+          delta: number
+          id: string
+          metadata: Json | null
+          source_entity_id: string | null
+          source_entity_type: string | null
+          user_id: string
+        }
+        Insert: {
+          action_key: string
+          created_at?: string
+          delta: number
+          id?: string
+          metadata?: Json | null
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          user_id: string
+        }
+        Update: {
+          action_key?: string
+          created_at?: string
+          delta?: number
+          id?: string
+          metadata?: Json | null
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       reputation_rules: {
         Row: {
           action_key: string
@@ -5158,6 +5218,54 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          awarded_at: string
+          badge_key: string
+          id: string
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          badge_key: string
+          id?: string
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string
+          badge_key?: string
+          id?: string
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_reputation: {
+        Row: {
+          last_computed_at: string
+          level: string
+          total_score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_computed_at?: string
+          level?: string
+          total_score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_computed_at?: string
+          level?: string
+          total_score?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

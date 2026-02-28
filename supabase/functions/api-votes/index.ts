@@ -139,8 +139,27 @@ async function handleCastVote(
   log.info("Vote cast", { review_id, vote_type, userId });
 
   // Refresh aggregates (score on plant_reviews)
-  // Use RPC or direct update — we recalculate from votes
   await refreshReviewScore(supabase, review_id, log);
+
+  // Fire-and-forget reputation events
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (serviceKey && reviewOwner?.user_id) {
+    const repUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/process-reputation`;
+    const repHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${serviceKey}` };
+
+    // Voter gets +1 for participating
+    fetch(repUrl, { method: "POST", headers: repHeaders, body: JSON.stringify({
+      user_id: userId, action_key: "vote_given",
+      source_entity_type: "review", source_entity_id: review_id,
+    }) }).catch(() => {});
+
+    // Review owner gets upvote_received or downvote_received
+    const ownerAction = vote_type === 1 ? "upvote_received" : "downvote_received";
+    fetch(repUrl, { method: "POST", headers: repHeaders, body: JSON.stringify({
+      user_id: reviewOwner.user_id, action_key: ownerAction,
+      source_entity_type: "review", source_entity_id: review_id,
+    }) }).catch(() => {});
+  }
 
   return new Response(JSON.stringify({ data }), {
     status: 200,
