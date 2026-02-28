@@ -1695,6 +1695,74 @@ export type Database = {
         }
         Relationships: []
       }
+      fit_score_cache: {
+        Row: {
+          address_id: string | null
+          climate_zone_id: string | null
+          created_at: string
+          factors: Json | null
+          id: string
+          plant_id: string
+          region_override_id: string | null
+          score: number
+          stale: boolean
+          updated_at: string
+        }
+        Insert: {
+          address_id?: string | null
+          climate_zone_id?: string | null
+          created_at?: string
+          factors?: Json | null
+          id?: string
+          plant_id: string
+          region_override_id?: string | null
+          score: number
+          stale?: boolean
+          updated_at?: string
+        }
+        Update: {
+          address_id?: string | null
+          climate_zone_id?: string | null
+          created_at?: string
+          factors?: Json | null
+          id?: string
+          plant_id?: string
+          region_override_id?: string | null
+          score?: number
+          stale?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fit_score_cache_address_id_fkey"
+            columns: ["address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fit_score_cache_climate_zone_id_fkey"
+            columns: ["climate_zone_id"]
+            isOneToOne: false
+            referencedRelation: "climate_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fit_score_cache_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fit_score_cache_region_override_id_fkey"
+            columns: ["region_override_id"]
+            isOneToOne: false
+            referencedRelation: "region_overrides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fraud_flags: {
         Row: {
           created_at: string
@@ -6078,6 +6146,33 @@ export type Database = {
       }
     }
     Views: {
+      fit_score_agg: {
+        Row: {
+          avg_score: number | null
+          max_score: number | null
+          min_score: number | null
+          region_id: string | null
+          sample_count: number | null
+          species_id: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fit_score_cache_climate_zone_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "climate_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fit_score_cache_plant_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       owned_plants_public: {
         Row: {
           common_name: string | null
@@ -6403,6 +6498,7 @@ export type Database = {
           }
       rarity_to_ordinal: { Args: { p_rarity: string }; Returns: number }
       recompute_confidence: { Args: never; Returns: number }
+      refresh_fit_score_agg: { Args: never; Returns: undefined }
       refresh_plant_review_stats: {
         Args: { p_plant_id: string }
         Returns: undefined
