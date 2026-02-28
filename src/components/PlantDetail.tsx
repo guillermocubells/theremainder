@@ -37,6 +37,7 @@ import StockNotificationButton from "./StockNotificationButton";
 import SocialShareButtons from "./SocialShareButtons";
 import TrustBadges from "./TrustBadges";
 import ScarcityIndicator from "./ScarcityIndicator";
+import ClimateFitWidget from "./plant/ClimateFitWidget";
 
 const PlantDetail = () => {
   const { plantId } = useParams();
@@ -510,6 +511,11 @@ const PlantDetail = () => {
                 {/* Trust badges */}
                 <TrustBadges />
               </div>
+            </div>
+
+            {/* ====== CLIMATE FIT ====== */}
+            <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '80ms' }}>
+              <ClimateFitWidget plantId={plant.id} />
             </div>
 
             {/* ====== DETAILS SECTION ====== */}
