@@ -863,6 +863,92 @@ export type Database = {
           },
         ]
       }
+      care_notes: {
+        Row: {
+          author_id: string
+          body: string
+          care_profile_id: string
+          category: string
+          climate_zone_code: string | null
+          country_code: string | null
+          created_at: string
+          downvote_count: number
+          hardiness_zone: string | null
+          id: string
+          locale: string
+          moderated_at: string | null
+          moderated_by: string | null
+          moderation_status: string
+          region_verified: boolean
+          rejection_reason: string | null
+          season: string | null
+          source_title: string | null
+          source_type: string | null
+          source_url: string | null
+          title: string | null
+          updated_at: string
+          upvote_count: number
+        }
+        Insert: {
+          author_id: string
+          body: string
+          care_profile_id: string
+          category: string
+          climate_zone_code?: string | null
+          country_code?: string | null
+          created_at?: string
+          downvote_count?: number
+          hardiness_zone?: string | null
+          id?: string
+          locale?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_status?: string
+          region_verified?: boolean
+          rejection_reason?: string | null
+          season?: string | null
+          source_title?: string | null
+          source_type?: string | null
+          source_url?: string | null
+          title?: string | null
+          updated_at?: string
+          upvote_count?: number
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          care_profile_id?: string
+          category?: string
+          climate_zone_code?: string | null
+          country_code?: string | null
+          created_at?: string
+          downvote_count?: number
+          hardiness_zone?: string | null
+          id?: string
+          locale?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_status?: string
+          region_verified?: boolean
+          rejection_reason?: string | null
+          season?: string | null
+          source_title?: string | null
+          source_type?: string | null
+          source_url?: string | null
+          title?: string | null
+          updated_at?: string
+          upvote_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_notes_care_profile_id_fkey"
+            columns: ["care_profile_id"]
+            isOneToOne: false
+            referencedRelation: "species_care_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cart_items: {
         Row: {
           container_size: string | null
@@ -5143,6 +5229,104 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      species_care_profiles: {
+        Row: {
+          common_diseases: string[] | null
+          common_pests: string[] | null
+          companion_plants: string[] | null
+          created_at: string
+          dormancy_period: string | null
+          fertilizing_frequency: string | null
+          fertilizing_notes: string | null
+          id: string
+          ideal_humidity_pct_max: number | null
+          ideal_humidity_pct_min: number | null
+          ideal_temp_max_c: number | null
+          ideal_temp_min_c: number | null
+          light_requirement: string | null
+          moderated_at: string | null
+          moderated_by: string | null
+          moderation_status: string
+          plant_id: string
+          preferred_soil_ph: string | null
+          preferred_soil_type: string | null
+          propagation_methods: string[] | null
+          pruning_notes: string | null
+          pruning_season: string | null
+          repotting_frequency: string | null
+          repotting_notes: string | null
+          updated_at: string
+          watering_frequency: string | null
+          watering_notes: string | null
+        }
+        Insert: {
+          common_diseases?: string[] | null
+          common_pests?: string[] | null
+          companion_plants?: string[] | null
+          created_at?: string
+          dormancy_period?: string | null
+          fertilizing_frequency?: string | null
+          fertilizing_notes?: string | null
+          id?: string
+          ideal_humidity_pct_max?: number | null
+          ideal_humidity_pct_min?: number | null
+          ideal_temp_max_c?: number | null
+          ideal_temp_min_c?: number | null
+          light_requirement?: string | null
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_status?: string
+          plant_id: string
+          preferred_soil_ph?: string | null
+          preferred_soil_type?: string | null
+          propagation_methods?: string[] | null
+          pruning_notes?: string | null
+          pruning_season?: string | null
+          repotting_frequency?: string | null
+          repotting_notes?: string | null
+          updated_at?: string
+          watering_frequency?: string | null
+          watering_notes?: string | null
+        }
+        Update: {
+          common_diseases?: string[] | null
+          common_pests?: string[] | null
+          companion_plants?: string[] | null
+          created_at?: string
+          dormancy_period?: string | null
+          fertilizing_frequency?: string | null
+          fertilizing_notes?: string | null
+          id?: string
+          ideal_humidity_pct_max?: number | null
+          ideal_humidity_pct_min?: number | null
+          ideal_temp_max_c?: number | null
+          ideal_temp_min_c?: number | null
+          light_requirement?: string | null
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_status?: string
+          plant_id?: string
+          preferred_soil_ph?: string | null
+          preferred_soil_type?: string | null
+          propagation_methods?: string[] | null
+          pruning_notes?: string | null
+          pruning_season?: string | null
+          repotting_frequency?: string | null
+          repotting_notes?: string | null
+          updated_at?: string
+          watering_frequency?: string | null
+          watering_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "species_care_profiles_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: true
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       species_climate_thresholds: {
         Row: {
