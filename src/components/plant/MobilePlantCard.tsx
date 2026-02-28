@@ -92,7 +92,13 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
       className="flex"
       onClick={handleClick}
     >
-      <Card className="w-full h-full flex flex-col bg-card/80 backdrop-blur-sm border-border relative overflow-hidden">
+      <Card
+        className="w-full h-full flex flex-col bg-card/90 backdrop-blur-sm border border-border/40 relative overflow-hidden active:translate-y-[-2px]"
+        style={{
+          transition: 'transform 220ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 220ms cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: '0 1px 3px 0 hsl(var(--foreground) / 0.04), 0 1px 2px -1px hsl(var(--foreground) / 0.04)',
+        }}
+      >
         {/* Image with swipe carousel */}
         <div 
           className="relative aspect-[4/3] overflow-hidden touch-pan-y"
@@ -104,16 +110,22 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
             <OptimizedImage 
               src={currentImage} 
               alt={`${plant.name} - ${currentImageIndex + 1}/${allImages.length}`}
-              className="w-full h-full object-cover transition-opacity duration-200"
+              className="w-full h-full object-cover transition-transform duration-300 ease-out"
               draggable={false}
               responsiveHint={640}
               sizes="(max-width: 640px) 50vw, 33vw"
             />
           )}
+
+          {/* Subtle depth gradient */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-16 pointer-events-none"
+            style={{ background: 'linear-gradient(to top, hsl(var(--card) / 0.40), transparent)' }}
+          />
           
           {/* Name badge */}
           <div className="absolute top-2 left-2">
-            <span className="bg-secondary/95 text-secondary-foreground text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm inline-block">
+            <span className="bg-secondary/90 backdrop-blur-sm text-secondary-foreground text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm border border-border/20 inline-block">
               {plant.name}
             </span>
           </div>
@@ -123,12 +135,12 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
             onClick={handleShare}
             onTouchEnd={handleShare}
             aria-label={t('share.shareProduct', 'Compartir producto')}
-            className="absolute top-2 right-2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-background/95 text-muted-foreground active:bg-muted shadow-md"
+            className="absolute top-2 right-2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-muted-foreground active:bg-muted shadow-md border border-border/20"
           >
             <Share2 className="h-4 w-4" />
           </button>
           
-          {/* Image indicators - positioned below share button */}
+          {/* Image indicators */}
           {hasMultipleImages && (
             <div className="absolute top-14 right-2 flex gap-1">
               {allImages.map((_, idx) => (
@@ -144,16 +156,23 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
             </div>
           )}
           
-          {/* Price */}
+          {/* Price — glassy chip */}
           {plant.price !== undefined && (
             <div className="absolute bottom-2 left-2">
-              <span className="bg-card/95 text-foreground text-sm font-bold px-2.5 py-1 rounded-lg shadow-sm">
+              <span
+                className="text-foreground text-sm font-bold px-2.5 py-1 rounded-lg shadow-sm border border-border/20"
+                style={{
+                  background: 'hsl(var(--card) / 0.85)',
+                  backdropFilter: 'blur(6px)',
+                  WebkitBackdropFilter: 'blur(6px)',
+                }}
+              >
                 {formatPrice(plant.price)}
               </span>
             </div>
           )}
           
-          {/* Stock quantity - only show if > 0 */}
+          {/* Stock quantity */}
           {plant.quantity && plant.quantity > 0 && (
             <div className="absolute bottom-2 right-2 flex items-center gap-1">
               {plant.quantity === 1 && <span className="text-sm">🍂</span>}
@@ -173,24 +192,25 @@ const MobilePlantCard = ({ plant }: MobilePlantCardProps) => {
           <p className="text-muted-foreground text-xs italic mb-2">{plant.commonName}</p>
           
           <div className="flex items-center justify-between mt-auto gap-2">
-            {/* Light and growth tags */}
+            {/* Light and growth tags — tech badge style */}
             <div className="flex gap-1.5">
-              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${lightInfo.color}`}>
+              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border border-transparent ${lightInfo.color}`}>
                 <LightIcon className="h-2.5 w-2.5" />
               </div>
-              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${growthInfo.color}`}>
+              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border border-transparent ${growthInfo.color}`}>
                 <GrowthIcon className="h-2.5 w-2.5" />
               </div>
             </div>
             
-            {/* Add to cart button */}
+            {/* Add to cart button — glassy style */}
             <Button
               size="sm"
               variant={canAddToCart ? "default" : "secondary"}
               onClick={handleAddToCart}
               onTouchEnd={handleAddToCart}
               disabled={!canAddToCart}
-              className="h-7 px-2 text-xs gap-1 shrink-0"
+              className="h-7 px-2 text-xs gap-1 shrink-0 backdrop-blur-sm active:scale-[1.02]"
+              style={{ transition: 'transform 150ms cubic-bezier(0.4,0,0.2,1)' }}
             >
               <ShoppingCart className="h-3 w-3" />
               {currentQuantityInCart > 0 ? (
