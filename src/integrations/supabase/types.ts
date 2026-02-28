@@ -3496,6 +3496,42 @@ export type Database = {
           },
         ]
       }
+      plant_reviews: {
+        Row: {
+          author_name: string
+          comment: string
+          created_at: string
+          id: string
+          plant_id: string
+          rating: number
+          score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_name: string
+          comment: string
+          created_at?: string
+          id?: string
+          plant_id: string
+          rating: number
+          score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string
+          comment?: string
+          created_at?: string
+          id?: string
+          plant_id?: string
+          rating?: number
+          score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       plant_search_index: {
         Row: {
           category_id: string | null
@@ -4075,6 +4111,38 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      review_votes: {
+        Row: {
+          created_at: string
+          id: string
+          review_id: string
+          user_id: string
+          vote_type: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          review_id: string
+          user_id: string
+          vote_type: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          review_id?: string
+          user_id?: string
+          vote_type?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "plant_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_searches: {
         Row: {
