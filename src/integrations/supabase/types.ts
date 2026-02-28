@@ -941,6 +941,51 @@ export type Database = {
         }
         Relationships: []
       }
+      climate_zones: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          label: string
+          max_temp_c: number | null
+          metadata: Json | null
+          min_temp_c: number | null
+          precipitation_mm_max: number | null
+          precipitation_mm_min: number | null
+          system: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          label: string
+          max_temp_c?: number | null
+          metadata?: Json | null
+          min_temp_c?: number | null
+          precipitation_mm_max?: number | null
+          precipitation_mm_min?: number | null
+          system: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          label?: string
+          max_temp_c?: number | null
+          metadata?: Json | null
+          min_temp_c?: number | null
+          precipitation_mm_max?: number | null
+          precipitation_mm_min?: number | null
+          system?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       collection_activity_log: {
         Row: {
           collection_id: string | null
@@ -4231,6 +4276,71 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      region_overrides: {
+        Row: {
+          altitude_max_m: number | null
+          altitude_min_m: number | null
+          climate_zone_id: string
+          country_code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          lat_max: number | null
+          lat_min: number | null
+          local_label: string | null
+          lon_max: number | null
+          lon_min: number | null
+          notes: string | null
+          postal_prefix: string | null
+          province: string | null
+          updated_at: string
+        }
+        Insert: {
+          altitude_max_m?: number | null
+          altitude_min_m?: number | null
+          climate_zone_id: string
+          country_code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          lat_max?: number | null
+          lat_min?: number | null
+          local_label?: string | null
+          lon_max?: number | null
+          lon_min?: number | null
+          notes?: string | null
+          postal_prefix?: string | null
+          province?: string | null
+          updated_at?: string
+        }
+        Update: {
+          altitude_max_m?: number | null
+          altitude_min_m?: number | null
+          climate_zone_id?: string
+          country_code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          lat_max?: number | null
+          lat_min?: number | null
+          local_label?: string | null
+          lon_max?: number | null
+          lon_min?: number | null
+          notes?: string | null
+          postal_prefix?: string | null
+          province?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "region_overrides_climate_zone_id_fkey"
+            columns: ["climate_zone_id"]
+            isOneToOne: false
+            referencedRelation: "climate_zones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reputation_events: {
         Row: {
