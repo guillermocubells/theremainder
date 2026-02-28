@@ -495,11 +495,58 @@ export function PlantFormDialog({
         `Confianza: ${Math.round((result.confidence || 0) * 100)}%. Revisa los valores.`,
         { duration: 6000 }
       );
+
+      // ── Fetch iNaturalist images if species identified and images empty ──
+      const scientificName = aiData.scientific_name || aiData.name || "";
+      if (scientificName && (!aiPreserveEdited || !touchedFields["images"])) {
+        fetchINaturalistImages(scientificName);
+      }
     } catch (err: any) {
       console.error("AI autocomplete error:", err);
       toast.error(err.message || "Error al autocompletar con IA");
     } finally {
       setIsAiLoading(false);
+    }
+  };
+
+  const fetchINaturalistImages = async (scientificName: string) => {
+    try {
+      const query = encodeURIComponent(scientificName.trim());
+      const url = `https://api.inaturalist.org/v1/observations?taxon_name=${query}&photos=true&per_page=12&quality_grade=research&order_by=votes&order=desc`;
+      const resp = await fetch(url);
+      if (!resp.ok) return;
+
+      const data = await resp.json();
+      const results = data.results || [];
+
+      // Collect unique medium-quality photo URLs (deduplicate by photo id)
+      const seenIds = new Set<number>();
+      const photoUrls: string[] = [];
+
+      for (const obs of results) {
+        if (photoUrls.length >= 5) break;
+        for (const photo of obs.photos || []) {
+          if (photoUrls.length >= 5) break;
+          if (seenIds.has(photo.id)) continue;
+          seenIds.add(photo.id);
+          // Replace "square" with "medium" for better quality
+          const mediumUrl = (photo.url || "").replace("/square.", "/medium.");
+          if (mediumUrl) photoUrls.push(mediumUrl);
+        }
+      }
+
+      if (photoUrls.length === 0) return;
+
+      setFormData((prev) => {
+        // Don't overwrite if user already added images
+        if (prev.images && prev.images.length > 0 && aiPreserveEdited) return prev;
+        return { ...prev, images: photoUrls };
+      });
+
+      toast.success(`📷 ${photoUrls.length} imágenes de iNaturalist añadidas. Revisa en la pestaña "Media".`, { duration: 5000 });
+    } catch (err) {
+      console.error("iNaturalist fetch error:", err);
+      // Silent fail – images are optional
     }
   };
 
