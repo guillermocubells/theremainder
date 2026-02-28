@@ -4151,6 +4151,60 @@ export type Database = {
         }
         Relationships: []
       }
+      review_comments: {
+        Row: {
+          author_name: string
+          body: string
+          created_at: string
+          depth: number
+          id: string
+          is_edited: boolean
+          parent_id: string | null
+          review_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_name: string
+          body: string
+          created_at?: string
+          depth?: number
+          id?: string
+          is_edited?: boolean
+          parent_id?: string | null
+          review_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string
+          body?: string
+          created_at?: string
+          depth?: number
+          id?: string
+          is_edited?: boolean
+          parent_id?: string | null
+          review_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "review_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_comments_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "plant_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_votes: {
         Row: {
           created_at: string

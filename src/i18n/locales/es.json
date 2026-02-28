@@ -957,5 +957,28 @@
     "s4": "plantas para Barcelona clima mediterráneo",
     "s5": "código postal 46001 plantas",
     "s6": "plantas tropicales para Sevilla"
+  },
+  "comments": {
+    "comment": "comentario",
+    "comments": "comentarios",
+    "write": "Escribir",
+    "preview": "Vista previa",
+    "placeholder": "Escribe un comentario... (soporta **negrita**, *cursiva*, `código`)",
+    "yourName": "Tu nombre",
+    "submit": "Comentar",
+    "reply": "Responder",
+    "replyPlaceholder": "Escribe una respuesta...",
+    "edited": "editado",
+    "saveEdit": "Guardar",
+    "deleted": "Comentario eliminado",
+    "updated": "Comentario actualizado",
+    "errorCreating": "Error al publicar comentario",
+    "errorDeleting": "Error al eliminar",
+    "errorUpdating": "Error al actualizar",
+    "loginRequired": "Inicia sesión para comentar",
+    "loadMore": "Cargar más comentarios",
+    "remaining": "restantes",
+    "sortNew": "Más recientes",
+    "sortTop": "Más antiguos"
   }
 }

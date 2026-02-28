@@ -957,5 +957,28 @@
     "s4": "plants for Barcelona Mediterranean climate",
     "s5": "postal code 46001 plants",
     "s6": "tropical plants for Seville"
+  },
+  "comments": {
+    "comment": "comment",
+    "comments": "comments",
+    "write": "Write",
+    "preview": "Preview",
+    "placeholder": "Write a comment... (supports **bold**, *italic*, `code`)",
+    "yourName": "Your name",
+    "submit": "Comment",
+    "reply": "Reply",
+    "replyPlaceholder": "Write a reply...",
+    "edited": "edited",
+    "saveEdit": "Save",
+    "deleted": "Comment deleted",
+    "updated": "Comment updated",
+    "errorCreating": "Error posting comment",
+    "errorDeleting": "Error deleting",
+    "errorUpdating": "Error updating",
+    "loginRequired": "Log in to comment",
+    "loadMore": "Load more comments",
+    "remaining": "remaining",
+    "sortNew": "Newest",
+    "sortTop": "Oldest"
   }
 }
