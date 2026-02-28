@@ -701,8 +701,8 @@ export function PlantFormDialog({
           )}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <div className="flex-1 overflow-y-auto min-h-0 pr-2" style={{ maxHeight: "calc(90vh - 220px)" }}>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto min-h-0 pr-2">
             <Tabs defaultValue="general" className="w-full px-1">
               <TabsList className="grid grid-cols-6 w-full mb-4">
                 <TabsTrigger value="general" className="relative">
