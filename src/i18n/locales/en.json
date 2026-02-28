@@ -980,5 +980,34 @@
     "remaining": "remaining",
     "sortNew": "Newest",
     "sortTop": "Oldest"
+  },
+  "report": {
+    "flag": "Report",
+    "title": "Report content",
+    "description": "Select the reason you want to report this {{entity}}.",
+    "entityReview": "review",
+    "entityComment": "comment",
+    "reasons": {
+      "spam": "Spam or advertising",
+      "offensive": "Offensive content",
+      "misinformation": "False information",
+      "harassment": "Harassment or bullying",
+      "other": "Other reason"
+    },
+    "detailsPlaceholder": "Describe the issue...",
+    "guidelines": "Community guidelines",
+    "continue": "Continue",
+    "back": "Back",
+    "confirmTitle": "Confirm report?",
+    "confirmDescription": "You're reporting this {{entity}} for: {{reason}}. Our team will review the content.",
+    "submit": "Submit report",
+    "successTitle": "Report submitted",
+    "successDescription": "Thank you for helping keep our community safe. We'll review your report soon.",
+    "alreadyTitle": "Already reported",
+    "alreadyDescription": "Your previous report is still under review. Thank you for your patience.",
+    "errorTitle": "Error submitting",
+    "errorDescription": "Could not submit your report. Please try again.",
+    "retry": "Retry",
+    "loginRequired": "Log in to report content"
   }
 }

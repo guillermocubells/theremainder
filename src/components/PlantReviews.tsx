@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Star, MessageSquare, User } from "lucide-react";
+import { Star, MessageSquare, User, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { usePlantReviews, useCreateReview } from "@/hooks/usePlantReviews";
 import { useReviewVotes } from "@/hooks/useReviewVotes";
 import VoteWidget from "@/components/reviews/VoteWidget";
 import CommentThread from "@/components/reviews/CommentThread";
+import ReportModal from "@/components/reviews/ReportModal";
 import { toast } from "sonner";
 
 interface PlantReviewsProps {
@@ -26,6 +27,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
 
   const [showForm, setShowForm] = useState(false);
   const [newReview, setNewReview] = useState({ author: "", rating: 5, comment: "" });
+  const [reportingReviewId, setReportingReviewId] = useState<string | null>(null);
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,7 +169,18 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
                 <div className="flex-1">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-1 mb-1.5">
                     <span className="font-medium text-foreground text-sm">{review.author_name}</span>
-                    <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
+                      {user && user.id !== review.user_id && (
+                        <button
+                          onClick={() => setReportingReviewId(review.id)}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                          aria-label={t('report.flag', 'Reportar')}
+                        >
+                          <Flag className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-3 mb-1.5">
                     {renderStars(review.rating)}
@@ -185,6 +198,14 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
           ))}
         </div>
       )}
+
+      {/* Report Modal */}
+      <ReportModal
+        open={!!reportingReviewId}
+        onOpenChange={(v) => { if (!v) setReportingReviewId(null); }}
+        entityType="review"
+        entityId={reportingReviewId ?? ''}
+      />
     </div>
   );
 };
