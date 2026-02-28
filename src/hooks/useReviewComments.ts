@@ -6,13 +6,14 @@ export interface ReviewComment {
   id: string;
   review_id: string;
   parent_id: string | null;
-  user_id: string;
+  user_id: string | null;
   author_name: string;
   body: string;
   is_edited: boolean;
   depth: number;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
   replies?: ReviewComment[];
 }
 
@@ -22,18 +23,32 @@ export const useReviewComments = (reviewId: string, sort: SortMode = 'new') => {
   return useQuery({
     queryKey: ['review-comments', reviewId, sort],
     queryFn: async () => {
-      const order = sort === 'top'
-        ? { column: 'created_at', ascending: true } // top-level oldest first for "top" (thread context)
-        : { column: 'created_at', ascending: false };
+      const { data, error } = await supabase.functions.invoke('api-comments', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: null,
+      });
 
-      const { data, error } = await supabase
-        .from('review_comments')
-        .select('*')
-        .eq('review_id', reviewId)
-        .order(order.column, { ascending: order.ascending });
+      // Edge function GET needs query params — use direct fetch instead
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-comments?review_id=${reviewId}&sort=${sort === 'top' ? 'old' : 'new'}&limit=100`;
 
-      if (error) throw error;
-      return buildTree((data ?? []) as ReviewComment[]);
+      const res = await fetch(url, {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: { message: 'Request failed' } }));
+        throw new Error(err.error?.message ?? 'Failed to load comments');
+      }
+
+      const result = await res.json();
+      return buildTree((result.data ?? []) as ReviewComment[]);
     },
     enabled: !!reviewId,
   });
@@ -67,19 +82,17 @@ export const useCreateComment = () => {
       body: string;
     }) => {
       if (!user) throw new Error('Not authenticated');
-      const { data, error } = await supabase
-        .from('review_comments')
-        .insert({
+      const { data, error } = await supabase.functions.invoke('api-comments', {
+        method: 'POST',
+        body: {
           review_id: input.review_id,
           parent_id: input.parent_id ?? null,
-          user_id: user.id,
           author_name: input.author_name,
           body: input.body,
-        })
-        .select()
-        .single();
+        },
+      });
       if (error) throw error;
-      return data;
+      return data?.data;
     },
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['review-comments', vars.review_id] });
@@ -92,10 +105,10 @@ export const useUpdateComment = () => {
 
   return useMutation({
     mutationFn: async ({ id, body, reviewId }: { id: string; body: string; reviewId: string }) => {
-      const { error } = await supabase
-        .from('review_comments')
-        .update({ body, is_edited: true })
-        .eq('id', id);
+      const { error } = await supabase.functions.invoke('api-comments', {
+        method: 'PATCH',
+        body: { id, body },
+      });
       if (error) throw error;
       return reviewId;
     },
@@ -110,10 +123,10 @@ export const useDeleteComment = () => {
 
   return useMutation({
     mutationFn: async ({ id, reviewId }: { id: string; reviewId: string }) => {
-      const { error } = await supabase
-        .from('review_comments')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.functions.invoke('api-comments', {
+        method: 'DELETE',
+        body: { id },
+      });
       if (error) throw error;
       return reviewId;
     },

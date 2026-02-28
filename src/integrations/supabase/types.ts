@@ -4261,6 +4261,7 @@ export type Database = {
           author_name: string
           body: string
           created_at: string
+          deleted_at: string | null
           depth: number
           id: string
           is_edited: boolean
@@ -4273,6 +4274,7 @@ export type Database = {
           author_name: string
           body: string
           created_at?: string
+          deleted_at?: string | null
           depth?: number
           id?: string
           is_edited?: boolean
@@ -4285,6 +4287,7 @@ export type Database = {
           author_name?: string
           body?: string
           created_at?: string
+          deleted_at?: string | null
           depth?: number
           id?: string
           is_edited?: boolean

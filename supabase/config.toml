@@ -83,3 +83,6 @@ verify_jwt = false
 
 [functions.api-votes]
 verify_jwt = false
+
+[functions.api-comments]
+verify_jwt = false
