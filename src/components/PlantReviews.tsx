@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlantReviews, useCreateReview } from "@/hooks/usePlantReviews";
 import { useReviewVotes } from "@/hooks/useReviewVotes";
 import VoteWidget from "@/components/reviews/VoteWidget";
+import CommentThread from "@/components/reviews/CommentThread";
 import { toast } from "sonner";
 
 interface PlantReviewsProps {
@@ -177,6 +178,7 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
                     />
                   </div>
                   <p className="text-muted-foreground text-xs sm:text-sm lg:text-base leading-relaxed">{review.comment}</p>
+                  <CommentThread reviewId={review.id} />
                 </div>
               </div>
             </div>
