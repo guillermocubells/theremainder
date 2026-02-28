@@ -92,3 +92,6 @@ verify_jwt = false
 
 [functions.api-moderation]
 verify_jwt = false
+
+[functions.api-verification]
+verify_jwt = false
