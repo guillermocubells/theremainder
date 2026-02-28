@@ -112,3 +112,30 @@ export function useVerificationStatus(
     staleTime: 120_000,
   });
 }
+
+export interface RecentContribution {
+  id: string;
+  action_key: string;
+  delta: number;
+  created_at: string;
+  source_entity_type: string | null;
+}
+
+export function useRecentContributions(userId: string | undefined, limit = 10) {
+  return useQuery({
+    queryKey: ["recent-contributions", userId, limit],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from("reputation_ledger")
+        .select("id, action_key, delta, created_at, source_entity_type")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data ?? []) as RecentContribution[];
+    },
+    enabled: !!userId,
+    staleTime: 60_000,
+  });
+}
