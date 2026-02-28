@@ -171,7 +171,7 @@ const DesktopPlantCard = ({ plant }: DesktopPlantCardProps) => {
                   <Share2 className="h-4 w-4" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
+              <TooltipContent side="left">
                 {t('share.shareProduct', 'Compartir producto')}
               </TooltipContent>
             </Tooltip>
