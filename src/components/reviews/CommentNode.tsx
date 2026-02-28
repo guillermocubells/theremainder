@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { User, Pencil, Trash2, MessageSquare, CornerDownRight } from 'lucide-react';
+import { User, Pencil, Trash2, MessageSquare, CornerDownRight, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { ReviewComment, useDeleteComment, useUpdateComment } from '@/hooks/useReviewComments';
 import CommentComposer from './CommentComposer';
+import ReportModal from './ReportModal';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +23,7 @@ const CommentNode = ({ comment, reviewId, onReply, maxDepth = MAX_DEPTH }: Comme
   const { user } = useAuth();
   const [replying, setReplying] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const deleteComment = useDeleteComment();
   const updateComment = useUpdateComment();
 
@@ -132,8 +134,21 @@ const CommentNode = ({ comment, reviewId, onReply, maxDepth = MAX_DEPTH }: Comme
                 </Button>
               </>
             )}
+            {!isOwner && user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-1.5 text-[10px] text-muted-foreground"
+                onClick={() => setReportOpen(true)}
+              >
+                <Flag className="h-3 w-3 mr-0.5" />
+                {t('report.flag', 'Reportar')}
+              </Button>
+            )}
           </div>
         )}
+
+        <ReportModal open={reportOpen} onOpenChange={setReportOpen} entityType="comment" entityId={comment.id} />
 
         {/* Reply composer */}
         {replying && (

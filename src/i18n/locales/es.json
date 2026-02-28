@@ -980,5 +980,34 @@
     "remaining": "restantes",
     "sortNew": "Más recientes",
     "sortTop": "Más antiguos"
+  },
+  "report": {
+    "flag": "Reportar",
+    "title": "Reportar contenido",
+    "description": "Selecciona el motivo por el que quieres reportar esta {{entity}}.",
+    "entityReview": "reseña",
+    "entityComment": "comentario",
+    "reasons": {
+      "spam": "Spam o publicidad",
+      "offensive": "Contenido ofensivo",
+      "misinformation": "Información falsa",
+      "harassment": "Acoso o intimidación",
+      "other": "Otro motivo"
+    },
+    "detailsPlaceholder": "Describe el problema...",
+    "guidelines": "Normas de la comunidad",
+    "continue": "Continuar",
+    "back": "Volver",
+    "confirmTitle": "¿Confirmar reporte?",
+    "confirmDescription": "Vas a reportar esta {{entity}} por: {{reason}}. Nuestro equipo revisará el contenido.",
+    "submit": "Enviar reporte",
+    "successTitle": "Reporte enviado",
+    "successDescription": "Gracias por ayudar a mantener nuestra comunidad segura. Revisaremos tu reporte pronto.",
+    "alreadyTitle": "Ya has reportado este contenido",
+    "alreadyDescription": "Tu reporte anterior sigue en revisión. Gracias por tu paciencia.",
+    "errorTitle": "Error al enviar",
+    "errorDescription": "No se pudo enviar tu reporte. Por favor, inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "loginRequired": "Inicia sesión para reportar contenido"
   }
 }
