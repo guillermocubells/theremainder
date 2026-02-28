@@ -123,6 +123,7 @@ export interface SortOption {
 
 export const SORT_OPTIONS: SortOption[] = [
   { key: 'relevance',    column: 'display_order', direction: 'asc',  label_es: 'Relevancia',      label_en: 'Relevance',      isDefault: true },
+  { key: 'climate_fit',  column: 'fit_score',     direction: 'desc', label_es: 'Mejor adaptación', label_en: 'Best fit'       },
   { key: 'price_asc',    column: 'price',         direction: 'asc',  label_es: 'Precio: menor',   label_en: 'Price: low'     },
   { key: 'price_desc',   column: 'price',         direction: 'desc', label_es: 'Precio: mayor',   label_en: 'Price: high'    },
   { key: 'newest',       column: 'created_at',    direction: 'desc', label_es: 'Más recientes',   label_en: 'Newest'         },

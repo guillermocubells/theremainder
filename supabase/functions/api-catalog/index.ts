@@ -92,6 +92,15 @@ Deno.serve(async (req: Request) => {
       const page = Math.max(parseInt(url.searchParams.get("page") || "1") || 1, 1);
       const pageSize = Math.min(Math.max(parseInt(url.searchParams.get("page_size") || "24") || 24, 1), 100);
 
+      // Climate filters
+      const hardinessMin = url.searchParams.get("hardiness_min") || null;
+      const hardinessMax = url.searchParams.get("hardiness_max") || null;
+      const minTempMaxRaw = url.searchParams.get("min_temp_max");
+      const minTempMax = minTempMaxRaw ? parseInt(minTempMaxRaw) : null;
+      const climateFitMinRaw = url.searchParams.get("climate_fit_min");
+      const climateFitMin = climateFitMinRaw ? parseInt(climateFitMinRaw) : null;
+      const addressId = url.searchParams.get("address_id") || null;
+
       // Sanitize query
       const sanitizedQ = q ? sanitizeSearchQuery(q) : null;
       if (q && (!sanitizedQ || sanitizedQ.length < 1)) {
@@ -107,7 +116,7 @@ Deno.serve(async (req: Request) => {
       }
 
       // Validate sort
-      const validSorts = ["relevance", "price_asc", "price_desc", "newest", "name_asc", "rarity_desc"];
+      const validSorts = ["relevance", "price_asc", "price_desc", "newest", "name_asc", "rarity_desc", "climate_fit"];
       if (!validSorts.includes(sort)) throw new AppError("Invalid sort", 400, "INVALID_SORT");
 
       // Call the DB search function
@@ -140,6 +149,11 @@ Deno.serve(async (req: Request) => {
         p_page: page,
         p_page_size: pageSize,
         p_ab_variant: abVariant,
+        p_hardiness_min: hardinessMin,
+        p_hardiness_max: hardinessMax,
+        p_min_temp_max: minTempMax,
+        p_climate_fit_min: climateFitMin,
+        p_address_id: addressId,
       });
 
       if (searchErr) throw searchErr;
