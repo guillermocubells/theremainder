@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.api-verification]
 verify_jwt = false
+
+[functions.nightly-reputation-maintenance]
+verify_jwt = false
