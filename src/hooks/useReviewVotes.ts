@@ -36,20 +36,18 @@ export const useCastVote = () => {
       if (!user) throw new Error('Not authenticated');
 
       if (voteType === 0) {
-        // Remove vote
-        await supabase
-          .from('review_votes')
-          .delete()
-          .eq('review_id', reviewId)
-          .eq('user_id', user.id);
+        // Remove vote via edge function
+        const { error } = await supabase.functions.invoke('api-votes', {
+          method: 'DELETE',
+          body: { review_id: reviewId },
+        });
+        if (error) throw error;
       } else {
-        // Upsert vote
-        const { error } = await supabase
-          .from('review_votes')
-          .upsert(
-            { review_id: reviewId, user_id: user.id, vote_type: voteType },
-            { onConflict: 'review_id,user_id' }
-          );
+        // Cast/change vote via edge function
+        const { error } = await supabase.functions.invoke('api-votes', {
+          method: 'POST',
+          body: { review_id: reviewId, vote_type: voteType },
+        });
         if (error) throw error;
       }
     },

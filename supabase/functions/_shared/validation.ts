@@ -199,6 +199,15 @@ function validate<T>(
 //  Exports
 // ────────────────────────────────────────────────────
 
+const castVoteSchema = z.object({
+  review_id: uuid,
+  vote_type: z.union([z.literal(1), z.literal(-1)]),
+});
+
+const removeVoteSchema = z.object({
+  review_id: uuid,
+});
+
 export const schemas = {
   checkout: checkoutSchema,
   calculateShipping: calculateShippingSchema,
@@ -206,6 +215,8 @@ export const schemas = {
   auctionDeposit: auctionDepositSchema,
   recordAuctionConsent: recordAuctionConsentSchema,
   profileUpdate: profileUpdateSchema,
+  castVote: castVoteSchema,
+  removeVote: removeVoteSchema,
   // Primitives for ad-hoc usage
   uuid,
   slug,
