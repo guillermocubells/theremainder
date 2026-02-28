@@ -5254,21 +5254,27 @@ export type Database = {
       }
       user_reputation: {
         Row: {
+          confidence: number | null
           last_computed_at: string
+          last_maintenance_at: string | null
           level: string
           total_score: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          confidence?: number | null
           last_computed_at?: string
+          last_maintenance_at?: string | null
           level?: string
           total_score?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          confidence?: number | null
           last_computed_at?: string
+          last_maintenance_at?: string | null
           level?: string
           total_score?: number
           updated_at?: string
@@ -5651,6 +5657,13 @@ export type Database = {
       }
     }
     Functions: {
+      apply_score_decay: {
+        Args: { p_decay_days?: number; p_decay_factor?: number }
+        Returns: {
+          entries_decayed: number
+          users_updated: number
+        }[]
+      }
       bump_synonym_version: { Args: never; Returns: number }
       calculate_backoff: { Args: { p_attempts: number }; Returns: unknown }
       calculate_invoice_hash: {
@@ -5753,6 +5766,16 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      detect_vote_brigading: {
+        Args: { p_threshold?: number; p_window_minutes?: number }
+        Returns: {
+          first_vote: string
+          last_vote: string
+          target_review_id: string
+          vote_count: number
+          voter_id: string
+        }[]
       }
       emit_metric: {
         Args: {
@@ -5896,6 +5919,7 @@ export type Database = {
             Returns: string
           }
       rarity_to_ordinal: { Args: { p_rarity: string }; Returns: number }
+      recompute_confidence: { Args: never; Returns: number }
       refresh_plant_review_stats: {
         Args: { p_plant_id: string }
         Returns: undefined
