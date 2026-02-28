@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Star, MessageSquare, User, Flag } from "lucide-react";
+import ReviewerReputation from "@/components/reputation/ReviewerReputation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -167,9 +168,12 @@ const PlantReviews = ({ plantId, plantName }: PlantReviewsProps) => {
                   <User className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-1 mb-1.5">
-                    <span className="font-medium text-foreground text-sm">{review.author_name}</span>
-                    <div className="flex items-center gap-2">
+                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-1 mb-1.5">
+                     <div className="flex items-center gap-2 flex-wrap">
+                       <span className="font-medium text-foreground text-sm">{review.author_name}</span>
+                       <ReviewerReputation userId={review.user_id} />
+                     </div>
+                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
                       {user && user.id !== review.user_id && (
                         <button
