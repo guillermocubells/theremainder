@@ -12,6 +12,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { useCareNotes, type CareNote } from "@/hooks/useCareNotes";
+import { useLocationPreference } from "@/hooks/useLocationPreference";
+import LocationEmptyState from "@/components/location/LocationEmptyState";
 
 // ── Category config ──────────────────────────────────────────────────
 
@@ -180,9 +182,32 @@ interface RegionCareNotesProps {
 
 const RegionCareNotes = ({ plantId, className, initialLimit = 4 }: RegionCareNotesProps) => {
   const { t, i18n } = useTranslation();
+  const { location } = useLocationPreference();
   const { data: notes, isLoading } = useCareNotes(plantId);
   const [expanded, setExpanded] = useState(false);
   const isEs = i18n.language.startsWith("es");
+
+  // Show location CTA when no location is set
+  if (!location) {
+    return (
+      <Card className={className}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-primary" aria-hidden="true" />
+            {isEs ? "Notas de cuidado" : "Care notes"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <LocationEmptyState
+            variant="inline"
+            contextLabel={isEs
+              ? "Indica tu ubicación para ver consejos adaptados a tu zona"
+              : "Set your location to see tips tailored to your area"}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return (
