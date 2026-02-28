@@ -301,13 +301,14 @@ async function handleTakeAction(
       await handleContentRemoval(adminClient, report.entity_type, report.entity_id, log);
     }
 
+    // Get the reported user for reputation & notification
+    const reportedUserId = await getReportedUserId(adminClient, report.entity_type, report.entity_id);
+
     // If action is "warn" or "remove", trigger confirmed_abuse reputation penalty
     if (action === "warn" || action === "remove") {
       const repUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/process-reputation`;
       const repHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${serviceKey}` };
 
-      // Get the reported user
-      const reportedUserId = await getReportedUserId(adminClient, report.entity_type, report.entity_id);
       if (reportedUserId) {
         fetch(repUrl, {
           method: "POST",
@@ -320,6 +321,32 @@ async function handleTakeAction(
           }),
         }).catch(() => {});
       }
+    }
+
+    // Notify reported user about moderation decision
+    if (reportedUserId) {
+      const { emitNotification } = await import("../_shared/notify.ts");
+      const eventType = action === "dismiss" ? "report_dismissed" :
+                        action === "warn" ? "content_warning" : "content_removed";
+      const emailTemplate = action === "remove" ? "content_removed" : action === "warn" ? "content_warning" : null;
+
+      await emitNotification(adminClient, {
+        userId: reportedUserId,
+        eventType,
+        payload: {
+          report_id: id,
+          entity_type: report.entity_type,
+          entity_id: report.entity_id,
+          action,
+          notes: notes ?? null,
+        },
+        ...(emailTemplate ? {
+          email: {
+            subject: action === "remove" ? "Your content has been removed" : "You received a content warning",
+            template: emailTemplate,
+          },
+        } : {}),
+      }).catch(() => {});
     }
   }
 

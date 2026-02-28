@@ -254,6 +254,47 @@ async function handleCreate(
 
   log.info("Comment created", { id: data.id, review_id, parent_id });
 
+  // ── Fire-and-forget notifications ──
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (serviceKey) {
+    const { emitNotification } = await import("../_shared/notify.ts");
+    const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);
+
+    // Notify review author about new comment
+    const { data: review } = await supabase
+      .from("plant_reviews")
+      .select("user_id")
+      .eq("id", review_id)
+      .single();
+
+    if (review?.user_id && review.user_id !== userId) {
+      emitNotification(adminClient, {
+        userId: review.user_id,
+        eventType: "new_comment",
+        payload: { review_id, comment_id: data.id, commenter_name: author_name },
+        email: { subject: "New comment on your review", template: "new_comment" },
+      }).catch(() => {});
+    }
+
+    // If replying, notify the parent comment author
+    if (parent_id) {
+      const { data: parentComment } = await supabase
+        .from("review_comments")
+        .select("user_id")
+        .eq("id", parent_id)
+        .single();
+
+      if (parentComment?.user_id && parentComment.user_id !== userId && parentComment.user_id !== review?.user_id) {
+        emitNotification(adminClient, {
+          userId: parentComment.user_id,
+          eventType: "comment_reply",
+          payload: { review_id, parent_id, comment_id: data.id, commenter_name: author_name },
+          email: { subject: "Someone replied to your comment", template: "comment_reply" },
+        }).catch(() => {});
+      }
+    }
+  }
+
   return new Response(JSON.stringify({ data }), {
     status: 201,
     headers: { ...cors, ...rlHeaders, "Content-Type": "application/json" },
