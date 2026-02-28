@@ -38,6 +38,7 @@ import SocialShareButtons from "./SocialShareButtons";
 import TrustBadges from "./TrustBadges";
 import ScarcityIndicator from "./ScarcityIndicator";
 import ClimateFitWidget from "./plant/ClimateFitWidget";
+import RegionCareNotes from "./plant/RegionCareNotes";
 
 const PlantDetail = () => {
   const { plantId } = useParams();
@@ -529,6 +530,11 @@ const PlantDetail = () => {
                 </div>
               </div>
             )}
+
+            {/* ====== REGION CARE NOTES ====== */}
+            <div className="mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: '180ms' }}>
+              <RegionCareNotes plantId={plant.id} />
+            </div>
 
             {/* Curious Facts */}
             {detail && (
