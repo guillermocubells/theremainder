@@ -82,6 +82,7 @@ const TOOL_SCHEMA = {
         image_alt_text: { type: "string", description: "Alt text like '{scientific_name} planta'" },
         reference_url: { type: "string", description: "GBIF/POWO/reliable reference URL if known" },
         notes: { type: "string", description: "Brief technical notes + confidence for internal use" },
+        tags: { type: "array", items: { type: "string" }, description: "Etiquetas relevantes en español, ej: ['tropical', 'resistente', 'rara', 'coleccionista', 'interior']. 3-6 tags." },
         price_suggestion: { type: "string", description: "Optional price suggestion or range like '€35-80 (rara, palmera tropical)'. Empty if unsure." },
         confidence_by_field: {
           type: "object",
@@ -328,6 +329,7 @@ serve(async (req) => {
         image_alt_text: plantData.image_alt_text || "",
         reference_url: plantData.reference_url || "",
         notes: plantData.notes || "",
+        tags: plantData.tags || [],
       },
       confidence: plantData.confidence || 0,
       confidenceByField: plantData.confidence_by_field || {},
