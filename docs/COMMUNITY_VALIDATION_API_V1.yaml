@@ -1,0 +1,669 @@
+openapi: "3.0.3"
+info:
+  title: Fronda Prima – Community Validation API
+  version: "1.0.0"
+  description: |
+    Endpoints for plant review management, voting (upvote/downvote),
+    content reporting, and community verification signals.
+    
+    All mutating endpoints require a valid JWT in the `Authorization` header.
+    Read endpoints are public unless noted otherwise.
+  contact:
+    name: Fronda Prima Dev
+    email: dev@frondaprima.com
+
+servers:
+  - url: "{supabaseUrl}/rest/v1"
+    description: Supabase PostgREST (direct table access via RLS)
+    variables:
+      supabaseUrl:
+        default: https://qsjnjitjbegtrxgwqygg.supabase.co
+
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
+
+tags:
+  - name: Reviews
+    description: Plant reviews (CRUD)
+  - name: Votes
+    description: Upvote / downvote on reviews
+  - name: ReviewStats
+    description: Aggregated confidence scores per plant
+  - name: Reports
+    description: Flag inappropriate content
+  - name: Verifications
+    description: Community-verified purchase badges
+
+paths:
+  # ── Reviews ───────────────────────────────────────────────
+  /plant_reviews:
+    get:
+      operationId: listReviews
+      tags: [Reviews]
+      summary: List reviews for a plant
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/plantIdFilter"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/offsetParam"
+      responses:
+        "200":
+          description: Array of reviews sorted by score then recency
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+              example:
+                - id: "a1b2c3d4-0000-0000-0000-000000000001"
+                  plant_id: "monstera-deliciosa"
+                  user_id: "u-0001"
+                  author_name: "Elena G."
+                  rating: 5
+                  comment: "Arrived in perfect condition, already putting out new leaves."
+                  score: 12
+                  created_at: "2026-02-20T10:30:00Z"
+                  updated_at: "2026-02-25T08:00:00Z"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+    post:
+      operationId: createReview
+      tags: [Reviews]
+      summary: Submit a new review
+      description: |
+        Requires authentication. `user_id` must match the JWT subject.
+        One review per user per plant is recommended (enforced at app level).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewCreate"
+            example:
+              plant_id: "monstera-deliciosa"
+              user_id: "u-0001"
+              author_name: "Elena G."
+              rating: 5
+              comment: "Healthy root system, well packaged."
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /plant_reviews?id=eq.{reviewId}:
+    patch:
+      operationId: updateReview
+      tags: [Reviews]
+      summary: Edit own review
+      description: RLS restricts updates to the review owner.
+      parameters:
+        - $ref: "#/components/parameters/reviewIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewUpdate"
+            example:
+              rating: 4
+              comment: "Updated after 2 months – still thriving."
+      responses:
+        "200":
+          description: Review updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: deleteReview
+      tags: [Reviews]
+      summary: Delete own review
+      parameters:
+        - $ref: "#/components/parameters/reviewIdPath"
+      responses:
+        "204":
+          description: Review deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Votes ─────────────────────────────────────────────────
+  /review_votes:
+    get:
+      operationId: listUserVotes
+      tags: [Votes]
+      summary: Get current user's votes for given reviews
+      description: |
+        Filter by `review_id` (in list) and `user_id` (eq).
+        Typically called client-side to render active vote states.
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Must match JWT subject (RLS enforced)
+        - name: review_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: "PostgREST `in.(id1,id2,...)` syntax"
+      responses:
+        "200":
+          description: Array of user votes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vote"
+              example:
+                - review_id: "a1b2c3d4-0000-0000-0000-000000000001"
+                  vote_type: 1
+
+    post:
+      operationId: castVote
+      tags: [Votes]
+      summary: Cast or change a vote (upsert)
+      description: |
+        Uses `ON CONFLICT (review_id, user_id)` upsert.
+        A trigger automatically updates `plant_reviews.score` and
+        `plant_review_stats`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteCreate"
+            example:
+              review_id: "a1b2c3d4-0000-0000-0000-000000000001"
+              user_id: "u-0001"
+              vote_type: 1
+      responses:
+        "201":
+          description: Vote recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vote"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Conflict – use upsert header `Prefer: resolution=merge-duplicates`
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+    delete:
+      operationId: removeVote
+      tags: [Votes]
+      summary: Remove own vote
+      description: Filtered by `review_id` and `user_id`. RLS enforced.
+      parameters:
+        - name: review_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Vote removed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ── Review Stats ──────────────────────────────────────────
+  /plant_review_stats:
+    get:
+      operationId: getReviewStats
+      tags: [ReviewStats]
+      summary: Aggregated confidence scores per plant
+      security: []
+      description: |
+        Trigger-maintained table. Returns Wilson score lower bound,
+        vote counts, average rating, and last-activity timestamp
+        for decay computation.
+      parameters:
+        - name: plant_id
+          in: query
+          schema:
+            type: string
+          description: "PostgREST `eq.` or `in.()` filter"
+      responses:
+        "200":
+          description: Stats array
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReviewStats"
+              example:
+                - plant_id: "monstera-deliciosa"
+                  total_reviews: 23
+                  avg_rating: 4.65
+                  total_upvotes: 87
+                  total_downvotes: 4
+                  net_votes: 83
+                  confidence_score: 0.89123
+                  last_activity_at: "2026-02-27T14:22:00Z"
+                  activity_decay: 0.9800
+                  updated_at: "2026-02-27T14:22:00Z"
+
+  # ── Reports ───────────────────────────────────────────────
+  /rpc/report_content:
+    post:
+      operationId: reportContent
+      tags: [Reports]
+      summary: Flag a review or comment as inappropriate
+      description: |
+        Creates a moderation report. Requires authentication.
+        Duplicate reports from the same user for the same entity are
+        silently ignored (idempotent).
+        
+        **Note:** This endpoint is planned; the RPC does not yet exist
+        in the database. Schema is provided for future implementation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportCreate"
+            example:
+              entity_type: "review"
+              entity_id: "a1b2c3d4-0000-0000-0000-000000000001"
+              reason: "spam"
+              details: "Contains promotional links."
+      responses:
+        "200":
+          description: Report acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportAck"
+              example:
+                id: "rpt-0001"
+                status: "pending"
+                created_at: "2026-02-28T01:00:00Z"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  # ── Verifications ─────────────────────────────────────────
+  /rpc/verify_purchase:
+    post:
+      operationId: verifyPurchase
+      tags: [Verifications]
+      summary: Check if user has a verified purchase for a plant
+      description: |
+        Returns a boolean indicating whether the authenticated user
+        has a completed order containing the specified `plant_id`.
+        Used to display "Verified Purchase" badges on reviews.
+        
+        **Note:** This endpoint is planned; the RPC does not yet exist.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plant_id]
+              properties:
+                plant_id:
+                  type: string
+                  description: Catalog plant identifier
+            example:
+              plant_id: "monstera-deliciosa"
+      responses:
+        "200":
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified:
+                    type: boolean
+                  order_date:
+                    type: string
+                    format: date-time
+                    nullable: true
+              example:
+                verified: true
+                order_date: "2026-01-15T09:00:00Z"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+components:
+  # ── Security ──────────────────────────────────────────────
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase access token from `auth.getSession()`
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: apikey
+      description: Supabase anon/public key
+
+  # ── Parameters ────────────────────────────────────────────
+  parameters:
+    plantIdFilter:
+      name: plant_id
+      in: query
+      required: true
+      schema:
+        type: string
+      description: "PostgREST filter, e.g. `eq.monstera-deliciosa`"
+    reviewIdPath:
+      name: reviewId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    orderBy:
+      name: order
+      in: query
+      schema:
+        type: string
+        default: "score.desc,created_at.desc"
+      description: PostgREST ordering
+    limitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+        maximum: 100
+    offsetParam:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        default: 0
+
+  # ── Schemas ───────────────────────────────────────────────
+  schemas:
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        plant_id:
+          type: string
+          maxLength: 255
+        user_id:
+          type: string
+          format: uuid
+        author_name:
+          type: string
+          maxLength: 100
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          maxLength: 2000
+        score:
+          type: integer
+          description: Net vote score (upvotes − downvotes)
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ReviewCreate:
+      type: object
+      required: [plant_id, user_id, author_name, rating, comment]
+      properties:
+        plant_id:
+          type: string
+          minLength: 1
+          maxLength: 255
+        user_id:
+          type: string
+          format: uuid
+          description: Must match JWT `sub` claim
+        author_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          minLength: 1
+          maxLength: 2000
+
+    ReviewUpdate:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          minLength: 1
+          maxLength: 2000
+
+    Vote:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        review_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        vote_type:
+          type: integer
+          enum: [1, -1]
+          description: "`1` = upvote, `-1` = downvote"
+        created_at:
+          type: string
+          format: date-time
+
+    VoteCreate:
+      type: object
+      required: [review_id, user_id, vote_type]
+      properties:
+        review_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+          description: Must match JWT `sub` claim
+        vote_type:
+          type: integer
+          enum: [1, -1]
+
+    ReviewStats:
+      type: object
+      properties:
+        plant_id:
+          type: string
+        total_reviews:
+          type: integer
+        avg_rating:
+          type: number
+          format: float
+        total_upvotes:
+          type: integer
+        total_downvotes:
+          type: integer
+        net_votes:
+          type: integer
+        confidence_score:
+          type: number
+          format: float
+          description: Wilson score lower bound (95% CI)
+        last_activity_at:
+          type: string
+          format: date-time
+          nullable: true
+        activity_decay:
+          type: number
+          format: float
+          description: "Exponential decay factor (0–1)"
+        updated_at:
+          type: string
+          format: date-time
+
+    ReportCreate:
+      type: object
+      required: [entity_type, entity_id, reason]
+      properties:
+        entity_type:
+          type: string
+          enum: [review, comment]
+        entity_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          enum: [spam, offensive, misinformation, other]
+        details:
+          type: string
+          maxLength: 500
+
+    ReportAck:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, reviewing, resolved, dismissed]
+        created_at:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [message, code]
+          properties:
+            message:
+              type: string
+              description: Human-readable error description
+            code:
+              type: string
+              description: Machine-readable error code
+              enum:
+                - VALIDATION_ERROR
+                - UNAUTHORIZED
+                - FORBIDDEN
+                - NOT_FOUND
+                - CONFLICT
+                - RATE_LIMITED
+                - INTERNAL_ERROR
+            request_id:
+              type: string
+              description: Trace ID from `X-Request-Id` header
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+
+  # ── Responses ─────────────────────────────────────────────
+  responses:
+    BadRequest:
+      description: Invalid query parameters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              message: "Invalid filter syntax for plant_id"
+              code: VALIDATION_ERROR
+
+    Unauthorized:
+      description: Missing or invalid JWT
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              message: "JWT token is missing or expired"
+              code: UNAUTHORIZED
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              message: "Review not found"
+              code: NOT_FOUND
+
+    ValidationError:
+      description: Request body failed schema validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              message: "Validation failed"
+              code: VALIDATION_ERROR
+              details:
+                - field: rating
+                  message: "Must be between 1 and 5"
+                - field: comment
+                  message: "Must not be empty"
